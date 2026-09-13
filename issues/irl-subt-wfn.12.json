@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-wfn.7"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:52Z",
   "description": "Use enable_language_identification output and language_hints from the user's language set; normalize to domain language tags.",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Soniox: map token-level language IDs and language hints to canonical tags",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:52Z"
+  "updated_at": "2026-09-13T11:20:53Z"
 }
