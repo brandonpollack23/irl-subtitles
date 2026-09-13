@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-7ys.3"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:53Z",
   "description": "Readable rolling subtitles on G2 with speaker short names, target-language selection, latency/stability tradeoffs.",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "G2 subtitle display for translations",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:53Z"
+  "updated_at": "2026-09-13T11:20:54Z"
 }
