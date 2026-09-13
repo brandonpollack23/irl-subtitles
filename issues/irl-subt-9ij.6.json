@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-9ij.9"
+  ],
   "created": "2026-09-13T11:20:50Z",
   "description": "Delete audio after processing; delete recording vs audio vs forget voice with distinct tested semantics; optional removal of samples sourced from a deleted recording. plan.md §8, §14.",
   "id": "irl-subt-9ij.6",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Retention controls and deletion semantics",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:50Z"
+  "updated_at": "2026-09-13T11:20:51Z"
 }
