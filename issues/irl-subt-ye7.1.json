@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-b5w.6"
+  ],
   "blocks": [
     "irl-subt-ye7.2"
   ],

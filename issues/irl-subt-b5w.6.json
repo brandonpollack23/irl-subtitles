@@ -3,7 +3,9 @@
   "blocked_by": [
     "irl-subt-b5w.5"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-ye7.1"
+  ],
   "created": "2026-09-13T11:20:47Z",
   "description": "put/get/delete for soniox_api_key backed by encrypted IndexedDB, isolated from settings state; never logged. plan.md §6.2.",
   "id": "irl-subt-b5w.6",
@@ -15,5 +17,5 @@
   "status": "open",
   "title": "SecretStore implementation",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:47Z"
+  "updated_at": "2026-09-13T11:20:50Z"
 }
