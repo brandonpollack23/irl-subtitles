@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-f9n.3"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:49Z",
   "description": "Bottom sheet with likely people, all people, New person; set full/short name; Learn this voice toggle. plan.md §7.2.",
