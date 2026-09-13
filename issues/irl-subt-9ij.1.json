@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:50Z",
   "description": "ConversationSummary schema with source segment IDs and speaker references (not baked names). Chunk to validated context, then reduce. plan.md §6.3.",
   "id": "irl-subt-9ij.1",
-  "labels": [],
+  "labels": [
+    "mvp"
+  ],
   "parent": "irl-subt-9ij",
   "priority": 1,
   "status": "open",
