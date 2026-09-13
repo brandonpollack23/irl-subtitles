@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-9ij.9"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:54Z",
   "description": "Rich person profiles (how you met, who they are, notes) that cue onto the G2 when a person is recognized, unless marked do-not-show. plan.md §2.",
