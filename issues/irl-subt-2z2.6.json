@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:48Z",
   "description": "Recordings are not persisted by default; toggle in G2 context menu. Define what 'not persisted' means for crash recovery and processing buffers. plan.md §2.",
   "id": "irl-subt-2z2.6",
-  "labels": [],
+  "labels": [
+    "mvp"
+  ],
   "parent": "irl-subt-2z2",
   "priority": 1,
   "status": "open",
