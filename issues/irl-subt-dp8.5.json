@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:48Z",
   "description": "Speech/silence segmentation preserving original sample offsets. plan.md §6.1 step 1.",
   "id": "irl-subt-dp8.5",
-  "labels": [],
+  "labels": [
+    "mvp"
+  ],
   "parent": "irl-subt-dp8",
   "priority": 1,
   "status": "open",
