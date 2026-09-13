@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-f9n"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:50Z",
   "description": "Structured anchored summaries, failure/retry, exports, retention and deletion semantics, lifecycle and endurance tests, MVP acceptance. plan.md §6.3, §13 Phase 5, §14.",
@@ -12,5 +14,5 @@
   "status": "open",
   "title": "MVP Phase 5: Summaries and hardening",
   "type": "epic",
-  "updated_at": "2026-09-13T11:20:50Z"
+  "updated_at": "2026-09-13T11:20:51Z"
 }
