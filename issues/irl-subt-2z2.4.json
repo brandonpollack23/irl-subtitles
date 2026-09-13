@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:47Z",
+  "description": "States starting -\u003e recording -\u003e finalizing -\u003e captured -\u003e ready. Mark recording only after durable capture succeeds. plan.md §9.",
+  "id": "irl-subt-2z2.4",
+  "labels": [],
+  "parent": "irl-subt-2z2",
+  "priority": 1,
+  "status": "open",
+  "title": "Recording lifecycle state machine (start, pause, resume, stop)",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:47Z"
+}
