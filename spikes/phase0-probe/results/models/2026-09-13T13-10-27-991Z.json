@@ -1,0 +1,34 @@
+{
+  "spike": "models",
+  "appVersion": "0.1.0",
+  "buildId": "2026-09-13T13:08:52.618Z",
+  "createdAt": "2026-09-13T13:10:27.978Z",
+  "environment": {
+    "origin": "http://192.168.0.118:5173",
+    "userAgent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.0.0 Mobile Safari/537.36",
+    "inEvenApp": false,
+    "glasses": null,
+    "servedWithCoiHeaders": false,
+    "crossOriginIsolated": false,
+    "hardwareConcurrency": 8,
+    "deviceMemoryGb": null,
+    "tester": null
+  },
+  "data": {
+    "kind": "graph",
+    "matrix": "all",
+    "role": "stt-live",
+    "catalogDefault": true,
+    "modelId": "moonshine-streaming-medium-en",
+    "graph": "encoder-int8",
+    "ep": "webgpu",
+    "ortVersion": "1.29.0",
+    "downloadMs": 16006,
+    "graphBytes": 142060073,
+    "ok": false,
+    "stage": "create",
+    "error": "Error: no available backend found. ERR: [webgpu] Error: WebGPU is not supported in current environment",
+    "placement": null,
+    "ortLog": []
+  }
+}
