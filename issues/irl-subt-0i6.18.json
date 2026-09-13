@@ -7,9 +7,15 @@
   "id": "irl-subt-0i6.18",
   "labels": [],
   "parent": "irl-subt-0i6",
+  "comments": [
+    {
+      "text": "Landed in jj rev kssxupzp (plan.md/mise.toml squashed into planning rev mkzqxwxv). Verified on desktop Chrome 153: tsc, vitest 11/11, vite build, capabilities inventory (WebGPU main+worker KAT ok), native WebGPU benchmarks for Silero/CAM++/Moonshine encoder, HTTPS mode over LAN IP with mkcert CA. Not verified: any phone, Safari. Findings filed on 0i6.3.1.1, 0i6.3.2, 0i6.3.4, new 0i6.3.9.",
+      "timestamp": "2026-09-13T12:53:00Z"
+    }
+  ],
   "priority": 0,
   "status": "in_progress",
   "title": "Switch local inference from WebNN to WebGPU; support Android Chrome and iOS Safari",
   "type": "task",
-  "updated_at": "2026-09-13T12:39:54Z"
+  "updated_at": "2026-09-13T12:53:00Z"
 }
