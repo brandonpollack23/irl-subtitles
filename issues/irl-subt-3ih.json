@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-9ij.9"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:55Z",
   "description": "Live and post-hoc AI features. plan.md §2 'For AI'.",
