@@ -6,7 +6,7 @@
     "irl-subt-dp8.3"
   ],
   "created": "2026-09-13T11:20:48Z",
-  "description": "ORT Web WebNN EP. Per-model device preference (NPU, GPU, CPU by power policy), eligibility = load + known-answer + tolerance + latency/memory benchmark. MLTensor residency where supported. Failure disposes sessions and emits provider event. plan.md §6.1 WebNN compute strategy.",
+  "description": "ORT Web native WebGPU EP (onnxruntime-web/webgpu, Safari-compatible asyncify build) and WASM EP. Per-model execution target from benchmarks and power policy; eligibility = load + known-answer + tolerance + latency/memory benchmark; respect adapter limits (maxBufferSize, shader-f16) and iOS memory. GPU-buffer residency for KV caches/recurrent state (preferredOutputLocation gpu-buffer). WebGPU device loss or failure disposes sessions and emits provider event. Runs in Even WebView on Android and iOS, and in Chrome (Android) / Safari (iOS). plan.md §6.1 WebGPU compute strategy.",
   "id": "irl-subt-dp8.1",
   "labels": [
     "mvp"
@@ -14,7 +14,7 @@
   "parent": "irl-subt-dp8",
   "priority": 1,
   "status": "open",
-  "title": "WebNNRuntime and per-model runtime selector",
+  "title": "ComputeRuntime (WebGPU/WASM) and per-model runtime selector",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:48Z"
+  "updated_at": "2026-09-13T12:52:18Z"
 }
