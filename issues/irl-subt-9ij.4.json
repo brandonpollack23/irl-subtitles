@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-9ij.9"
+  ],
   "created": "2026-09-13T11:20:50Z",
   "description": "Summary failure separate from recording validity; retry/Reprocess for STT, identity, summary. plan.md §9.",
   "id": "irl-subt-9ij.4",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Failure and retry states across processing pipeline",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:50Z"
+  "updated_at": "2026-09-13T11:20:51Z"
 }
