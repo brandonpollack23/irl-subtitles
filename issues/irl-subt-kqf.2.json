@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-kqf.1"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:54Z",
   "description": "On accepted match only (never candidate), show concise cue on G2; rate-limit and dismiss.",
