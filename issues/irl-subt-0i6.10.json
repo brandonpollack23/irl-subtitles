@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:29:22Z",
+  "description": "Harness for irl-subt-0i6.1. audioControl(Glasses) soak: frame sizes, sample count vs wall clock, gap list, lifecycle events (visibility/freeze/pagehide), heartbeat journal in localStorage to detect reclaim, optional PCM persistence to OPFS and upload for later evaluation, G2 elapsed display.",
+  "id": "irl-subt-0i6.10",
+  "labels": [],
+  "parent": "irl-subt-0i6",
+  "priority": 0,
+  "status": "open",
+  "title": "Probe: 60-minute G2 capture soak module",
+  "type": "task",
+  "updated_at": "2026-09-13T11:29:22Z"
+}
