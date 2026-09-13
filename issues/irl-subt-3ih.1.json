@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-3ih.2"
+  ],
   "created": "2026-09-13T11:20:55Z",
   "description": "Document native cue UX, latency needs, privacy implications of cloud LLM use.",
   "id": "irl-subt-3ih.1",
