@@ -4,6 +4,7 @@
     "irl-subt-clx.2"
   ],
   "blocks": [],
+  "closed_at": "2026-09-13T12:52:31Z",
   "created": "2026-09-13T11:20:57Z",
   "description": "Validate each catalog entry on reference iPhones; per-platform catalog availability.",
   "id": "irl-subt-clx.3",
@@ -18,7 +19,7 @@
     }
   ],
   "priority": 4,
-  "status": "open",
+  "status": "closed",
   "title": "iOS model catalog validation and release",
   "type": "task",
   "updated_at": "2026-09-13T12:52:31Z"
