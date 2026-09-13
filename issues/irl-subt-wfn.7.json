@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-wfn.3"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:51Z",
   "description": "Using survey + eval + spikes, decide which modes ship, defaults, catalog additions/removals, and Soniox parity. Update plan.md model catalog accordingly.",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Decision record: supported language modes (select / per-line / mixed) for live and final passes",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:51Z"
+  "updated_at": "2026-09-13T11:20:52Z"
 }
