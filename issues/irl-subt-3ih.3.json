@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-3ih.1"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:55Z",
   "description": "Identify checkable claims and present sourced verdicts post-hoc (and optionally live); clearly opt-in if cloud.",
