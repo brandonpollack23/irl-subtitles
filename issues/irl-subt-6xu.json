@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-9ij.9"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:56Z",
   "description": "Optional encrypted sync of recordings, people, and (with explicit consent) voice profiles. plan.md §2 QoL.",
