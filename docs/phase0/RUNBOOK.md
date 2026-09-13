@@ -274,6 +274,30 @@ ECAPA, ReDimNet) passes drift checks with `realTimeHeadroom` > 1 on either
 
 ---
 
+## Results sheet
+
+Fill this in as you go (copy it into `spikes/phase0-probe/results/SHEET.md`).
+The JSON reports have the numbers; this sheet records what they can't.
+Put one row per device and host: an Android flagship in the Even app, in
+Chrome, and the same for the iPhone in the Even app and in Safari.
+
+| Device label | Phone / OS / host version | Mode(s) | Spike | Result (pass / fail / blocker) | What happened that the report won't show |
+| --- | --- | --- | --- | --- | --- |
+| `pixel10pro-even` | Pixel 10 Pro / Android 16 / Even 2.2.x | A, B | 2 | | |
+| `iphone17pro-even` | iPhone 17 Pro / iOS 26.x / Even 2.2.x | A, B | 2 | | |
+| `pixel10pro-chrome` | … / Chrome 1xx | C | 2, 3 | | |
+| `iphone17pro-safari` | … / Safari 26.x | C | 2, 3 | | |
+
+Also note, once per phone:
+
+- Does the Even app WebView report `secureContext: true` in mode A? Does
+  mode A-https load?
+- Mode B isolation pill: isolated, isolated after the service worker, or not
+  isolated.
+- Spike 1: when the app was killed or audio stopped, relative to your markers.
+- Spike 3: the EP that won each role, any iOS page reloads (graph name), and
+  when the phone got hot.
+
 ## When you're done
 
 Tell me which devices and hosts (Even app, Chrome, Safari) you ran, and anything you saw that the reports won't show

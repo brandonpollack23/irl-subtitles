@@ -15,6 +15,7 @@ MVP app.
 | `scripts/models.py` | `pnpm models fetch\|inspect\|fixtures --all`: downloads, graph metadata, CPU reference fixtures |
 | `vite.config.ts` | COOP/COEP headers, `/__probe` report sink, `/models` file serving |
 | `results/` | Reports uploaded from devices (`recordings/` and model files are gitignored) |
+| `results/archive/` | Superseded runs (desktop development results from 2026-09-13), kept for reference |
 
 ```sh
 pnpm dev          # sideload server (cross-origin isolated); pnpm dev:no-coi for the unisolated variant
