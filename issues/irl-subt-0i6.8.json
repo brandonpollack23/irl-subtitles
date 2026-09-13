@@ -1,6 +1,8 @@
 {
   "assignee": "Brandon Pollack",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-0i6.16"
+  ],
   "blocks": [
     "irl-subt-0i6.10",
     "irl-subt-0i6.11",
