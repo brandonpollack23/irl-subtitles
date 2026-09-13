@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T13:29:04Z",
+  "description": "User can't test live yet. Write docs/mvp/DEBUG-PLAN.md covering every MVP feature and plan.md 14 acceptance criterion, ordered from desktop Chrome (WAV replay) to Even simulator to phone browsers to Even app + G2, with expected results and where to look when something fails.",
+  "id": "irl-subt-9ij.10",
+  "labels": [],
+  "parent": "irl-subt-9ij",
+  "priority": 2,
+  "status": "open",
+  "title": "MVP debug plan: step-by-step verification of every feature on desktop, simulator, phones, and G2",
+  "type": "task",
+  "updated_at": "2026-09-13T13:29:04Z"
+}
