@@ -1,0 +1,34 @@
+{
+  "name": "@irl/even-hub",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "dev:https": "IRL_HTTPS=1 vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "qr": "evenhub qr --port 5174",
+    "qr:https": "evenhub qr --port 5174 --https",
+    "sim": "evenhub-simulator http://localhost:5174 --automation-port 9898",
+    "ehpk": "vite build && evenhub pack app.json dist -o irl-subtitles.ehpk"
+  },
+  "dependencies": {
+    "@evenrealities/even_hub_sdk": "0.0.15",
+    "@irl/capture": "workspace:*",
+    "@irl/domain": "workspace:*",
+    "@irl/pipeline": "workspace:*",
+    "@irl/provider-local": "workspace:*",
+    "@irl/provider-soniox": "workspace:*",
+    "@irl/provider-summary": "workspace:*",
+    "@irl/storage": "workspace:*",
+    "@solidjs/web": "2.0.0-rc.8",
+    "solid-js": "2.0.0-rc.8"
+  },
+  "devDependencies": {
+    "@evenrealities/evenhub-cli": "^0.1.14",
+    "@evenrealities/evenhub-simulator": "^0.9.5",
+    "@solidjs/vite-plugin": "3.0.0-next.35",
+    "vite": "^8.3.0"
+  }
+}

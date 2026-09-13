@@ -1,0 +1,8 @@
+{
+  "name": "@irl/provider-local",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {"@irl/domain": "workspace:*", "@huggingface/transformers": "4.2.0", "onnxruntime-web": "1.29.0"}
+}

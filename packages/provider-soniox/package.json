@@ -1,0 +1,8 @@
+{
+  "name": "@irl/provider-soniox",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {"@irl/domain": "workspace:*", "@soniox/client": "2.3.0"}
+}

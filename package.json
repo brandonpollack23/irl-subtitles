@@ -1,0 +1,24 @@
+{
+  "name": "irl-subtitles",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.24.0",
+  "scripts": {
+    "dev": "pnpm --filter @irl/even-hub dev",
+    "dev:https": "pnpm --filter @irl/even-hub dev:https",
+    "build": "pnpm --filter @irl/even-hub build",
+    "ehpk": "pnpm --filter @irl/even-hub ehpk",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "check": "pnpm typecheck && pnpm test",
+    "pin-models": "node scripts/pin-models.mjs",
+    "fixtures": "node scripts/fetch-fixtures.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^26.5.1",
+    "fake-indexeddb": "^6.2.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.0"
+  }
+}

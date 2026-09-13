@@ -1,0 +1,11 @@
+packages:
+  - apps/*
+  - packages/*
+  - services/*
+allowBuilds:
+  protobufjs: false
+  onnxruntime-node: false
+  sharp: false
+overrides:
+  # One ONNX Runtime Web build for transformers.js and our direct ORT sessions.
+  onnxruntime-web: 1.29.0

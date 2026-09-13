@@ -1,0 +1,8 @@
+{
+  "name": "@irl/storage",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {"@irl/domain": "workspace:*", "@tursodatabase/database-wasm": "0.7.2"}
+}
