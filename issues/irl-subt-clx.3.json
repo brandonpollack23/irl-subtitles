@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-clx.2"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:57Z",
   "description": "Validate each catalog entry on reference iPhones; per-platform catalog availability.",
