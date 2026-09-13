@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-wfn.3"
+  ],
   "created": "2026-09-13T11:20:51Z",
   "description": "Assemble G2-recorded and public (CS-FLEURS, SwitchLingua, MLC-SLM, FLEURS) test audio covering: monolingual non-English, inter-sentential switching between speakers/lines, and intra-sentential mixing (priority pairs e.g. en/ja, en/es, en/zh). Metrics: WER/MER per language, LID accuracy per utterance and per token, switch-point detection latency (live), and wrong-script/hallucinated-translation rate.",
   "id": "irl-subt-wfn.2",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Build multilingual and code-switched evaluation set and metrics",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:51Z"
+  "updated_at": "2026-09-13T11:20:52Z"
 }
