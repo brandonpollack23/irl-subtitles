@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:55Z",
   "description": "Replace SecretStore primary key usage with broker flow.",
   "id": "irl-subt-kxh.2",
-  "labels": [],
+  "labels": [
+    "post-mvp"
+  ],
   "parent": "irl-subt-kxh",
   "priority": 3,
   "status": "open",
