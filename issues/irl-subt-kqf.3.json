@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:54Z",
+  "description": "Settings to suppress cues globally or per person.",
+  "id": "irl-subt-kqf.3",
+  "labels": [],
+  "parent": "irl-subt-kqf",
+  "priority": 3,
+  "status": "open",
+  "title": "Per-person and global do-not-show settings",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:54Z"
+}
