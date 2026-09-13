@@ -13,6 +13,7 @@
   "blocks": [
     "irl-subt-0i6.2"
   ],
+  "closed_at": "2026-09-13T12:55:34Z",
   "created": "2026-09-13T11:29:22Z",
   "description": "docs/phase0/RUNBOOK.md: exact steps for the human tester per spike, what to record, pass/fail criteria, where results land; results template feeding irl-subt-0i6.7.",
   "id": "irl-subt-0i6.15",
@@ -25,8 +26,8 @@
     }
   ],
   "priority": 0,
-  "status": "open",
+  "status": "closed",
   "title": "Phase 0 device test runbook and results template",
   "type": "task",
-  "updated_at": "2026-09-13T12:55:33Z"
+  "updated_at": "2026-09-13T12:55:34Z"
 }
