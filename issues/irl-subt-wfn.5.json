@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:51Z",
+  "description": "Evaluate mode B live: keep N language checkpoints warm vs load-on-demand; measure memory, switch latency, lost/duplicated audio at boundaries, and misroute recovery (re-decode the utterance with the corrected model).",
+  "id": "irl-subt-wfn.5",
+  "labels": [],
+  "parent": "irl-subt-wfn",
+  "priority": 2,
+  "status": "open",
+  "title": "Spike: live checkpoint routing (switch Moonshine per-language models mid-recording)",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:51Z"
+}
