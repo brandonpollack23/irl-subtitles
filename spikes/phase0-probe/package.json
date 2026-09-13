@@ -6,10 +6,13 @@
   "scripts": {
     "dev": "vite --host",
     "dev:no-coi": "PROBE_COI=0 vite --host",
+    "dev:https": "PROBE_HTTPS=1 vite --host",
+    "certs": "node scripts/certs.mjs",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "qr": "evenhub qr --port 5173",
+    "qr:https": "evenhub qr --port 5173 --https",
     "sim": "evenhub-simulator http://localhost:5173",
     "models": "uv run scripts/models.py",
     "ehpk": "vite build && evenhub pack app.json dist -o phase0-probe.ehpk"

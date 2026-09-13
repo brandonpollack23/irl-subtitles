@@ -1,0 +1,29 @@
+{
+  "spike": "models",
+  "appVersion": "0.1.0",
+  "buildId": "2026-09-13T12:15:55.126Z",
+  "createdAt": "2026-09-13T12:46:04.371Z",
+  "environment": {
+    "origin": "http://localhost:4173",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "inEvenApp": false,
+    "glasses": null,
+    "servedWithCoiHeaders": true,
+    "crossOriginIsolated": true,
+    "hardwareConcurrency": 16,
+    "deviceMemoryGb": 32,
+    "tester": null
+  },
+  "data": {
+    "kind": "graph",
+    "matrix": "defaults",
+    "role": "vad",
+    "catalogDefault": true,
+    "modelId": "silero-vad-v6",
+    "graph": "ifless-op18",
+    "ep": "wasm",
+    "ok": false,
+    "stage": "timeout",
+    "error": "no result after 10 min (last step: creating wasm session)"
+  }
+}

@@ -2,7 +2,7 @@
 # requires-python = ">=3.11"
 # dependencies = ["huggingface_hub>=0.34", "onnx>=1.18", "onnxruntime>=1.22", "numpy>=2"]
 # ///
-"""Phase 0 model tooling for the probe's WebNN benchmark harness.
+"""Phase 0 model tooling for the probe's WebGPU benchmark harness.
 
   uv run scripts/models.py fetch [ids...|--all]     download registry graphs into models/<id>/
   uv run scripts/models.py inspect [ids...|--all]   write graph I/O metadata to src/models/graph-metadata.json

@@ -1,6 +1,6 @@
 import { getBridge } from "../bridge";
 import { lsGet, lsSet } from "../report";
-import { probeWebNN } from "./webnn-probe";
+import { probeWebGPU } from "./webgpu-probe";
 
 // Minimal modules from wasm-feature-detect.
 const WASM_SIMD = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 10, 10, 1, 8, 0, 65, 0, 253, 15, 253, 98, 11]);
@@ -53,7 +53,7 @@ function workerProbe(): Promise<unknown> {
   });
 }
 
-export async function runInventory(log: (...p: unknown[]) => void, includeOpLimits: boolean) {
+export async function runInventory(log: (...p: unknown[]) => void) {
   const nav = navigator as Navigator & Record<string, any>;
   log("headers of this document…");
   const documentHeaders = await attempt(async () => {
@@ -105,11 +105,6 @@ export async function runInventory(log: (...p: unknown[]) => void, includeOpLimi
         return k.extractable === false;
       }),
     },
-    webgpu: await attempt(async () => {
-      if (!nav.gpu) return { present: false };
-      const adapter = await nav.gpu.requestAdapter();
-      return { present: true, adapter: adapter ? { info: adapter.info ? { ...adapter.info, vendor: adapter.info.vendor, architecture: adapter.info.architecture } : null } : null };
-    }),
     audio: { audioContext: typeof AudioContext !== "undefined", audioWorklet: typeof AudioWorkletNode !== "undefined" },
     network: { webSocket: typeof WebSocket !== "undefined", webTransport: typeof (globalThis as any).WebTransport !== "undefined" },
     battery: await attempt(async () => {
@@ -133,9 +128,9 @@ export async function runInventory(log: (...p: unknown[]) => void, includeOpLimi
     coiServiceWorkerAttempted: lsGet(LS_COI_SW),
   };
 
-  log("WebNN on main thread (npu/gpu/cpu)…");
-  const webnnMain = await attempt(() => probeWebNN(includeOpLimits));
-  log("dedicated worker probe (WebNN, OPFS sync handles, SAB)…");
+  log("WebGPU on main thread (adapters, limits, compute known-answer)…");
+  const webgpuMain = await attempt(() => probeWebGPU());
+  log("dedicated worker probe (WebGPU, OPFS sync handles, SAB)…");
   const worker = await workerProbe();
 
   const bridge = await getBridge();
@@ -143,7 +138,7 @@ export async function runInventory(log: (...p: unknown[]) => void, includeOpLimi
     ? await attempt(async () => ({ user: !!(await bridge.getUserInfo()), device: (await bridge.getDeviceInfo())?.toJson?.() ?? null }))
     : null;
 
-  return { documentHeaders, platform, webnnMain, worker, evenApp };
+  return { documentHeaders, platform, webgpuMain, worker, evenApp };
 }
 
 export async function enableIsolationServiceWorker(): Promise<void> {

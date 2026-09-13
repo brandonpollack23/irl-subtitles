@@ -1,0 +1,419 @@
+{
+  "spike": "capabilities",
+  "appVersion": "0.1.0",
+  "buildId": "2026-09-13T12:44:18.478Z",
+  "createdAt": "2026-09-13T12:47:35.952Z",
+  "environment": {
+    "origin": "http://localhost:5173",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "inEvenApp": false,
+    "glasses": null,
+    "servedWithCoiHeaders": true,
+    "crossOriginIsolated": true,
+    "hardwareConcurrency": 16,
+    "deviceMemoryGb": 32,
+    "tester": null
+  },
+  "data": {
+    "documentHeaders": {
+      "cross-origin-opener-policy": "same-origin",
+      "cross-origin-embedder-policy": "require-corp",
+      "content-security-policy": null,
+      "server": null,
+      "content-type": "text/html"
+    },
+    "platform": {
+      "location": {
+        "protocol": "http:",
+        "origin": "http://localhost:5173",
+        "isSecureContext": true
+      },
+      "crossOriginIsolated": true,
+      "sharedArrayBuffer": true,
+      "sharedWasmMemory": true,
+      "wasm": {
+        "simd": true,
+        "relaxedSimd": true,
+        "threads": true,
+        "jspi": true
+      },
+      "workers": {
+        "dedicated": true,
+        "shared": true,
+        "serviceWorker": true,
+        "serviceWorkerController": false
+      },
+      "storage": {
+        "opfsGetDirectory": true,
+        "estimate": {
+          "quotaMiB": 10240,
+          "usageMiB": 0
+        },
+        "persistedBefore": false,
+        "persistRequest": false,
+        "indexedDb": true,
+        "webLocks": true
+      },
+      "crypto": {
+        "subtle": true,
+        "nonExtractableAesGcm": true
+      },
+      "audio": {
+        "audioContext": true,
+        "audioWorklet": true
+      },
+      "network": {
+        "webSocket": true,
+        "webTransport": true
+      },
+      "battery": {
+        "level": 1,
+        "charging": true
+      },
+      "memory": {
+        "deviceMemoryGb": 32,
+        "measureUserAgentSpecificMemory": true,
+        "performanceMemory": {
+          "jsHeapSizeLimitMiB": 4192
+        }
+      },
+      "hardwareConcurrency": 16,
+      "userAgentData": {
+        "architecture": "x86",
+        "brands": [
+          {
+            "brand": "Google Chrome",
+            "version": "153"
+          },
+          {
+            "brand": "Not_A Brand",
+            "version": "8"
+          },
+          {
+            "brand": "Chromium",
+            "version": "153"
+          }
+        ],
+        "fullVersionList": [
+          {
+            "brand": "Google Chrome",
+            "version": "153.0.8010.36"
+          },
+          {
+            "brand": "Not_A Brand",
+            "version": "8.0.0.0"
+          },
+          {
+            "brand": "Chromium",
+            "version": "153.0.8010.36"
+          }
+        ],
+        "mobile": false,
+        "model": "",
+        "platform": "Linux",
+        "platformVersion": ""
+      },
+      "coiServiceWorkerAttempted": null
+    },
+    "webgpuMain": {
+      "secureContext": true,
+      "navigatorGpu": true,
+      "adapters": [
+        {
+          "powerPreference": "high-performance",
+          "found": true,
+          "info": {
+            "vendor": "nvidia",
+            "architecture": "lovelace",
+            "subgroupMinSize": 32,
+            "subgroupMaxSize": 32,
+            "isFallbackAdapter": false
+          },
+          "isFallbackAdapter": false,
+          "features": [
+            "bgra8unorm-storage",
+            "clip-distances",
+            "core-features-and-limits",
+            "depth-clip-control",
+            "depth32float-stencil8",
+            "dual-source-blending",
+            "float32-blendable",
+            "float32-filterable",
+            "indirect-first-instance",
+            "primitive-index",
+            "rg11b10ufloat-renderable",
+            "subgroup-size-control",
+            "subgroups",
+            "texture-component-swizzle",
+            "texture-compression-bc",
+            "texture-compression-bc-sliced-3d",
+            "texture-formats-tier1",
+            "texture-formats-tier2",
+            "timestamp-query"
+          ],
+          "limits": {
+            "maxBufferSize": 4294967292,
+            "maxStorageBufferBindingSize": 2147483644,
+            "maxStorageBuffersPerShaderStage": 16,
+            "maxComputeWorkgroupStorageSize": 49152,
+            "maxComputeInvocationsPerWorkgroup": 1024,
+            "maxComputeWorkgroupSizeX": 1024,
+            "maxComputeWorkgroupsPerDimension": 65535
+          },
+          "device": {
+            "created": true,
+            "requestedFeatures": [],
+            "knownAnswer": {
+              "ok": true,
+              "got": [
+                2,
+                0,
+                3.5,
+                0
+              ]
+            },
+            "matmul256": {
+              "pipelineMs": 1,
+              "firstMs": 4,
+              "p50Ms": 3.02,
+              "iterations": 30,
+              "maxAbsError": 0.0000011716712249310035
+            }
+          }
+        },
+        {
+          "powerPreference": "low-power",
+          "found": true,
+          "info": {
+            "vendor": "nvidia",
+            "architecture": "lovelace",
+            "subgroupMinSize": 32,
+            "subgroupMaxSize": 32,
+            "isFallbackAdapter": false
+          },
+          "isFallbackAdapter": false,
+          "features": [
+            "bgra8unorm-storage",
+            "clip-distances",
+            "core-features-and-limits",
+            "depth-clip-control",
+            "depth32float-stencil8",
+            "dual-source-blending",
+            "float32-blendable",
+            "float32-filterable",
+            "indirect-first-instance",
+            "primitive-index",
+            "rg11b10ufloat-renderable",
+            "subgroup-size-control",
+            "subgroups",
+            "texture-component-swizzle",
+            "texture-compression-bc",
+            "texture-compression-bc-sliced-3d",
+            "texture-formats-tier1",
+            "texture-formats-tier2",
+            "timestamp-query"
+          ],
+          "limits": {
+            "maxBufferSize": 4294967292,
+            "maxStorageBufferBindingSize": 2147483644,
+            "maxStorageBuffersPerShaderStage": 16,
+            "maxComputeWorkgroupStorageSize": 49152,
+            "maxComputeInvocationsPerWorkgroup": 1024,
+            "maxComputeWorkgroupSizeX": 1024,
+            "maxComputeWorkgroupsPerDimension": 65535
+          },
+          "device": {
+            "created": true,
+            "requestedFeatures": [],
+            "knownAnswer": {
+              "ok": true,
+              "got": [
+                2,
+                0,
+                3.5,
+                0
+              ]
+            },
+            "matmul256": {
+              "pipelineMs": 1,
+              "firstMs": 3,
+              "p50Ms": 3.03,
+              "iterations": 30,
+              "maxAbsError": 0.0000011716712249310035
+            }
+          }
+        }
+      ],
+      "preferredCanvasFormat": "rgba8unorm",
+      "wgslLanguageFeatures": [
+        "buffer_view",
+        "immediate_address_space",
+        "linear_indexing",
+        "packed_4x8_integer_dot_product",
+        "pointer_composite_access",
+        "readonly_and_readwrite_storage_textures",
+        "subgroup_id",
+        "subgroup_uniformity",
+        "texture_and_sampler_let",
+        "texture_formats_tier1",
+        "uniform_buffer_standard_layout",
+        "unrestricted_pointer_parameters"
+      ]
+    },
+    "worker": {
+      "sabPostMessage": true,
+      "crossOriginIsolated": true,
+      "sharedArrayBuffer": true,
+      "opfsSyncAccessHandle": {
+        "ok": true,
+        "writeFlush1MiBMs": 1.69
+      },
+      "webgpu": {
+        "secureContext": true,
+        "navigatorGpu": true,
+        "adapters": [
+          {
+            "powerPreference": "high-performance",
+            "found": true,
+            "info": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "subgroupMinSize": 32,
+              "subgroupMaxSize": 32,
+              "isFallbackAdapter": false
+            },
+            "isFallbackAdapter": false,
+            "features": [
+              "bgra8unorm-storage",
+              "clip-distances",
+              "core-features-and-limits",
+              "depth-clip-control",
+              "depth32float-stencil8",
+              "dual-source-blending",
+              "float32-blendable",
+              "float32-filterable",
+              "indirect-first-instance",
+              "primitive-index",
+              "rg11b10ufloat-renderable",
+              "subgroup-size-control",
+              "subgroups",
+              "texture-component-swizzle",
+              "texture-compression-bc",
+              "texture-compression-bc-sliced-3d",
+              "texture-formats-tier1",
+              "texture-formats-tier2",
+              "timestamp-query"
+            ],
+            "limits": {
+              "maxBufferSize": 4294967292,
+              "maxStorageBufferBindingSize": 2147483644,
+              "maxStorageBuffersPerShaderStage": 16,
+              "maxComputeWorkgroupStorageSize": 49152,
+              "maxComputeInvocationsPerWorkgroup": 1024,
+              "maxComputeWorkgroupSizeX": 1024,
+              "maxComputeWorkgroupsPerDimension": 65535
+            },
+            "device": {
+              "created": true,
+              "requestedFeatures": [],
+              "knownAnswer": {
+                "ok": true,
+                "got": [
+                  2,
+                  0,
+                  3.5,
+                  0
+                ]
+              },
+              "matmul256": {
+                "pipelineMs": 1,
+                "firstMs": 4,
+                "p50Ms": 3.05,
+                "iterations": 30,
+                "maxAbsError": 0.0000011716712249310035
+              }
+            }
+          },
+          {
+            "powerPreference": "low-power",
+            "found": true,
+            "info": {
+              "vendor": "nvidia",
+              "architecture": "lovelace",
+              "subgroupMinSize": 32,
+              "subgroupMaxSize": 32,
+              "isFallbackAdapter": false
+            },
+            "isFallbackAdapter": false,
+            "features": [
+              "bgra8unorm-storage",
+              "clip-distances",
+              "core-features-and-limits",
+              "depth-clip-control",
+              "depth32float-stencil8",
+              "dual-source-blending",
+              "float32-blendable",
+              "float32-filterable",
+              "indirect-first-instance",
+              "primitive-index",
+              "rg11b10ufloat-renderable",
+              "subgroup-size-control",
+              "subgroups",
+              "texture-component-swizzle",
+              "texture-compression-bc",
+              "texture-compression-bc-sliced-3d",
+              "texture-formats-tier1",
+              "texture-formats-tier2",
+              "timestamp-query"
+            ],
+            "limits": {
+              "maxBufferSize": 4294967292,
+              "maxStorageBufferBindingSize": 2147483644,
+              "maxStorageBuffersPerShaderStage": 16,
+              "maxComputeWorkgroupStorageSize": 49152,
+              "maxComputeInvocationsPerWorkgroup": 1024,
+              "maxComputeWorkgroupSizeX": 1024,
+              "maxComputeWorkgroupsPerDimension": 65535
+            },
+            "device": {
+              "created": true,
+              "requestedFeatures": [],
+              "knownAnswer": {
+                "ok": true,
+                "got": [
+                  2,
+                  0,
+                  3.5,
+                  0
+                ]
+              },
+              "matmul256": {
+                "pipelineMs": 1,
+                "firstMs": 3,
+                "p50Ms": 2.98,
+                "iterations": 30,
+                "maxAbsError": 0.0000011716712249310035
+              }
+            }
+          }
+        ],
+        "preferredCanvasFormat": "rgba8unorm",
+        "wgslLanguageFeatures": [
+          "buffer_view",
+          "immediate_address_space",
+          "linear_indexing",
+          "packed_4x8_integer_dot_product",
+          "pointer_composite_access",
+          "readonly_and_readwrite_storage_textures",
+          "subgroup_id",
+          "subgroup_uniformity",
+          "texture_and_sampler_let",
+          "texture_formats_tier1",
+          "uniform_buffer_standard_layout",
+          "unrestricted_pointer_parameters"
+        ]
+      }
+    },
+    "evenApp": null
+  }
+}

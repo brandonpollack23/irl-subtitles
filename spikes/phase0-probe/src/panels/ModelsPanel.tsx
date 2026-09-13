@@ -1,7 +1,7 @@
 import { createMemo, createSignal, For, Show } from "solid-js";
 import { ActionButton, Card, createLog, createReporter, Field, LogView, ReportCard } from "../components";
 import type { EpChoice } from "../spikes/bench.worker";
-import { defaultLiveStack, EPS, graphAvailable, registry, runBench, runLiveStack, type BenchOptions } from "../spikes/models";
+import { defaultLiveStack, EPS, graphAvailable, registry, runBench, runLiveStack, STACK_EPS, type BenchOptions, type StackEp } from "../spikes/models";
 
 export function ModelsPanel() {
   const log = createLog(500);
@@ -9,11 +9,11 @@ export function ModelsPanel() {
   const runnable = registry.filter((m) => m.graphs.length > 0);
   const [modelId, setModelId] = createSignal(runnable[0]!.id);
   const [graphName, setGraphName] = createSignal(runnable[0]!.graphs[0]!.name);
-  const [eps, setEps] = createSignal<EpChoice[]>(["webnn-npu", "webnn-gpu", "webnn-cpu"]);
+  const [eps, setEps] = createSignal<EpChoice[]>(["webgpu", "wasm"]);
   const [iterations, setIterations] = createSignal(30);
   const [sustained, setSustained] = createSignal(0);
   const [stackMinutes, setStackMinutes] = createSignal(60);
-  const [stackEp, setStackEp] = createSignal<EpChoice>("webnn-npu");
+  const [stackEp, setStackEp] = createSignal<StackEp>("mixed");
   const [compareWasm, setCompareWasm] = createSignal(true);
   const [available, setAvailable] = createSignal<Record<string, boolean>>({});
 
@@ -62,9 +62,9 @@ export function ModelsPanel() {
 
   return (
     <>
-      <Card title="Spike irl-subt-0i6.3 — ONNX graphs through WebNN">
+      <Card title="Spike irl-subt-0i6.3 — ONNX graphs through WebGPU">
         <p class="muted">
-          Graph-level: operator coverage, session creation, per-step latency, drift vs CPU ORT fixtures and WASM. Model files are
+          Graph-level: node placement (WebGPU vs CPU fallback), session creation, per-step latency, drift vs CPU ORT fixtures and WASM. Model files are
           served by the laptop (run the models fetch script first). Plug in to power only for the matrix; unplug for sustained runs.
         </p>
         <div class="row">
@@ -123,9 +123,9 @@ export function ModelsPanel() {
           <Field label="Minutes">
             <input type="number" min="1" value={stackMinutes()} onChange={(e) => setStackMinutes(Number(e.currentTarget.value))} />
           </Field>
-          <Field label="EP for all members">
-            <select value={stackEp()} onChange={(e) => setStackEp(e.currentTarget.value as EpChoice)}>
-              <For each={EPS}>{(ep) => <option value={ep}>{ep}</option>}</For>
+          <Field label="EP (mixed: VAD on wasm, rest on webgpu)">
+            <select value={stackEp()} onChange={(e) => setStackEp(e.currentTarget.value as StackEp)}>
+              <For each={STACK_EPS}>{(ep) => <option value={ep}>{ep}</option>}</For>
             </select>
           </Field>
           <ActionButton label="Run live stack" onRun={liveStack} />

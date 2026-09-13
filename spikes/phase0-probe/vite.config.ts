@@ -13,6 +13,17 @@ const appVersion = (JSON.parse(readFileSync(join(root, "app.json"), "utf8")) as 
 // PROBE_COI=0 serves without COOP/COEP so we can see what the WebView does unisolated.
 const coi = process.env.PROBE_COI !== "0";
 
+// PROBE_HTTPS=1 serves over TLS with the mkcert certificate from `pnpm certs`. Phone browsers only
+// treat localhost or https as a secure context, and WebGPU, OPFS, and SharedArrayBuffer need one.
+function https() {
+  if (process.env.PROBE_HTTPS !== "1") return undefined;
+  try {
+    return { key: readFileSync(join(root, "certs", "key.pem")), cert: readFileSync(join(root, "certs", "cert.pem")) };
+  } catch {
+    throw new Error("PROBE_HTTPS=1 but certs/key.pem or certs/cert.pem is missing: run `pnpm certs` first");
+  }
+}
+
 function readBody(req: IncomingMessage): Promise<Buffer> {
   return new Promise((ok, fail) => {
     const chunks: Buffer[] = [];
@@ -101,8 +112,8 @@ export default defineConfig({
     __BUILD_ID__: JSON.stringify(new Date().toISOString()),
     __SERVED_COI__: JSON.stringify(coi),
   },
-  server: { host: true, port: 5173, strictPort: true, headers },
-  preview: { host: true, port: 5173, strictPort: true, headers },
+  server: { host: true, port: 5173, strictPort: true, headers, https: https() },
+  preview: { host: true, port: 5173, strictPort: true, headers, https: https() },
   optimizeDeps: { exclude: ["onnxruntime-web", "@tursodatabase/database-wasm"] },
   worker: { format: "es" },
   build: { target: "esnext", outDir: resolve(root, "dist"), emptyOutDir: true },

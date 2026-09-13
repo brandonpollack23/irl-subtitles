@@ -8,13 +8,17 @@ The probe is throwaway spike code. It is not the MVP app.
 
 ## What you need
 
-- A laptop and an Android flagship phone (Snapdragon 8 Elite Gen 5, Dimensity
-  9500, or Tensor G5 class) on the same Wi-Fi. Repeat on each reference device
-  you have.
-- Even Realities app **2.2.10 or later**, with a G2 paired and charged.
+- A laptop and the phones on the same Wi-Fi: an Android flagship (Snapdragon 8
+  Elite Gen 5, Dimensity 9500, or Tensor G5 class) and an iPhone (A18 Pro/A19
+  class) on **iOS 26 or later**. Repeat on each reference device you have.
+- Even Realities app **2.2.10 or later** on each phone, with a G2 paired and
+  charged. The G2 can only be connected to one phone at a time.
+- Current Chrome on the Android phone, and Safari on the iPhone.
 - A Soniox API key, for spike 5 only.
 - Optional but useful: `adb` over USB with developer options enabled, for memory,
-  thermal, and battery readings the WebView can't see.
+  thermal, and battery readings the WebView can't see. On iOS, a Mac with
+  Safari **Develop** menu (Settings → Apps → Safari → Advanced → Web Inspector
+  on the phone) shows console errors and memory.
 - About 15 GB of free disk on the laptop for model files.
 
 ## One-time laptop setup
@@ -26,17 +30,46 @@ pnpm models fetch --all       # ~13 GB from Hugging Face / sherpa-onnx releases
 pnpm models inspect --all     # graph I/O metadata, bundled into the app
 pnpm models fixtures --all    # CPU reference outputs for drift checks
 pnpm test                     # unit tests should pass
+pnpm certs                    # HTTPS certificate for phone browsers (needs mkcert: `mise install`)
 ```
+
+### Trust the certificate on each phone (once)
+
+WebGPU, OPFS, and `SharedArrayBuffer` only exist in a secure context. Phone
+browsers only treat `https://` or `localhost` as secure, so the phone must trust
+the laptop's mkcert root CA. `pnpm certs` prints its path (`rootCA.pem`).
+
+- **iPhone:** AirDrop or email `rootCA.pem` to the phone and open it. Install the
+  profile in Settings → General → VPN & Device Management. Then turn it on in
+  Settings → General → About → Certificate Trust Settings. The second step is
+  easy to miss, and Safari won't trust the certificate without it.
+- **Android:** copy `rootCA.pem` to the phone, then Settings → Security →
+  More security settings → Install from device storage → CA certificate.
+  Chrome trusts user CAs. App WebViews often don't. If the Even app on Android
+  shows `secureContext: false` in mode A **and** can't load mode A-https, write
+  that down and tell me. It decides how we sideload during development, and
+  mode B still shows what a shipped build gets.
+
+If your laptop's LAN IP changes, run `pnpm certs` again. The CA stays the same,
+so phones don't need to reinstall it.
 
 ## How the phone reaches the probe
 
 | Mode | Command | Use for |
 | --- | --- | --- |
 | **A. Sideload, isolated** | `pnpm dev`, then `pnpm qr` and scan the QR in the Even app | Spikes 1, 2, 4, 5, 6 and all model benchmarks |
+| **A-https. Sideload over HTTPS** | `pnpm dev:https`, then `pnpm qr:https` | Use instead of A when mode A's inventory shows `secureContext: false` |
 | **A′. Sideload, not isolated** | `pnpm dev:no-coi`, then `pnpm qr` | Spike 2 only: what the WebView does without COOP/COEP headers |
 | **B. Packaged `.ehpk`** | `pnpm ehpk`, upload `phase0-probe.ehpk` as a private build on the Even Hub site, then open it from the Even app | Spikes 2, 4, 6: isolation, storage, and upgrades as Even actually serves apps |
+| **C. Phone browser** | `pnpm dev:https`, then open `https://<laptop-LAN-IP>:5173` in Safari (iOS) or Chrome (Android) | Spikes 2 and 3 in standalone Safari and Chrome. There's no G2, so capture uses the phone mic |
 
-In modes A and A′, every report is uploaded automatically to
+For Android Chrome only, you can skip certificates: connect USB, run
+`adb reverse tcp:5173 tcp:5173` and `pnpm dev`, then open
+`http://localhost:5173` on the phone.
+
+Run every mode on **both** phones: the Even app on Android and on iOS.
+
+In modes A, A-https, A′, and C, every report is uploaded automatically to
 `spikes/phase0-probe/results/<spike>/` on the laptop. The status line under
 each report says `saved on laptop: …`.
 
@@ -48,37 +81,46 @@ files into `results/<spike>/`. The last five reports per spike are also kept
 on the phone.
 
 On first launch in any mode, open **Overview** and set **Device label** (for
-example `pixel10pro`). Every report carries it.
+example `pixel10pro-even`, `iphone17pro-safari`). Include the host (Even app,
+Chrome, or Safari), since the same phone is tested in several. Every report
+carries it.
 
 ---
 
-## Spike 2: WebNN and platform inventory (`irl-subt-0i6.2`)
+## Spike 2: WebGPU and platform inventory (`irl-subt-0i6.2`)
 
-**This decides whether the local MVP can exist at all.**
+**This decides whether local models can run on each platform.**
 
-1. Mode A: **Capabilities → Run inventory**. Leave "include full
-   opSupportLimits" off.
-2. Run it again with that box on. It's a larger report, but it's the operator
-   support table.
-3. Mode A′: **Run inventory**.
-4. Mode B: **Run inventory**. If the header pill says **NOT isolated**, press
+Do this on the Android phone and on the iPhone.
+
+1. Mode A: **Capabilities → Run inventory**. If `secureContext` is `false`,
+   switch to mode A-https and run it again.
+2. Mode A′: **Run inventory**.
+3. Mode B: **Run inventory**. If the header pill says **NOT isolated**, press
    **Try isolation via service worker**. The app reloads. Press **Run
    inventory** again, then **Remove service worker**.
+4. Mode C: **Run inventory** in Chrome (Android) and in Safari (iOS).
 
-Never enable anything in `chrome://flags` or developer settings. Flag-gated
-support doesn't count.
+Never enable anything in `chrome://flags`, Safari's Feature Flags, or developer
+settings. Flag-gated support doesn't count.
 
-**Pass:** in mode A **and** mode B, the summary shows `navigator.ml (main)` and
-`navigator.ml (worker)` as `true`, and at least one of `npu:ok` / `gpu:ok`.
+**Pass:** in the Even app (mode A or A-https, **and** mode B), `WebGPU (main)`
+and `WebGPU (worker)` both show an adapter with `ok`. For example
+`qualcomm/adreno-8xx ok f16:ok maxBuffer 1024 MiB`. Note `f16` and
+`maxBuffer`, which limit model precision and size.
 
-**Blocker:** `navigator.ml` is false in the Even app. Stop and tell me.
+**Blocker:** `navigator.gpu missing` in the Even app on a platform. Local STT and
+summaries can't run there, so stop and tell me. If it says `(not a secure
+context)`, it's a serving problem, not a blocker: retry with A-https.
 
 Also note the header pill in mode B. If it says "NOT isolated" even after the
 service-worker attempt, Turso on OPFS is off the table.
 
 ## Spike 1: 60-minute G2 capture soak (`irl-subt-0i6.1`)
 
-Mode A. Wear the glasses and talk or play speech audio nearby for part of the
+Mode A, on the Android phone and then on the iPhone. iOS suspends backgrounded
+web content far more aggressively, so the lock and app-switch steps matter most
+there. Wear the glasses and talk or play speech audio nearby for part of the
 run so levels vary.
 
 1. **Capture**: source **G2 glasses mic**, **persist PCM to OPFS** on, **re-arm
@@ -119,11 +161,12 @@ Run in mode A first, then mode B.
 1. **Storage → Run latency bench**: 60 chunks, AES-GCM on.
 2. **Start torture writer**. After about 20 seconds, **force-stop the Even
    app**: Android Settings → Apps → Even Realities → Force stop (or
-   `adb shell am force-stop <package>`). Don't press Stop.
+   `adb shell am force-stop <package>`). On iOS, swipe it away in the app
+   switcher. Don't press Stop.
 3. Relaunch the probe. It should show "Torture writer was running…". Press
    **Verify**.
-4. Repeat steps 2–3 three times. Then do it once with a swipe-away from recents
-   instead of a force-stop.
+4. Repeat steps 2–3 three times. On Android, also do it once with a swipe-away
+   from recents instead of a force-stop. Run the whole spike on both phones.
 5. **Upgrade test (mode B only):** with torture data present, bump `version` in
    `app.json` (for example `0.1.0` → `0.1.1`), run `pnpm ehpk`, and upload and
    install the new build over the old one. Open it and press **Verify**. The
@@ -146,6 +189,7 @@ mode B, or any Verify loses acked commits. Then IndexedDB is the backend.
    **Verify**.
 4. Optional: in Android settings, clear the Even app's cache (not storage), then
    **Verify**.
+5. Repeat on the iPhone (skip step 4).
 
 **Pass:** `ok: true` with `writtenByVersion` older than `currentAppVersion`
 after the upgrade. `bridgeStorage` shows whether the Even bridge's own storage
@@ -154,6 +198,7 @@ also survived, for comparison.
 ## Spike 5: Soniox through the Even WebView (`irl-subt-0i6.5`)
 
 Mode A first. Then mode B, since the manifest whitelist only matters there.
+Do both phones.
 
 1. **Soniox**: paste the key. It stays in memory only and is never saved or
    uploaded.
@@ -171,49 +216,67 @@ land on the laptop.
 around the lock period, and the recording continues or reconnects after
 unlock (see `events`).
 
-## Spike 3: model benchmarks through WebNN (`irl-subt-0i6.3.*`)
+## Spike 3: model benchmarks on WebGPU and WASM (`irl-subt-0i6.3.*`)
 
-Mode A only. Models stream from the laptop, so keep it on fast Wi-Fi and plug
-the phone in for this spike.
+Run this on both phones, first in the Even app (mode A, or A-https if needed),
+then once in mode C (Chrome on Android, Safari on iOS) for comparison. Models
+stream from the laptop, so keep it on fast Wi-Fi and plug the phone in for this
+spike.
+
+EPs in the harness:
+
+- `webgpu` is ONNX Runtime's native WebGPU EP, the one the app would ship.
+- `webgpu-jsep` is the older JS-kernel WebGPU EP. Its op coverage differs, so
+  it's useful as a comparison.
+- `wasm` is multithreaded CPU. It's the reference, and the likely winner for
+  tiny graphs.
 
 1. **Models → Check model files**. It should report all graphs served.
-2. Tick `webnn-npu`, `webnn-gpu`, `webnn-cpu`; untick `wasm`. Iterations: 30.
-   **compare with WASM** on.
+2. Tick `webgpu` and `wasm`. Iterations: 30. **compare with WASM** on.
 3. **Run defaults matrix**. It takes a while, especially the Gemma and Qwen3
    graphs.
 4. **Run full matrix**. This covers every catalog option and takes much
-   longer. Start it and leave it.
+   longer. Start it and leave it. On the iPhone, if the page reloads or goes
+   blank partway through, iOS killed it for memory. Write down which graph was
+   running (it's the last line in the log) and restart the matrix after it.
 5. **Unplug** for the sustained runs. Select **Moonshine Streaming Medium →
-   encoder-int8**, sustained seconds `600`, tick only the device type that won
-   step 3, then **Run selected graph**. Repeat for **CAM++**.
-6. **Concurrent live stack**: minutes `60`, EP = the winner from step 3,
-   **Run live stack**. Keep the screen on and the probe in the foreground,
-   phone unplugged. With `adb`, every 10 minutes run:
+   encoder-int8**, sustained seconds `600`, tick only the EP that won step 3,
+   then **Run selected graph**. Repeat for **CAM++**.
+6. **Concurrent live stack**: minutes `60`, EP `mixed` (VAD on WASM, the rest
+   on WebGPU), **Run live stack**. Keep the screen on and the probe in the
+   foreground, phone unplugged. On Android with `adb`, every 10 minutes run:
    `adb shell dumpsys thermalservice | grep -i "temperature\|status"` and
    `adb shell dumpsys meminfo | grep -i even`
-   Paste those into a text file next to the results.
+   Paste those into a text file next to the results. On the iPhone, note when
+   it gets warm and the battery percentage every 10 minutes.
 
-**Expected failures:** these are findings, not harness bugs.
+**Expected findings** (desktop Chrome already shows these; they aren't harness
+bugs):
 
-- Graphs with `If` nodes (Whisper and Moonshine merged decoders) will likely
-  fall back or fail on WebNN.
-- On desktop Chrome, Silero VAD failed WebNN session creation outright.
-- int4 `MatMulNBits` graphs (Qwen3-ASR decoder, Whisper-turbo, Gemma) may not
-  be accepted by the WebNN EP.
+- Small graphs are much faster on WASM than on WebGPU. On desktop, Silero VAD
+  was 0.3 ms on WASM and 11 ms on WebGPU. CAM++ was 40 ms and 200 ms.
+- The native WebGPU EP gives wrong Silero VAD recurrent state (`stateN` cosine
+  about 0.94 vs WASM). JSEP and WASM agree.
+- CAM++ fails on `webgpu-jsep` (AveragePool `ceil_mode` isn't implemented) but
+  runs fully on native `webgpu`.
+- Dynamic-int8 graphs (the Moonshine Streaming Medium export) put
+  `MatMulInteger`/`DynamicQuantizeLinear` on the CPU. That's about 150 fallback
+  nodes, and it's slow.
 
-**What I look at:** per graph and device type, `webnnCoverage.fullyOnWebNN`,
-`latencyMs.p95`, `realTimeHeadroom` (≥ 2 is comfortable for live roles), drift
-vs fixture and vs WASM, and in the live stack, `overruns` growing over time
-(thermal throttling).
+**What I look at:** per graph and EP, `placement.allOnGpu`,
+`placement.cpuOps`, `latencyMs.p95`, `realTimeHeadroom` (≥ 2 is comfortable
+for live roles), drift vs fixture and vs WASM, `gpuAdapter`, and in the live
+stack, `overruns` growing over time (thermal throttling).
 
-**Blocker:** no speaker-embedding model (CAM++, WeSpeaker, ECAPA, ReDimNet)
-runs with `fullyOnWebNN: true` and `realTimeHeadroom` > 1 on any device type.
+**Blocker (per platform):** no speaker-embedding model (CAM++, WeSpeaker,
+ECAPA, ReDimNet) passes drift checks with `realTimeHeadroom` > 1 on either
+`webgpu` or `wasm`.
 
 ---
 
 ## When you're done
 
-Tell me which devices you ran and anything you saw that the reports won't show
+Tell me which devices and hosts (Even app, Chrome, Safari) you ran, and anything you saw that the reports won't show
 (glasses display glitches, app crashes, heat, dialogs). Reports are already in
 `spikes/phase0-probe/results/`, and I'll write the go/no-go record from them.
 

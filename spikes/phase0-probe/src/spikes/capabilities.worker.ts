@@ -1,6 +1,6 @@
-import { probeWebNN } from "./webnn-probe";
+import { probeWebGPU } from "./webgpu-probe";
 
-/** Runs inside a dedicated worker: WebNN-in-worker, OPFS sync access handles, SAB transfer. */
+/** Runs inside a dedicated worker: WebGPU-in-worker, OPFS sync access handles, SAB transfer. */
 async function probe() {
   const result: Record<string, unknown> = {};
   result.crossOriginIsolated = (self as unknown as { crossOriginIsolated?: boolean }).crossOriginIsolated === true;
@@ -31,7 +31,7 @@ async function probe() {
     result.opfsSyncAccessHandle = { ok: false, error: String(e) };
   }
 
-  result.webnn = await probeWebNN(false).catch((e) => ({ error: String(e) }));
+  result.webgpu = await probeWebGPU().catch((e) => ({ error: String(e) }));
   return result;
 }
 

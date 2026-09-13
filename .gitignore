@@ -7,3 +7,4 @@ spikes/phase0-probe/results/recordings/
 .venv/
 __pycache__/
 .playwright-mcp/
+spikes/phase0-probe/certs/

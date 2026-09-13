@@ -19,7 +19,7 @@
           "values": {
             "sr": 16000
           },
-          "notes": "If-free export; WebNN has no If/Loop ops",
+          "notes": "If-free export: no control-flow nodes that could split the WebGPU partition",
           "shapes": {
             "input": [
               1,
@@ -54,7 +54,7 @@
               128
             ]
           },
-          "notes": "Unnamed dynamic dims ('?') cannot be pinned by freeDimensionOverrides; expected to fail or fall back on WebNN"
+          "notes": "Unnamed dynamic dims ('?') cannot be pinned by freeDimensionOverrides; shapes stay dynamic, so expect kernel re-specialization and CPU shape ops on WebGPU"
         }
       ]
     },
@@ -131,7 +131,7 @@
           }
         }
       ],
-      "notes": "Only a dynamic-int8 export exists; an fp16 export may be needed for WebNN NPU/GPU placement."
+      "notes": "Only a dynamic-int8 export exists; DynamicQuantizeLinear/MatMulInteger may fall back to CPU on WebGPU, so an fp16 or q4 (MatMulNBits) export may be needed."
     },
     {
       "id": "moonshine-streaming-small-en",
@@ -174,7 +174,7 @@
           "values": {
             "use_cache_branch": true
           },
-          "notes": "Merged decoder uses an If node (use_cache_branch); WebNN has no If op"
+          "notes": "Merged decoder uses an If node (use_cache_branch); check placement for CPU fallback and compare against decoder_with_past"
         }
       ]
     },
@@ -230,7 +230,7 @@
           "values": {
             "use_cache_branch": true
           },
-          "notes": "Merged decoder uses an If node (use_cache_branch); WebNN has no If op"
+          "notes": "Merged decoder uses an If node (use_cache_branch); check placement for CPU fallback and compare against decoder_with_past"
         }
       ]
     },
@@ -268,7 +268,7 @@
           "values": {
             "use_cache_branch": true
           },
-          "notes": "Merged decoder uses an If node (use_cache_branch); WebNN has no If op"
+          "notes": "Merged decoder uses an If node (use_cache_branch); check placement for CPU fallback and compare against decoder_with_past"
         }
       ]
     },
@@ -358,7 +358,7 @@
           "values": {
             "use_cache_branch": true
           },
-          "notes": "Merged decoder uses an If node (use_cache_branch); WebNN has no If op"
+          "notes": "Merged decoder uses an If node (use_cache_branch); check placement for CPU fallback and compare against decoder_with_past"
         }
       ]
     },

@@ -1,16 +1,16 @@
 import { createSignal, Show } from "solid-js";
 import { ActionButton, Card, createLog, createReporter, KeyValue, LogView, ReportCard } from "../components";
 import { enableIsolationServiceWorker, removeServiceWorkers, runInventory } from "../spikes/capabilities";
+import { summarizeWebGPU, type WebGPUProbe } from "../spikes/webgpu-probe";
 
 type Inventory = Awaited<ReturnType<typeof runInventory>>;
 
 function summarize(data: Inventory): Record<string, unknown> {
-  const webnn = data.webnnMain as { navigatorMl?: boolean; contexts?: { deviceType: string; created: boolean; knownAnswer?: { ok: boolean } }[] };
-  const worker = data.worker as { webnn?: { navigatorMl?: boolean }; opfsSyncAccessHandle?: unknown };
+  const worker = data.worker as { webgpu?: WebGPUProbe | { error: string }; opfsSyncAccessHandle?: unknown };
   return {
-    "navigator.ml (main)": webnn.navigatorMl ?? "error",
-    "navigator.ml (worker)": worker.webnn?.navigatorMl ?? "error",
-    contexts: (webnn.contexts ?? []).map((c) => `${c.deviceType}:${c.created ? (c.knownAnswer?.ok ? "ok" : "KAT-fail") : "no"}`).join(" "),
+    secureContext: data.platform.location.isSecureContext,
+    "WebGPU (main)": summarizeWebGPU(data.webgpuMain as WebGPUProbe | { error: string }),
+    "WebGPU (worker)": summarizeWebGPU(worker.webgpu),
     crossOriginIsolated: data.platform.crossOriginIsolated,
     wasmSimd: data.platform.wasm.simd,
     opfsSyncInWorker: worker.opfsSyncAccessHandle,
@@ -20,11 +20,10 @@ function summarize(data: Inventory): Record<string, unknown> {
 export function CapabilitiesPanel() {
   const log = createLog();
   const reporter = createReporter("capabilities");
-  const [opLimits, setOpLimits] = createSignal(false);
   const [summary, setSummary] = createSignal<Record<string, unknown> | null>(null);
 
   const run = async () => {
-    const data = await runInventory(log.log, opLimits());
+    const data = await runInventory(log.log);
     setSummary(summarize(data));
     log.log("done");
     await reporter.publish(data);
@@ -32,14 +31,11 @@ export function CapabilitiesPanel() {
 
   return (
     <>
-      <Card title="Spike irl-subt-0i6.2 — WebNN & platform inventory">
+      <Card title="Spike irl-subt-0i6.2 — WebGPU & platform inventory">
         <p class="muted">
-          Run in sideload mode (served with and without COOP/COEP) and from the packaged .ehpk. Never enable Chrome flags.
+          Run in the Even app (sideload and packaged .ehpk), Android Chrome, and iOS Safari. Never enable browser flags or
+          Safari feature flags.
         </p>
-        <label class="row">
-          <input type="checkbox" checked={opLimits()} onChange={(e) => setOpLimits(e.currentTarget.checked)} />
-          include full opSupportLimits (large)
-        </label>
         <div class="row">
           <ActionButton label="Run inventory" onRun={run} />
           <ActionButton label="Try isolation via service worker" onRun={enableIsolationServiceWorker} />

@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import * as ort from "onnxruntime-web";
+import type * as Ort from "onnxruntime-web";
 import {
   compare,
   decodeTensor,
@@ -13,7 +13,18 @@ import {
   type RegistryGraph,
 } from "./model-inputs";
 
-export type EpChoice = "webnn-npu" | "webnn-gpu" | "webnn-cpu" | "wasm";
+/**
+ * - webgpu: ORT's native WebGPU EP (the `onnxruntime-web/webgpu` asyncify build, which also runs on Safari without JSPI).
+ * - webgpu-jsep: the older JS-kernel WebGPU EP in the default `onnxruntime-web` bundle; different op coverage.
+ * - wasm: CPU reference, and the likely EP for tiny graphs like VAD.
+ */
+export type EpChoice = "webgpu" | "webgpu-jsep" | "wasm";
+
+/** Loaded per run: each benchmark gets a fresh worker, so only one ORT build is ever in memory. */
+let ort: typeof Ort;
+async function loadOrt(ep: EpChoice): Promise<typeof Ort> {
+  return ep === "webgpu-jsep" ? await import("onnxruntime-web") : await import("onnxruntime-web/webgpu");
+}
 
 export interface BenchRequest {
   modelId: string;
@@ -39,34 +50,56 @@ export interface SustainedWindow {
   overruns: number;
 }
 
-// Capture ORT's own logs: WebNN EP partitioning and fallback messages land here.
+// Capture ORT's own logs: node placement and CPU fallback messages land here.
 const logLines: string[] = [];
+/** Every "Node placements" line ORT prints at verbose level, kept separately so the capped log can't drop them. */
+const placementLines: string[] = [];
+let inPlacements = false;
 for (const level of ["log", "info", "warn", "error", "debug"] as const) {
   const orig = console[level].bind(console);
   console[level] = (...args: unknown[]) => {
     const line = args.map(String).join(" ");
-    if (logLines.length < 400 && /webnn|fallback|not supported|unsupported|graph_partitioner|node placement|assigned to|ExecutionProvider/i.test(line)) logLines.push(`${level}: ${line.slice(0, 400)}`);
-    orig(...args);
+    // ORT prefixes each message with "<time> [V:onnxruntime:, file:line func] ".
+    const body = line.replace(/^.*?\[[VIWEF]:onnxruntime:[^\]]*\]\s?/, "");
+    if (/Node placements/.test(body)) inPlacements = true;
+    else if (inPlacements && !/placed on \[|^\s{2,}\S/.test(body)) inPlacements = false;
+    if (inPlacements) placementLines.push(body);
+    const verbose = /\[V:onnxruntime:/.test(line);
+    if (logLines.length < 400 && !verbose && /kernel not found|fallback|not supported|unsupported|not implemented|not assigned|error|warn/i.test(body)) logLines.push(`${level}: ${line.slice(0, 400)}`);
+    // Verbose ORT output is huge on big graphs; only forward non-verbose lines to the devtools console.
+    if (!verbose) orig(...args);
   };
 }
 
-/** Structured WebNN coverage from ORT's GetCapability log line (the key op-coverage signal). */
-function webnnCoverage() {
-  for (const line of logLines) {
-    const m = /partitions supported by WebNN: (\d+) number of nodes in the graph: (\d+) number of nodes supported by WebNN: (\d+)/.exec(line);
+/**
+ * Structured node placement from ORT's verbose "Node placements" log: node counts per execution
+ * provider and the op types that fell back to CPU (the key op-coverage signal for the WebGPU EP).
+ */
+function placement() {
+  if (!placementLines.length) return null;
+  const nodesByEp: Record<string, number> = {};
+  const cpuOps: Record<string, number> = {};
+  let ep = "";
+  for (const line of placementLines) {
+    const m = /placed on \[(\w+)\]\. Number of nodes: (\d+)/.exec(line);
     if (m) {
-      const [partitions, nodes, supported] = [Number(m[1]), Number(m[2]), Number(m[3])];
-      return { partitions, nodes, supported, fullyOnWebNN: partitions === 1 && nodes === supported };
+      ep = m[1]!;
+      nodesByEp[ep] = (nodesByEp[ep] ?? 0) + Number(m[2]);
+      continue;
     }
+    const node = /^\s{2,}(\S+) \(/.exec(line);
+    if (node && ep.startsWith("CPU")) cpuOps[node[1]!] = (cpuOps[node[1]!] ?? 0) + 1;
   }
-  return null;
+  const total = Object.values(nodesByEp).reduce((a, b) => a + b, 0);
+  const gpu = Object.entries(nodesByEp).filter(([k]) => /webgpu|js/i.test(k)).reduce((a, [, v]) => a + v, 0);
+  return { nodesByEp, gpuFraction: total ? Math.round((gpu / total) * 1000) / 1000 : 0, allOnGpu: total > 0 && gpu === total, cpuOps };
 }
 
 function progress(message: string) {
   postMessage({ type: "progress", message });
 }
 
-function toOrt(t: RawTensor): ort.Tensor {
+function toOrt(t: RawTensor): Ort.Tensor {
   return new ort.Tensor(t.dtype, t.data as never, t.shape);
 }
 
@@ -80,10 +113,24 @@ function stats(times: number[]) {
   return { n: s.length, p50: r(percentile(s, 0.5)), p95: r(percentile(s, 0.95)), max: r(s[s.length - 1] ?? NaN), mean: r(s.reduce((a, b) => a + b, 0) / Math.max(1, s.length)) };
 }
 
-function epOptions(ep: EpChoice): ort.InferenceSession.ExecutionProviderConfig[] {
-  if (ep === "wasm") return ["wasm"];
-  const deviceType = ep.slice("webnn-".length) as "npu" | "gpu" | "cpu";
-  return [{ name: "webnn", deviceType, powerPreference: "default" } as ort.InferenceSession.ExecutionProviderConfig];
+function epOptions(ep: EpChoice): Ort.InferenceSession.ExecutionProviderConfig[] {
+  // No explicit wasm entry after webgpu: ORT still places unsupported nodes on its CPU EP, and placement() reports them.
+  return ep === "wasm" ? ["wasm"] : [{ name: "webgpu" }];
+}
+
+/** Which adapter ORT picked, so reports show e.g. an iPhone GPU vs a software fallback adapter. */
+function gpuAdapterInfo() {
+  const env = ort.env.webgpu as unknown as { device?: { adapterInfo?: Record<string, unknown> }; adapter?: { info?: Record<string, unknown> } };
+  let info: Record<string, unknown> | undefined;
+  try {
+    info = env.device?.adapterInfo ?? env.adapter?.info;
+  } catch {
+    return null; // older ORT builds throw before a WebGPU session exists
+  }
+  if (!info) return null;
+  const out: Record<string, unknown> = {};
+  for (const k of ["vendor", "architecture", "device", "description", "isFallbackAdapter"]) if (info[k] !== undefined && info[k] !== "") out[k] = info[k];
+  return out;
 }
 
 async function fetchBytes(url: string): Promise<{ bytes: Uint8Array; ms: number }> {
@@ -100,14 +147,16 @@ async function createSession(req: BenchRequest, ep: EpChoice, modelBytes: Uint8A
     executionProviders: epOptions(ep),
     freeDimensionOverrides: freeDimensionOverrides(req.graph, req.meta),
     graphOptimizationLevel: "all",
-    logSeverityLevel: 1,
+    // Verbose is what prints "Node placements"; the console hook keeps it out of devtools.
+    logSeverityLevel: ep === "wasm" ? 2 : 0,
     externalData: (req.graph.externalData ?? []).map((p) => ({ path: p.split("/").pop()!, data: `${base}${p}` })),
   });
   return { session, createMs: performance.now() - t0 };
 }
 
 async function run(req: BenchRequest) {
-  ort.env.logLevel = "info";
+  ort = await loadOrt(req.ep);
+  ort.env.logLevel = "verbose";
   ort.env.wasm.numThreads = self.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency) : 1;
   const result: Record<string, unknown> = { modelId: req.modelId, graph: req.graph.name, ep: req.ep, ortVersion: ort.env.versions.web };
 
@@ -121,8 +170,11 @@ async function run(req: BenchRequest) {
   try {
     created = await createSession(req, req.ep, bytes);
   } catch (e) {
-    return { ...result, ok: false, stage: "create", error: String(e), webnnCoverage: webnnCoverage(), ortLog: logLines };
+    return { ...result, ok: false, stage: "create", error: String(e), placement: placement(), ortLog: logLines };
   }
+  if (req.ep !== "wasm") result.gpuAdapter = gpuAdapterInfo();
+  // Placement is logged during session creation; the WASM reference session below must not append to it.
+  const createdPlacement = placement();
   const { session, createMs } = created;
   result.createMs = Math.round(createMs);
   result.inputs = session.inputMetadata;
@@ -135,7 +187,7 @@ async function run(req: BenchRequest) {
   } catch {
     fixture = null;
   }
-  const feeds: Record<string, ort.Tensor> = {};
+  const feeds: Record<string, Ort.Tensor> = {};
   session.inputNames.forEach((name, i) => {
     const encoded = fixture?.inputs[name];
     const metaInput = session.inputMetadata[i] as { name: string; type?: string; shape?: (number | string)[] };
@@ -144,14 +196,14 @@ async function run(req: BenchRequest) {
   result.inputSource = fixture ? `fixture (${fixture.reference})` : "generated";
 
   progress("first run");
-  let outputs: ort.InferenceSession.ReturnType;
+  let outputs: Ort.InferenceSession.ReturnType;
   try {
     const t0 = performance.now();
     outputs = await session.run(feeds);
     result.firstRunMs = Math.round(performance.now() - t0);
   } catch (e) {
     await session.release();
-    return { ...result, ok: false, stage: "first-run", error: String(e), webnnCoverage: webnnCoverage(), ortLog: logLines };
+    return { ...result, ok: false, stage: "first-run", error: String(e), placement: createdPlacement, ortLog: logLines };
   }
 
   const drift = (reference: Record<string, { dtype: string; data: ArrayLike<number | bigint> }>) => {
@@ -223,7 +275,7 @@ async function run(req: BenchRequest) {
   }
 
   await session.release();
-  return { ...result, ok: true, webnnCoverage: webnnCoverage(), ortLog: logLines };
+  return { ...result, ok: true, placement: createdPlacement, ortLog: logLines };
 }
 
 self.onmessage = async (e: MessageEvent<BenchRequest>) => {

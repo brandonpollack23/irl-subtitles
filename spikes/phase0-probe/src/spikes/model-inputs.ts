@@ -52,8 +52,9 @@ export interface RawTensor {
 }
 
 /**
- * Symbolic dims to pin as freeDimensionOverrides. WebNN needs fully static graphs,
- * so per-input shape overrides are translated back into their symbolic names.
+ * Symbolic dims to pin as freeDimensionOverrides. Static shapes keep the WebGPU EP from
+ * re-specializing kernels per call, so per-input shape overrides are translated back into
+ * their symbolic names.
  */
 export function freeDimensionOverrides(graph: RegistryGraph, meta: GraphMetadata | undefined): Record<string, number> {
   const out: Record<string, number> = { ...(graph.dims ?? {}) };

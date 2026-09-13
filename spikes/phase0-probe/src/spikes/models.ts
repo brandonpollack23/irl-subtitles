@@ -6,7 +6,7 @@ import type { GraphMetadata, RegistryGraph, RegistryModel } from "./model-inputs
 export const registry = registryJson.models as RegistryModel[];
 const metadata = metadataJson as Record<string, GraphMetadata>;
 
-export const EPS: EpChoice[] = ["webnn-npu", "webnn-gpu", "webnn-cpu", "wasm"];
+export const EPS: EpChoice[] = ["webgpu", "webgpu-jsep", "wasm"];
 
 type Log = (...p: unknown[]) => void;
 
@@ -81,12 +81,18 @@ export interface StackMember {
   ep: EpChoice;
 }
 
+/** EP for every live-stack member, or "mixed": VAD on WASM (tiny graph, dispatch overhead dominates) and the rest on WebGPU. */
+export type StackEp = EpChoice | "mixed";
+export const STACK_EPS: StackEp[] = ["mixed", ...EPS];
+
 /** The catalog-default live roles (VAD + live STT encoder/decoder + speaker embedding). */
-export function defaultLiveStack(ep: EpChoice): StackMember[] {
+export function defaultLiveStack(ep: StackEp): StackMember[] {
   return registry
     .filter((m) => m.catalogDefault && (m.role === "vad" || m.role === "stt-live" || m.role === "speaker-embedding"))
     .map((m) => ({ model: m, graphs: m.role === "vad" ? m.graphs.slice(0, 1) : m.graphs }))
-    .flatMap(({ model, graphs }) => graphs.map((graph) => ({ model, graph, ep })));
+    .flatMap(({ model, graphs }) =>
+      graphs.map((graph) => ({ model, graph, ep: ep !== "mixed" ? ep : model.role === "vad" ? ("wasm" as const) : ("webgpu" as const) })),
+    );
 }
 
 /**

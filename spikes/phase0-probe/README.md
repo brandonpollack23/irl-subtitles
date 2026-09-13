@@ -9,7 +9,7 @@ MVP app.
 
 | Path | What |
 | --- | --- |
-| `src/spikes/` | Framework-free spike logic (capabilities, capture, storage, secrets, Soniox, WebNN benchmarks) |
+| `src/spikes/` | Framework-free spike logic (capabilities, capture, storage, secrets, Soniox, WebGPU benchmarks) |
 | `src/panels/` | SolidJS 2 panels, one per spike |
 | `src/models/registry.json` | Benchmark registry: every plan.md §6.1 catalog option, its ONNX source, and static dims |
 | `scripts/models.py` | `pnpm models fetch\|inspect\|fixtures --all`: downloads, graph metadata, CPU reference fixtures |
@@ -18,6 +18,8 @@ MVP app.
 
 ```sh
 pnpm dev          # sideload server (cross-origin isolated); pnpm dev:no-coi for the unisolated variant
+pnpm certs        # once: mkcert certificate for localhost + LAN IPs (phones must trust its root CA)
+pnpm dev:https    # same server over HTTPS, for phone Chrome/Safari (WebGPU needs a secure context)
 pnpm qr           # QR code for the Even app
 pnpm ehpk         # packaged build for private upload
 pnpm test         # unit tests for the framework-free logic
