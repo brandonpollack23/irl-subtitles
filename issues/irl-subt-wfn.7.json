@@ -7,7 +7,8 @@
     "irl-subt-wfn.6"
   ],
   "blocks": [
-    "irl-subt-wfn.8"
+    "irl-subt-wfn.8",
+    "irl-subt-wfn.9"
   ],
   "created": "2026-09-13T11:20:51Z",
   "description": "Using survey + eval + spikes, decide which modes ship, defaults, catalog additions/removals, and Soniox parity. Update plan.md model catalog accordingly.",
