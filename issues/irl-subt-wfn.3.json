@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-wfn.1"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:51Z",
   "description": "Evaluate mode B building block: standalone LID on VAD utterances or speaker turns. Measure accuracy vs utterance length (0.5–3 s), latency, memory alongside live stack. Explore restricting to a user-declared language set and using speaker-level language priors (a person's usual language).",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Spike: per-utterance/per-turn LID via WebNN (ECAPA VoxLingua107, Whisper/Qwen3 encoder LID)",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:51Z"
+  "updated_at": "2026-09-13T11:20:52Z"
 }
