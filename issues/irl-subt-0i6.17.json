@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-0i6.5"
+  ],
   "created": "2026-09-13T11:52:56Z",
   "description": "The Soniox module (src/spikes/soniox.ts, irl-subt-0i6.13) hand-rolls the stt-rt WebSocket protocol and REST calls. The official MIT client SDK @soniox/client (v2.3.0, github.com/soniox/soniox-js) supports our case: client.realtime.stt({model:'stt-rt-v5', audio_format:'pcm_s16le', ...}) returns RealtimeSttSession with sendAudio(Uint8Array), finalize(), keepAlive(), finish(), async-iterable events, a custom AudioSource interface (feed G2 PCM frames), api_key as async resolver (temporary keys), typed errors, and ReconnectOptions. Migrate the spike to the SDK so the device test (irl-subt-0i6.5) validates the SDK path we would ship: confirm it works inside the Even WebView with the network whitelist, and keep the same report metrics (connect/first token/finalization lag, close/error info, redacted transcript). Also check whether its reconnect handles Android WebSocket drops on background.",
   "id": "irl-subt-0i6.17",
