@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-dp8.6"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:48Z",
   "description": "Join word timing with speaker turns and person matches; revisions; provisional vs final replacement. plan.md §4.",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "TranscriptReconciler: join tokens, turns, and matches into stable segments",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:48Z"
+  "updated_at": "2026-09-13T11:20:49Z"
 }

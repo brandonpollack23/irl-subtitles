@@ -4,7 +4,9 @@
     "irl-subt-dp8.2",
     "irl-subt-dp8.5"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-dp8.10"
+  ],
   "created": "2026-09-13T11:20:48Z",
   "description": "Incremental provisional tokens, timing segment-interpolated. Filter checkpoints by recording language. plan.md §6.1 step 2.",
   "id": "irl-subt-dp8.6",
@@ -16,5 +18,5 @@
   "status": "open",
   "title": "Local live STT provider (Moonshine Streaming default) in Web Worker",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:48Z"
+  "updated_at": "2026-09-13T11:20:49Z"
 }
