@@ -6,7 +6,9 @@
     "irl-subt-wfn.5",
     "irl-subt-wfn.6"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-wfn.8"
+  ],
   "created": "2026-09-13T11:20:51Z",
   "description": "Using survey + eval + spikes, decide which modes ship, defaults, catalog additions/removals, and Soniox parity. Update plan.md model catalog accordingly.",
   "id": "irl-subt-wfn.7",
@@ -18,5 +20,5 @@
   "status": "open",
   "title": "Decision record: supported language modes (select / per-line / mixed) for live and final passes",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:52Z"
+  "updated_at": "2026-09-13T11:20:53Z"
 }
