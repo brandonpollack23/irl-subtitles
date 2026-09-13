@@ -3,7 +3,9 @@
   "blocked_by": [
     "irl-subt-f9n.4"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-f9n.7"
+  ],
   "created": "2026-09-13T11:20:49Z",
   "description": "Aggregate windows; require min evidence (5–10 s), absolute score, runner-up margin, window agreement, no overlap/noise. Below threshold show Unknown/Possibly X. Never compare across embedding spaces. plan.md §7.3.",
   "id": "irl-subt-f9n.5",
