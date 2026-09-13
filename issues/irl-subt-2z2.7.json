@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:48Z",
+  "description": "Minimal G2 surface: Start recording, provider label, elapsed time, persistent recording indicator, degraded-state text, Add marker, Stop and summarize. Use textContainerUpgrade to avoid flicker; short menu labels. plan.md §10.",
+  "id": "irl-subt-2z2.7",
+  "labels": [],
+  "parent": "irl-subt-2z2",
+  "priority": 1,
+  "status": "open",
+  "title": "GlassesController: idle/recording UI, marker, pause/resume, stop, recording indicator",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:48Z"
+}
