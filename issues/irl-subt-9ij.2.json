@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-9ij.1"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:50Z",
   "description": "Sends normalized transcript + display names only; independent of Soniox. plan.md §6.3.",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "CloudSummaryProvider and services/summary-api (opt-in, transcript only)",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:50Z"
+  "updated_at": "2026-09-13T11:20:51Z"
 }
