@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:53Z",
+  "description": "Translate conversations live and show subtitles on the glasses. Translation stays distinct from source tokens. plan.md §2, §15 Live translation.",
+  "id": "irl-subt-7ys",
+  "labels": [],
+  "priority": 3,
+  "status": "open",
+  "title": "Post-MVP: Live translation (subtitles on G2)",
+  "type": "epic",
+  "updated_at": "2026-09-13T11:20:53Z"
+}
