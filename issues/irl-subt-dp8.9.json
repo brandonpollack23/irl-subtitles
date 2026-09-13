@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:48Z",
+  "description": "Re-transcribe stored speech into final word-timestamped, language-identified tokens replacing live tokens. Target \u003c0.5x recording duration. plan.md §6.1 step 5.",
+  "id": "irl-subt-dp8.9",
+  "labels": [],
+  "parent": "irl-subt-dp8",
+  "priority": 1,
+  "status": "open",
+  "title": "Local final STT pass (Qwen3-ASR-0.6B + ForcedAligner) after Stop",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:48Z"
+}
