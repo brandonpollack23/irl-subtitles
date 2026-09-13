@@ -7,7 +7,7 @@
     "irl-subt-0i6.7"
   ],
   "created": "2026-09-13T11:20:47Z",
-  "description": "Preferred store: Turso (@tursodatabase/database-wasm, SQLite-compatible Rust engine) persisted on OPFS; IndexedDB is the fallback behind the same Repository interface. Verify in the production Even Android WebView: (1) OPFS + createSyncAccessHandle in a dedicated worker; (2) SharedArrayBuffer, which requires cross-origin isolation (COOP/COEP), is available for Even-hosted plugin content; (3) DB survives force-stop mid-write, backgrounding, and .ehpk upgrade without corruption; (4) quota/eviction behavior (navigator.storage.persist); (5) write latency while capturing audio. Also compare storing audio chunks as separate OPFS files (referenced + checksummed from the DB) vs BLOBs in Turso. Turso WASM is BETA and its at-rest encryption is experimental/hard to enable in WASM, so plan on app-level Web Crypto encryption regardless. Record decision: Turso+OPFS or IndexedDB. plan.md §8, §13.4.",
+  "description": "Preferred store: Turso (@tursodatabase/database-wasm, SQLite-compatible Rust engine) persisted on OPFS; IndexedDB is the fallback behind the same Repository interface. Verify in the production Even WebView on Android and iOS: (1) OPFS + createSyncAccessHandle in a dedicated worker; (2) SharedArrayBuffer, which requires cross-origin isolation (COOP/COEP), is available for Even-hosted plugin content; (3) DB survives force-stop/swipe-away mid-write, backgrounding, and .ehpk upgrade without corruption; (4) quota/eviction behavior (navigator.storage.persist; iOS eviction policy); (5) write latency while capturing audio. Also compare storing audio chunks as separate OPFS files (referenced + checksummed from the DB) vs BLOBs in Turso. Turso WASM is BETA and its at-rest encryption is experimental/hard to enable in WASM, so plan on app-level Web Crypto encryption regardless. Record decision: Turso+OPFS or IndexedDB. plan.md §8, §13.4.",
   "id": "irl-subt-0i6.4",
   "labels": [
     "mvp"
@@ -17,5 +17,5 @@
   "status": "open",
   "title": "Spike: Turso WASM on OPFS storage viability, audio chunk persistence, quota, forced-termination recovery",
   "type": "task",
-  "updated_at": "2026-09-13T11:29:23Z"
+  "updated_at": "2026-09-13T12:51:34Z"
 }
