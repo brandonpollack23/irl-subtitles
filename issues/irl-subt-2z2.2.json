@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:47Z",
+  "description": "Persist ordered PCM chunks every 5–10 s, checksum, advance recovery cursor after verification. Never block capture on processing/network/UI. plan.md §8, §9.",
+  "id": "irl-subt-2z2.2",
+  "labels": [],
+  "parent": "irl-subt-2z2",
+  "priority": 1,
+  "status": "open",
+  "title": "ChunkRecorder: recoverable chunks, session journal, checksums, recovery cursor",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:47Z"
+}
