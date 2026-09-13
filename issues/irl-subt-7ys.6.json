@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:53Z",
+  "description": "Toggle/side-by-side transcript views; summary in chosen language.",
+  "id": "irl-subt-7ys.6",
+  "labels": [],
+  "parent": "irl-subt-7ys",
+  "priority": 3,
+  "status": "open",
+  "title": "Phone UI: side-by-side original and translation",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:53Z"
+}
