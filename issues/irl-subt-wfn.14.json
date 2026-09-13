@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:52Z",
   "description": "Summary language setting (user language vs dominant conversation language); validate Gemma chunk/reduce on code-switched transcripts; anchors remain intact.",
   "id": "irl-subt-wfn.14",
-  "labels": [],
+  "labels": [
+    "post-mvp"
+  ],
   "parent": "irl-subt-wfn",
   "priority": 2,
   "status": "open",
