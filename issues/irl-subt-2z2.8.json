@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:48Z",
+  "description": "History list (date, duration, title, state), audio playback from chunks, independent delete of recording vs audio. plan.md §10.",
+  "id": "irl-subt-2z2.8",
+  "labels": [],
+  "parent": "irl-subt-2z2",
+  "priority": 1,
+  "status": "open",
+  "title": "Phone companion: session history, playback, delete recording/audio",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:48Z"
+}
