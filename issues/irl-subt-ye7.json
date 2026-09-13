@@ -3,7 +3,9 @@
   "blocked_by": [
     "irl-subt-dp8"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-9ij.9"
+  ],
   "created": "2026-09-13T11:20:49Z",
   "description": "Soniox settings and secret storage, streaming adapter, reconnect, provisional/final handling, local identity fusion, disclosure. plan.md §6.2, §13 Phase 4.",
   "id": "irl-subt-ye7",
@@ -14,5 +16,5 @@
   "status": "open",
   "title": "MVP Phase 4: Soniox provider",
   "type": "epic",
-  "updated_at": "2026-09-13T11:20:50Z"
+  "updated_at": "2026-09-13T11:20:51Z"
 }
