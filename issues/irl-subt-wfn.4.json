@@ -4,7 +4,9 @@
     "irl-subt-wfn.1",
     "irl-subt-wfn.2"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-wfn.7"
+  ],
   "created": "2026-09-13T11:20:51Z",
   "description": "Evaluate mode C live: export to ONNX, run through WebNN, measure RTF/thermals in the 60-min concurrent live stack, and accuracy on the code-switched eval set.",
   "id": "irl-subt-wfn.4",
