@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:37:33Z",
+  "description": "Replace the hand-rolled DOM helpers (h/button/logger/kv/reportView in src/ui.ts) with SolidJS 2 (solid-js@next / @solidjs/web, vite-plugin-solid@next) components before building more spike panels. Keep spike logic (probes, workers, report publishing) framework-free; only the UI layer is Solid. Takes priority over remaining probe modules.",
+  "id": "irl-subt-0i6.16",
+  "labels": [],
+  "parent": "irl-subt-0i6",
+  "priority": 0,
+  "status": "open",
+  "title": "Probe UI: move phase0-probe to SolidJS 2",
+  "type": "task",
+  "updated_at": "2026-09-13T11:37:33Z"
+}
