@@ -8,7 +8,7 @@
     "irl-subt-ye7"
   ],
   "created": "2026-09-13T11:20:48Z",
-  "description": "Provider coordinator, WebNN runtime, model catalog, local VAD/STT/embedding/clustering, reconciler, transcript UI with anonymous clusters. plan.md §6.1, §13 Phase 2.",
+  "description": "Provider coordinator, WebGPU/WASM compute runtime, model catalog, local VAD/STT/embedding/clustering, reconciler, transcript UI with anonymous clusters. Android and iOS. plan.md §6.1, §13 Phase 2.",
   "id": "irl-subt-dp8",
   "labels": [
     "mvp"
@@ -17,5 +17,5 @@
   "status": "open",
   "title": "MVP Phase 2: Local transcription and diarization",
   "type": "epic",
-  "updated_at": "2026-09-13T11:20:50Z"
+  "updated_at": "2026-09-13T12:52:18Z"
 }
