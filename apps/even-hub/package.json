@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@evenrealities/even_hub_sdk": "0.0.15",
+    "@fontsource-variable/atkinson-hyperlegible-next": "5.3.0",
     "@irl/capture": "workspace:*",
     "@irl/domain": "workspace:*",
     "@irl/pipeline": "workspace:*",

@@ -32,6 +32,9 @@ importers:
       '@evenrealities/even_hub_sdk':
         specifier: 0.0.15
         version: 0.0.15
+      '@fontsource-variable/atkinson-hyperlegible-next':
+        specifier: 5.3.0
+        version: 5.3.0
       '@irl/capture':
         specifier: workspace:*
         version: link:../../packages/capture
@@ -304,6 +307,9 @@ packages:
     cpu: [x64]
     os: [win32]
     hasBin: true
+
+  '@fontsource-variable/atkinson-hyperlegible-next@5.3.0':
+    resolution: {integrity: sha512-UnLzNUy1RWoLDfydAatP4NaRm99X/WbQEph7q/PymJnCFIOOwKOx3pBmp5ys8trO0dM+CKGuJgeZP9fAR4mQpA==}
 
   '@huggingface/jinja@0.5.10':
     resolution: {integrity: sha512-SgS1D1bglQ94ceD4ZCL6eayUDy9uV1xuyk61OjgSxU5GJh7upqZCKII0JoTYMc6wWsg3JUgaPRX0ElQzXPk3Cw==}
@@ -1820,6 +1826,8 @@ snapshots:
 
   '@evenrealities/sim-win32-x64@0.9.5':
     optional: true
+
+  '@fontsource-variable/atkinson-hyperlegible-next@5.3.0': {}
 
   '@huggingface/jinja@0.5.10': {}
 

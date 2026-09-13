@@ -128,7 +128,8 @@ export class ProviderCoordinator {
     switch (ev.type) {
       case "tokens": {
         if (ev.replaceProvisional) {
-          for (const [id, t] of this.tokens) if (!t.final && ev.tokens.some((n) => n.providerRunId === t.providerRunId)) this.tokens.delete(id);
+          // One live run is active at a time, so its provisional set is replaced wholesale (even by an empty set).
+          for (const [id, t] of this.tokens) if (!t.final) this.tokens.delete(id);
         }
         for (const t of ev.tokens) {
           this.tokens.set(t.id, t);

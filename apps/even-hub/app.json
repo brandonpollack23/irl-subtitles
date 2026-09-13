@@ -1,0 +1,23 @@
+{
+  "package_id": "com.brandonpollack.irlsubtitles",
+  "name": "IRL Subtitles",
+  "version": "0.1.0",
+  "edition": "202601",
+  "min_sdk_version": "0.0.15",
+  "entrypoint": "index.html",
+  "permissions": [
+    {
+      "name": "network",
+      "desc": "Downloads on-device speech models from Hugging Face once. Sends audio to Soniox only when you choose Soniox as the provider.",
+      "whitelist": [
+        "https://huggingface.co",
+        "https://cdn-lfs.huggingface.co",
+        "https://cdn-lfs-us-1.hf.co",
+        "https://cas-bridge.xethub.hf.co",
+        "https://api.soniox.com",
+        "wss://stt-rt.soniox.com"
+      ]
+    }
+  ],
+  "supported_languages": ["en"]
+}

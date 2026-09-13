@@ -3,6 +3,13 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
-  "dependencies": {"@irl/domain": "workspace:*", "@irl/storage": "workspace:*", "@evenrealities/even_hub_sdk": "0.0.15"}
+  "exports": {
+    ".": "./src/index.ts",
+    "./worklet": "./src/pcm-capture.worklet.ts"
+  },
+  "dependencies": {
+    "@evenrealities/even_hub_sdk": "0.0.15",
+    "@irl/domain": "workspace:*",
+    "@irl/storage": "workspace:*"
+  }
 }

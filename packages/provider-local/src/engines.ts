@@ -2,7 +2,7 @@ import { Emitter, errorMessage, type BenchmarkResult, type ExecutionTarget, type
 import { catalogEntry } from "./catalog";
 import { availabilityOnDevice, detectCapabilities, selectTarget, type DeviceCapabilities } from "./device";
 import { cachedFiles } from "./model-files";
-import { isGpuFailure } from "./ort-env";
+import { isGpuFailure } from "./gpu-errors";
 import { RpcClient } from "./rpc";
 import type { AsrResult } from "./workers/asr.worker";
 

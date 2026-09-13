@@ -1,0 +1,226 @@
+import { OsEventTypeList, StartUpPageCreateResult, type EvenAppBridge, type EvenHubEvent } from "@evenrealities/even_hub_sdk";
+import { getBridge, onHubEvent } from "@irl/capture";
+import { formatClock, G2_MENU_LABEL_MAX_BYTES, truncateUtf8, utf8ByteLength, errorMessage } from "@irl/domain";
+import type { LiveSnapshot, RecordingController } from "@irl/pipeline";
+import type { SettingsStore } from "@irl/storage";
+import { logger } from "./log";
+
+const log = logger("glasses");
+
+const MENU = { start: 1, stop: 2, pause: 3, resume: 4, marker: 5, toggleAudio: 6 } as const;
+const STATUS = { id: 1, name: "status" };
+const BODY = { id: 2, name: "body" };
+const TEXT_LIMIT = 900;
+
+type Mode = "idle" | "recording" | "paused" | "finalizing";
+
+function modeOf(s: LiveSnapshot): Mode {
+  if (s.state === "recording" || s.state === "starting") return "recording";
+  if (s.state === "paused") return "paused";
+  if (s.state === "finalizing") return "finalizing";
+  return "idle";
+}
+
+function label(text: string) {
+  return utf8ByteLength(text) <= G2_MENU_LABEL_MAX_BYTES ? text : truncateUtf8(text, G2_MENU_LABEL_MAX_BYTES);
+}
+
+/**
+ * The constrained G2 surface (plan.md §10): idle start page, and while recording a persistent REC
+ * indicator with elapsed time, the current speaker, the last caption lines, and degraded-state text.
+ * Menu actions: start, pause/resume, add marker, stop and summarize, and the "Save audio" toggle.
+ * Text updates use textContainerUpgrade and are coalesced so a slow BLE link never builds a backlog.
+ */
+export class GlassesController {
+  private bridge: EvenAppBridge | null = null;
+  private created: Promise<boolean> | null = null;
+  private mode: Mode | null = null;
+  private pending = new Map<number, string>();
+  private flushing = false;
+  private notice: string | null = null;
+  private lastSnapshot: LiveSnapshot | null = null;
+  private nameCache = new Map<string, string>();
+  private nameVersion = -1;
+  failures = 0;
+
+  constructor(
+    private readonly controller: RecordingController,
+    private readonly settings: SettingsStore,
+    private readonly names: (recordingId: string, clusterId: string) => Promise<string>,
+  ) {}
+
+  async init(): Promise<boolean> {
+    this.bridge = await getBridge();
+    if (!this.bridge) return false;
+    onHubEvent((e) => void this.onEvent(e));
+    this.controller.live.on((s) => this.onSnapshot(s));
+    this.settings.changes.on(() => this.lastSnapshot && this.mode === "idle" && void this.render(this.lastSnapshot, true));
+    await this.ensurePage();
+    this.onSnapshot(this.controller.current);
+    return true;
+  }
+
+  get available(): boolean {
+    return this.bridge !== null;
+  }
+
+  /** The SDK requires the startup page before glasses audio can open (plan.md §9 step 2). */
+  ensurePage(): Promise<boolean> {
+    this.created ??= (async () => {
+      const bridge = this.bridge ?? (await getBridge());
+      if (!bridge) return false;
+      const result = await bridge.createStartUpPageContainer(this.page("idle", this.controller.current) as never);
+      const ok = result === StartUpPageCreateResult.success;
+      if (!ok) log.error("createStartUpPageContainer failed", result);
+      this.mode = "idle";
+      return ok;
+    })();
+    return this.created;
+  }
+
+  showNotice(text: string | null): void {
+    this.notice = text;
+    if (this.lastSnapshot) void this.render(this.lastSnapshot, false);
+  }
+
+  private menu(mode: Mode): { itemName: string; itemID: number }[] {
+    const persist = this.settings.get().persistAudio;
+    switch (mode) {
+      case "idle":
+        return [
+          { itemName: label("Start recording"), itemID: MENU.start },
+          { itemName: label(persist ? "Save audio: on" : "Save audio: off"), itemID: MENU.toggleAudio },
+        ];
+      case "recording":
+        return [
+          { itemName: "Add marker", itemID: MENU.marker },
+          { itemName: "Pause", itemID: MENU.pause },
+          { itemName: "Stop and summarize", itemID: MENU.stop },
+        ];
+      case "paused":
+        return [
+          { itemName: "Resume", itemID: MENU.resume },
+          { itemName: "Stop and summarize", itemID: MENU.stop },
+        ];
+      case "finalizing":
+        return [];
+    }
+  }
+
+  private page(mode: Mode, s: LiveSnapshot) {
+    const texts = this.texts(mode, s);
+    const menu = this.menu(mode);
+    return {
+      containerTotalNum: 2,
+      textObject: [
+        { xPosition: 0, yPosition: 0, width: 576, height: 48, containerID: STATUS.id, containerName: STATUS.name, content: texts.status, isEventCapture: 0 },
+        { xPosition: 0, yPosition: 52, width: 576, height: 236, containerID: BODY.id, containerName: BODY.name, content: texts.body, isEventCapture: 1 },
+      ],
+      ...(menu.length ? { menuObject: { menuItems: menu } } : {}),
+    };
+  }
+
+  private texts(mode: Mode, s: LiveSnapshot): { status: string; body: string } {
+    const provider = s.provider === "soniox" ? "Soniox" : "Local";
+    const audio = s.persistAudio ? "saving audio" : "audio not saved";
+    if (mode === "idle") {
+      return { status: `IRL Subtitles  ${provider}`, body: truncateUtf8(this.notice ?? `Ready. ${s.persistAudio ? "Audio will be saved." : "Audio won't be saved."}\nOpen the menu to start recording.`, TEXT_LIMIT) };
+    }
+    if (mode === "finalizing") return { status: "Stopped", body: "Saved. Processing on your phone…" };
+    // The recording indicator is always the first thing on the status line (plan.md §11: never covert).
+    const indicator = mode === "paused" ? "PAUSED" : "REC";
+    const speaker = s.currentClusterId && s.recordingId ? this.nameCache.get(`${s.recordingId}:${s.currentClusterId}`) : null;
+    const status = `${indicator} ${formatClock(s.capturedSamples)}  ${speaker ?? ""}`.trim();
+    let body: string;
+    if (s.degraded && !this.settings.get().showCaptionsOnGlasses) body = s.degraded;
+    else {
+      const last = s.segments.slice(-2).map((seg) => {
+        const name = seg.clusterId && s.recordingId ? this.nameCache.get(`${s.recordingId}:${seg.clusterId}`) : null;
+        return name ? `${name}: ${seg.text}` : seg.text;
+      });
+      const caption = [...last, s.provisionalText].filter(Boolean).join("\n");
+      const tail = caption.length > 220 ? `…${caption.slice(-220)}` : caption;
+      body = [this.settings.get().showCaptionsOnGlasses ? tail : "", s.degraded ?? "", `(${audio})`].filter(Boolean).join("\n");
+    }
+    return { status: truncateUtf8(status, 120), body: truncateUtf8(body || " ", TEXT_LIMIT) };
+  }
+
+  private onSnapshot(s: LiveSnapshot): void {
+    this.lastSnapshot = s;
+    const mode = modeOf(s);
+    void this.refreshNames(s);
+    void this.render(s, mode !== this.mode);
+  }
+
+  private async refreshNames(s: LiveSnapshot): Promise<void> {
+    if (!s.recordingId) return;
+    const ids = new Set([s.currentClusterId, ...s.segments.slice(-2).map((x) => x.clusterId)].filter((x): x is string => !!x));
+    if (s.labelsVersion !== this.nameVersion) {
+      this.nameCache.clear();
+      this.nameVersion = s.labelsVersion;
+    }
+    let changed = false;
+    for (const id of ids) {
+      const key = `${s.recordingId}:${id}`;
+      if (this.nameCache.has(key)) continue;
+      this.nameCache.set(key, await this.names(s.recordingId, id).catch(() => "Speaker"));
+      changed = true;
+    }
+    if (changed && this.lastSnapshot) void this.render(this.lastSnapshot, false);
+  }
+
+  private async render(s: LiveSnapshot, rebuild: boolean): Promise<void> {
+    if (!this.bridge || !(await this.ensurePage())) return;
+    const mode = modeOf(s);
+    if (rebuild) {
+      this.mode = mode;
+      try {
+        const ok = await this.bridge.rebuildPageContainer(this.page(mode, s) as never);
+        if (!ok) this.failures++;
+      } catch (e) {
+        this.failures++;
+        log.warn("rebuildPageContainer failed", errorMessage(e));
+      }
+      return;
+    }
+    const t = this.texts(mode, s);
+    this.pending.set(STATUS.id, t.status);
+    this.pending.set(BODY.id, t.body);
+    if (this.flushing) return;
+    this.flushing = true;
+    try {
+      while (this.pending.size) {
+        const [id, content] = this.pending.entries().next().value as [number, string];
+        this.pending.delete(id);
+        const name = id === STATUS.id ? STATUS.name : BODY.name;
+        const ok = await this.bridge.textContainerUpgrade({ containerID: id, containerName: name, content } as never).catch(() => false);
+        if (!ok) this.failures++;
+      }
+    } finally {
+      this.flushing = false;
+    }
+  }
+
+  private async onEvent(e: EvenHubEvent): Promise<void> {
+    const id = e.menuItemClickEvent?.itemID;
+    try {
+      if (id === MENU.start) await this.controller.start();
+      else if (id === MENU.stop) await this.controller.stop();
+      else if (id === MENU.pause) await this.controller.pause();
+      else if (id === MENU.resume) await this.controller.resume();
+      else if (id === MENU.marker) await this.controller.addMarker("Marker");
+      else if (id === MENU.toggleAudio) {
+        await this.controller.setPersistAudio(!this.settings.get().persistAudio);
+        if (this.lastSnapshot) await this.render({ ...this.controller.current }, true);
+      } else if (e.sysEvent?.eventType === OsEventTypeList.DOUBLE_CLICK_EVENT && this.mode === "recording") {
+        // Double tap while recording is a quick marker.
+        await this.controller.addMarker("Marker");
+        this.showNotice(null);
+      }
+    } catch (err) {
+      log.error("glasses action failed", errorMessage(err));
+      this.notice = errorMessage(err);
+      if (this.lastSnapshot) await this.render(this.lastSnapshot, false);
+    }
+  }
+}
