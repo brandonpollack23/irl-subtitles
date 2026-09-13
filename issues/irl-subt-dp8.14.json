@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:48Z",
   "description": "Searchable transcript with Speaker N labels in phone UI; last one or two finalized lines and current speaker on G2. plan.md §10.",
   "id": "irl-subt-dp8.14",
-  "labels": [],
+  "labels": [
+    "mvp"
+  ],
   "parent": "irl-subt-dp8",
   "priority": 1,
   "status": "open",
