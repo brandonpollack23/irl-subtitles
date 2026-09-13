@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [],
   "created": "2026-09-13T12:39:54Z",
@@ -8,7 +8,7 @@
   "labels": [],
   "parent": "irl-subt-0i6",
   "priority": 0,
-  "status": "open",
+  "status": "in_progress",
   "title": "Switch local inference from WebNN to WebGPU; support Android Chrome and iOS Safari",
   "type": "task",
   "updated_at": "2026-09-13T12:39:54Z"
