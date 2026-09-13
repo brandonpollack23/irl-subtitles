@@ -3,7 +3,9 @@
   "blocked_by": [
     "irl-subt-f9n.3"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-f9n.5"
+  ],
   "created": "2026-09-13T11:20:49Z",
   "description": "Select clean non-overlapping segments; store multiple prototypes per person with model version, quality, source recording; voice_samples with consent flag. plan.md §7.2.",
   "id": "irl-subt-f9n.4",
