@@ -5,7 +5,7 @@
   ],
   "blocks": [],
   "created": "2026-09-13T11:20:48Z",
-  "description": "Fast live / Final local / Battery saver tiers. WebNN failure or model-not-ready never stops capture; session marked for later processing. plan.md §6.1.",
+  "description": "Fast live / Final local / Battery saver tiers. WebGPU failure/device loss or model-not-ready never stops capture; session marked for later processing. plan.md §6.1.",
   "id": "irl-subt-dp8.13",
   "labels": [
     "mvp"
@@ -15,5 +15,5 @@
   "status": "open",
   "title": "Performance tiers and capture-now/process-later fallback",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:49Z"
+  "updated_at": "2026-09-13T12:52:18Z"
 }
