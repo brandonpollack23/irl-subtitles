@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:55Z",
+  "description": "Identify checkable claims and present sourced verdicts post-hoc (and optionally live); clearly opt-in if cloud.",
+  "id": "irl-subt-3ih.3",
+  "labels": [],
+  "parent": "irl-subt-3ih",
+  "priority": 3,
+  "status": "open",
+  "title": "Fact checking of transcript claims",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:55Z"
+}
