@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:47Z",
   "description": "Validate ONNX exports (Qwen3-ASR/ForcedAligner least proven). Target: finish under 0.5x recording duration on a 60-minute recording. Validate word timestamps and language ID output.",
   "id": "irl-subt-0i6.3.3",
-  "labels": [],
+  "labels": [
+    "mvp"
+  ],
   "parent": "irl-subt-0i6.3",
   "priority": 0,
   "status": "open",
