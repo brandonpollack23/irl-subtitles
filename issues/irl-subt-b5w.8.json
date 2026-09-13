@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:47Z",
   "description": "Restrictive CSP, Even manifest network whitelist, redact secrets and transcript contents from logs/diagnostics by default. plan.md §11.",
   "id": "irl-subt-b5w.8",
-  "labels": [],
+  "labels": [
+    "mvp"
+  ],
   "parent": "irl-subt-b5w",
   "priority": 1,
   "status": "open",
