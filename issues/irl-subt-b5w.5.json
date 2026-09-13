@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:47Z",
+  "description": "App-level encryption (do not rely on Turso experimental encryption): encrypt session audio chunks, voice profiles/prototypes, and voice samples before they reach Turso/OPFS. Non-extractable CryptoKey persisted in IndexedDB (CryptoKey objects are structured-cloneable there, not in SQLite). plan.md §8, §11.",
+  "id": "irl-subt-b5w.5",
+  "labels": [],
+  "parent": "irl-subt-b5w",
+  "priority": 1,
+  "status": "open",
+  "title": "Storage crypto: non-extractable Web Crypto key and at-rest encryption",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:47Z"
+}
