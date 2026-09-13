@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:50Z",
   "description": "Delete audio after processing; delete recording vs audio vs forget voice with distinct tested semantics; optional removal of samples sourced from a deleted recording. plan.md §8, §14.",
   "id": "irl-subt-9ij.6",
-  "labels": [],
+  "labels": [
+    "mvp"
+  ],
   "parent": "irl-subt-9ij",
   "priority": 1,
   "status": "open",
