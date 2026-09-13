@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-clx.2"
+  ],
   "created": "2026-09-13T11:20:57Z",
   "description": "Feature inventory, background/lifecycle behavior, audio capture parity.",
   "id": "irl-subt-clx.1",

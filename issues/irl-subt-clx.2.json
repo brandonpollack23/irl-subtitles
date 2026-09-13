@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-clx.1"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:57Z",
   "description": "Same known-answer, sustained performance, battery, lifecycle gates as Android.",
