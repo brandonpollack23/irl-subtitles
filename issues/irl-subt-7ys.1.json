@@ -13,7 +13,7 @@
   "parent": "irl-subt-7ys",
   "priority": 3,
   "status": "open",
-  "title": "Research: on-device streaming translation models under WebNN",
+  "title": "Research: on-device streaming translation models under WebGPU",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:54Z"
+  "updated_at": "2026-09-13T12:52:18Z"
 }
