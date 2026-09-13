@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:54Z",
   "description": "On accepted match only (never candidate), show concise cue on G2; rate-limit and dismiss.",
   "id": "irl-subt-kqf.2",
-  "labels": [],
+  "labels": [
+    "post-mvp"
+  ],
   "parent": "irl-subt-kqf",
   "priority": 3,
   "status": "open",
