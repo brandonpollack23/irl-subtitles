@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:49Z",
   "description": "Undo removes the attribution and any profile samples added by that operation. plan.md §7.2.",
   "id": "irl-subt-f9n.6",
-  "labels": [],
+  "labels": [
+    "mvp"
+  ],
   "parent": "irl-subt-f9n",
   "priority": 1,
   "status": "open",
