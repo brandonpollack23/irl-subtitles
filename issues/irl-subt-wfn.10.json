@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:52Z",
   "description": "If mode B ships: LID on utterance/turn, route to per-language live checkpoint, warm-model memory budget in compute scheduler, re-decode on misroute.",
   "id": "irl-subt-wfn.10",
-  "labels": [],
+  "labels": [
+    "post-mvp"
+  ],
   "parent": "irl-subt-wfn",
   "priority": 2,
   "status": "open",
