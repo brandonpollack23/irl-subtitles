@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:53Z",
   "description": "Implement chosen on-device model from research, scheduled against live stack budget.",
   "id": "irl-subt-7ys.4",
-  "labels": [],
+  "labels": [
+    "post-mvp"
+  ],
   "parent": "irl-subt-7ys",
   "priority": 3,
   "status": "open",
