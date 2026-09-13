@@ -15,7 +15,7 @@
   "parent": "irl-subt-0i6",
   "priority": 0,
   "status": "in_progress",
-  "title": "Probe: WebNN ONNX model benchmark harness + model fetch scripts",
+  "title": "Probe: WebGPU/WASM ONNX model benchmark harness + model fetch scripts",
   "type": "task",
-  "updated_at": "2026-09-13T11:51:25Z"
+  "updated_at": "2026-09-13T12:51:34Z"
 }
