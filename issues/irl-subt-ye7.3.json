@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-ye7.2"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:50Z",
   "description": "Close run, start new run from next durable sample, small overlap for context, de-dup by sample ranges/token IDs. plan.md §9.",
