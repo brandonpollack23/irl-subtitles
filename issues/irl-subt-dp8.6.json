@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-dp8.5"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:48Z",
   "description": "Incremental provisional tokens, timing segment-interpolated. Filter checkpoints by recording language. plan.md §6.1 step 2.",
