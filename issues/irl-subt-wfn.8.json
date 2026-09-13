@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:52Z",
+  "description": "Make TranscriptToken.language first-class (BCP-47), add segment language + LID confidence, persist per provider run, and reconcile live vs final language disagreements.",
+  "id": "irl-subt-wfn.8",
+  "labels": [],
+  "parent": "irl-subt-wfn",
+  "priority": 2,
+  "status": "open",
+  "title": "Token- and segment-level language tags through domain, reconciler, and storage",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:52Z"
+}
