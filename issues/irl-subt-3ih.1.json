@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:55Z",
+  "description": "Document native cue UX, latency needs, privacy implications of cloud LLM use.",
+  "id": "irl-subt-3ih.1",
+  "labels": [],
+  "parent": "irl-subt-3ih",
+  "priority": 3,
+  "status": "open",
+  "title": "Research: native Even app cue behavior and on-device vs cloud feasibility",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:55Z"
+}
