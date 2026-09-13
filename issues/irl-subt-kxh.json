@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:55Z",
+  "description": "Required before any public release. plan.md §6.2 Authentication, §12 services/credential-broker.",
+  "id": "irl-subt-kxh",
+  "labels": [],
+  "priority": 3,
+  "status": "open",
+  "title": "Post-MVP: Public release readiness (credential broker, Even Hub submission)",
+  "type": "epic",
+  "updated_at": "2026-09-13T11:20:55Z"
+}
