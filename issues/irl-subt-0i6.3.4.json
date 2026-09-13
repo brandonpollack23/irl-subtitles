@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-0i6.3.6"
+  ],
   "created": "2026-09-13T11:20:47Z",
   "description": "PRODUCT BLOCKER if no embedding model runs acceptably via WebNN. Measure latency on 1.5–3 s windows at ~1 Hz, NPU vs GPU placement, numerical drift vs reference EER.",
   "id": "irl-subt-0i6.3.4",
