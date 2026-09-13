@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:49Z",
+  "description": "Never redisplay stored key; Test does smallest authenticated request with sanitized errors; removal disables new sessions only. plan.md §6.2, §10.",
+  "id": "irl-subt-ye7.1",
+  "labels": [],
+  "parent": "irl-subt-ye7",
+  "priority": 1,
+  "status": "open",
+  "title": "Soniox settings UI: masked key, Save, Test, Replace, Remove",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:49Z"
+}
