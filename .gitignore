@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.ehpk
+# Phase 0 probe: large downloaded models and device-uploaded recordings
+spikes/phase0-probe/models/
+spikes/phase0-probe/results/recordings/
+.venv/
+__pycache__/
