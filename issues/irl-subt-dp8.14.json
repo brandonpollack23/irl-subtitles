@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-dp8.10"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:48Z",
   "description": "Searchable transcript with Speaker N labels in phone UI; last one or two finalized lines and current speaker on G2. plan.md §10.",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Transcript UI with anonymous clusters (phone) and live captions (G2)",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:48Z"
+  "updated_at": "2026-09-13T11:20:49Z"
 }

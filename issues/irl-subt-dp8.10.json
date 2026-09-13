@@ -5,7 +5,9 @@
     "irl-subt-dp8.8",
     "irl-subt-dp8.9"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-dp8.14"
+  ],
   "created": "2026-09-13T11:20:48Z",
   "description": "Join word timing with speaker turns and person matches; revisions; provisional vs final replacement. plan.md §4.",
   "id": "irl-subt-dp8.10",
