@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:47Z",
   "description": "Monorepo layout, canonical domain types, provider contracts, typed repositories (Turso on OPFS preferred, IndexedDB fallback), encryption, secrets, CSP. plan.md §5, §8, §11, §12.",
   "id": "irl-subt-b5w",
-  "labels": [],
+  "labels": [
+    "mvp"
+  ],
   "priority": 1,
   "status": "open",
   "title": "MVP Foundation: repo scaffolding, domain, storage, security baseline",
