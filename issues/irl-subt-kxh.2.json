@@ -3,7 +3,9 @@
   "blocked_by": [
     "irl-subt-kxh.1"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-kxh.3"
+  ],
   "created": "2026-09-13T11:20:55Z",
   "description": "Replace SecretStore primary key usage with broker flow.",
   "id": "irl-subt-kxh.2",
