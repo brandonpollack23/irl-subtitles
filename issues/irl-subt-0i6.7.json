@@ -12,7 +12,7 @@
     "irl-subt-b5w"
   ],
   "created": "2026-09-13T11:20:47Z",
-  "description": "Write decision record summarizing spike results: WebNN availability, confirmed default models per role, default performance tier, Soniox feasibility, storage approach. Update plan.md model catalog if defaults change.",
+  "description": "Write decision record summarizing spike results per platform (Android, iOS): WebGPU availability in the Even WebViews and phone browsers, execution target (WebGPU/WASM) and confirmed default model per role, default performance tier, Soniox feasibility, storage approach, lifecycle behavior. Update plan.md model catalog if defaults change.",
   "id": "irl-subt-0i6.7",
   "labels": [
     "mvp"
@@ -22,5 +22,5 @@
   "status": "open",
   "title": "Phase 0 go/no-go decision record",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:47Z"
+  "updated_at": "2026-09-13T12:51:34Z"
 }
