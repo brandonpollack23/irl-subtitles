@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:49Z",
   "description": "speaker_attributions with provenance (auto/manual), confidence, revision. Relabel never rewrites transcript text. plan.md §7.1, §8.",
   "id": "irl-subt-f9n.3",
-  "labels": [],
+  "labels": [
+    "mvp"
+  ],
   "parent": "irl-subt-f9n",
   "priority": 1,
   "status": "open",
