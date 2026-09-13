@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:56Z",
+  "description": "Per design; opt-in only.",
+  "id": "irl-subt-6xu.2",
+  "labels": [],
+  "parent": "irl-subt-6xu",
+  "priority": 4,
+  "status": "open",
+  "title": "Implement sync backend and client",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:56Z"
+}
