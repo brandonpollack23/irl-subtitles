@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:47Z",
+  "description": "Verify the production Even Android WebView exposes navigator.ml WITHOUT flags. Inventory WebNN deviceType preferences (npu/gpu/cpu), MLTensor I/O binding, Web Workers, WASM SIMD, SharedArrayBuffer and whether cross-origin isolation (COOP/COEP) can be enabled for plugin content (needed by Turso WASM), OPFS sync access handles, storage quota. Do not infer from standalone Chrome. BLOCKER if WebNN is absent. plan.md §3, §13.2.",
+  "id": "irl-subt-0i6.2",
+  "labels": [],
+  "parent": "irl-subt-0i6",
+  "priority": 0,
+  "status": "open",
+  "title": "Spike: WebNN and platform capability inventory in Even WebView",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:47Z"
+}
