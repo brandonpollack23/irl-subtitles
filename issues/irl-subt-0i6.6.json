@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-0i6.12"
+  ],
   "blocks": [
     "irl-subt-0i6.7"
   ],
@@ -15,5 +17,5 @@
   "status": "open",
   "title": "Spike: encrypted secret persistence across app upgrades",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:47Z"
+  "updated_at": "2026-09-13T11:29:23Z"
 }

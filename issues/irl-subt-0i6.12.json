@@ -3,7 +3,9 @@
   "blocked_by": [
     "irl-subt-0i6.8"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-0i6.6"
+  ],
   "created": "2026-09-13T11:29:22Z",
   "description": "Harness for irl-subt-0i6.6. Non-extractable AES-GCM CryptoKey in IndexedDB + encrypted record; verify decrypt across relaunch and .ehpk upgrade, stamped with app version. Compare bridge.setLocalStorage and localStorage persistence.",
   "id": "irl-subt-0i6.12",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Probe: encrypted secret persistence module",
   "type": "task",
-  "updated_at": "2026-09-13T11:29:22Z"
+  "updated_at": "2026-09-13T11:29:23Z"
 }
