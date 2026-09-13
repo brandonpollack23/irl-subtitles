@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T12:39:54Z",
+  "description": "WebNN is not shipped without flags (desktop Chrome 153 reports \"WebNN is not supported in current environment\" outside the flag; Android/iOS WebViews won't have it), so the local-MVP gate as written is dead. Switch the neural compute API to WebGPU via the ONNX Runtime Web WebGPU EP (WASM for tiny graphs and as the reference).\n\nScope:\n- plan.md: WebGPU replaces WebNN (compute strategy, runtime interfaces, Phase 0 steps, acceptance criteria, risk). iOS moves from reserved/QoL into scope: supported hosts are the Even app WebView on Android and iOS, plus standalone Chrome (Android) and Safari (iOS 26+) for development and testing.\n- Probe harness: EPs become webgpu / wasm; capabilities probe inventories navigator.gpu (main + worker), adapter info, features (shader-f16, timestamp-query), limits (maxBufferSize, maxStorageBufferBindingSize), a known-answer compute shader and matmul timing; bench worker captures ORT node placement (WebGPU EP vs CPU fallback); Safari-safe feature detection.\n- HTTPS dev serving so phone Chrome/Safari get a secure context (WebGPU, OPFS, COOP/COEP need it).\n- RUNBOOK: WebGPU pass/fail criteria; Android Chrome, iOS Safari, and Even app (Android + iOS) runs.\n- Registry/scripts/tickets: drop WebNN-specific notes and titles.\n- Verify on desktop Chrome with a real WebGPU benchmark run.",
+  "id": "irl-subt-0i6.18",
+  "labels": [],
+  "parent": "irl-subt-0i6",
+  "priority": 0,
+  "status": "open",
+  "title": "Switch local inference from WebNN to WebGPU; support Android Chrome and iOS Safari",
+  "type": "task",
+  "updated_at": "2026-09-13T12:39:54Z"
+}
