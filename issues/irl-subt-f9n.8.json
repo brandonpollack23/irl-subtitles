@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-f9n.4"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:49Z",
   "description": "Profiles keyed by embedding-space version; re-embed from retained voice_samples; otherwise Needs re-enrollment and no auto-match. Dropdown warns before applying. plan.md §6.1.",
