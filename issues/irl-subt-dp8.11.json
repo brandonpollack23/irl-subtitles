@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-dp8.6"
+  ],
   "created": "2026-09-13T11:20:48Z",
   "description": "Settings language picker; drives live STT dropdown filtering and final STT language hint. plan.md §2.",
   "id": "irl-subt-dp8.11",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Recording language setting (one language per recording, default English)",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:48Z"
+  "updated_at": "2026-09-13T11:20:49Z"
 }
