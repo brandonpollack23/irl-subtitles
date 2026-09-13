@@ -1,8 +1,6 @@
 {
   "assignee": "",
-  "blocked_by": [
-    "irl-subt-0i6.8"
-  ],
+  "blocked_by": [],
   "blocks": [
     "irl-subt-0i6.10",
     "irl-subt-0i6.11",
@@ -20,5 +18,5 @@
   "status": "open",
   "title": "Probe UI: move phase0-probe to SolidJS 2",
   "type": "task",
-  "updated_at": "2026-09-13T11:37:33Z"
+  "updated_at": "2026-09-13T11:37:44Z"
 }

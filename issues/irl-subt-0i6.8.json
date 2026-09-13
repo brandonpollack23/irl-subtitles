@@ -8,7 +8,6 @@
     "irl-subt-0i6.13",
     "irl-subt-0i6.14",
     "irl-subt-0i6.15",
-    "irl-subt-0i6.16",
     "irl-subt-0i6.9"
   ],
   "created": "2026-09-13T11:29:22Z",
@@ -26,5 +25,5 @@
   "status": "in_progress",
   "title": "Probe app: Phase 0 on-device spike harness skeleton",
   "type": "task",
-  "updated_at": "2026-09-13T11:37:33Z"
+  "updated_at": "2026-09-13T11:37:44Z"
 }
