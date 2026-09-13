@@ -1,0 +1,16 @@
+{
+  "package_id": "com.brandonpollack.irlsubtitles.phase0probe",
+  "name": "Phase0 Probe",
+  "version": "0.1.0",
+  "edition": "202601",
+  "min_sdk_version": "0.0.15",
+  "entrypoint": "index.html",
+  "permissions": [
+    {
+      "name": "network",
+      "desc": "Phase 0 feasibility probe: Soniox real-time transcription test and API key validation.",
+      "whitelist": ["https://api.soniox.com", "wss://stt-rt.soniox.com"]
+    }
+  ],
+  "supported_languages": ["en"]
+}

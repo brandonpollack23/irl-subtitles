@@ -1,0 +1,24 @@
+{
+  "spike": "soniox",
+  "appVersion": "0.1.0",
+  "buildId": "2026-09-13T11:42:39.710Z",
+  "createdAt": "2026-09-13T12:04:45.502Z",
+  "environment": {
+    "origin": "http://localhost:5173",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "inEvenApp": false,
+    "glasses": null,
+    "servedWithCoiHeaders": true,
+    "crossOriginIsolated": true,
+    "hardwareConcurrency": 16,
+    "deviceMemoryGb": 32,
+    "tester": null
+  },
+  "data": {
+    "kind": "rest",
+    "ok": false,
+    "status": 401,
+    "ms": 1285,
+    "expiresAt": null
+  }
+}

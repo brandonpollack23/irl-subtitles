@@ -1,0 +1,80 @@
+{
+  "spike": "soniox",
+  "appVersion": "0.1.0",
+  "buildId": "2026-09-13T11:42:39.710Z",
+  "createdAt": "2026-09-13T11:51:10.557Z",
+  "environment": {
+    "origin": "http://localhost:5173",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "inEvenApp": false,
+    "glasses": null,
+    "servedWithCoiHeaders": true,
+    "crossOriginIsolated": true,
+    "hardwareConcurrency": 16,
+    "deviceMemoryGb": 32,
+    "tester": null
+  },
+  "data": {
+    "kind": "stream",
+    "usedTemporaryKey": false,
+    "options": {
+      "source": "silence",
+      "languageHints": [
+        "en"
+      ],
+      "includeTranscript": false
+    },
+    "sentAudioSeconds": 0.1,
+    "maxBufferedBytes": 3200,
+    "firstResponseMs": 619,
+    "firstTextTokenMs": null,
+    "finalTokens": 0,
+    "provisionalTokens": 0,
+    "finalizationLagMs": {
+      "n": 0,
+      "min": null,
+      "max": null,
+      "mean": null,
+      "p50": null,
+      "p95": null,
+      "p99": null
+    },
+    "speakers": [],
+    "languages": [],
+    "errors": [
+      {
+        "code": 401,
+        "message": "Incorrect API key provided. You can get an API key at https://console.soniox.com"
+      }
+    ],
+    "close": {
+      "code": 1000,
+      "reason": "",
+      "wasClean": true
+    },
+    "events": [
+      {
+        "tMs": 457,
+        "event": "open"
+      },
+      {
+        "tMs": 619,
+        "event": "server-error",
+        "detail": {
+          "code": 401,
+          "message": "Incorrect API key provided. You can get an API key at https://console.soniox.com"
+        }
+      },
+      {
+        "tMs": 1757,
+        "event": "close",
+        "detail": {
+          "code": 1000,
+          "reason": "",
+          "wasClean": true
+        }
+      }
+    ],
+    "transcript": "(0 chars, redacted)"
+  }
+}

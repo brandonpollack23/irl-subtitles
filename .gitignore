@@ -6,3 +6,4 @@ spikes/phase0-probe/models/
 spikes/phase0-probe/results/recordings/
 .venv/
 __pycache__/
+.playwright-mcp/

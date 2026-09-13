@@ -1,0 +1,87 @@
+{
+  "spike": "models",
+  "appVersion": "0.1.0",
+  "buildId": "2026-09-13T11:42:39.710Z",
+  "createdAt": "2026-09-13T12:01:37.753Z",
+  "environment": {
+    "origin": "http://localhost:5173",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "inEvenApp": false,
+    "glasses": null,
+    "servedWithCoiHeaders": true,
+    "crossOriginIsolated": true,
+    "hardwareConcurrency": 16,
+    "deviceMemoryGb": 32,
+    "tester": null
+  },
+  "data": {
+    "kind": "graph",
+    "role": "stt-live",
+    "catalogDefault": false,
+    "modelId": "whisper-tiny",
+    "graph": "encoder-fp32",
+    "ep": "webnn-gpu",
+    "ortVersion": "1.29.0",
+    "downloadMs": 39,
+    "graphBytes": 32904992,
+    "createMs": 1655,
+    "inputs": [
+      {
+        "name": "input_features",
+        "isTensor": true,
+        "type": "float32",
+        "shape": [
+          1,
+          80,
+          3000
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "last_hidden_state",
+        "isTensor": true,
+        "type": "float32",
+        "shape": [
+          1,
+          1500,
+          384
+        ]
+      }
+    ],
+    "inputSource": "fixture (onnxruntime 1.30.0 CPUExecutionProvider)",
+    "firstRunMs": 25,
+    "driftVsFixture": {
+      "last_hidden_state": {
+        "maxAbsDiff": 0.000560760498046875,
+        "meanAbsDiff": 0.00000348466361926272,
+        "cosine": 0.9999999999946156,
+        "nonFinite": 0
+      }
+    },
+    "latencyMs": {
+      "n": 30,
+      "p50": 7.97,
+      "p95": 9.73,
+      "max": 10.14,
+      "mean": 8.07
+    },
+    "realTimeHeadroom": 102.77,
+    "driftVsWasm": {
+      "last_hidden_state": {
+        "maxAbsDiff": 0.0007839202880859375,
+        "meanAbsDiff": 0.0000036023815907794994,
+        "cosine": 0.9999999999943306,
+        "nonFinite": 0
+      }
+    },
+    "ok": true,
+    "ortLog": [
+      "error: 2026-09-13 21:01:35.574839 [I:onnxruntime:, graph_partitioner.cc:1413 InlineFunctionsAOT] This model does not have any local functions defined. AOT Inlining is not performed",
+      "error: 2026-09-13 21:01:35.697144 [I:onnxruntime:, webnn_execution_provider.cc:158 GetCapability] WebNNExecutionProvider::GetCapability, number of partitions supported by WebNN: 1 number of nodes in the graph: 247 number of nodes supported by WebNN: 247",
+      "error: 2026-09-13 21:01:36.808644 [I:onnxruntime:, graph_transformer.cc:15 Apply] GraphTransformer TransposeOptimizer_CPUExecutionProvider modified: 0 with status: OK",
+      "error: 2026-09-13 21:01:37.206719 [I:onnxruntime:, graph_partitioner.cc:1413 InlineFunctionsAOT] This model does not have any local functions defined. AOT Inlining is not performed",
+      "error: 2026-09-13 21:01:37.269573 [I:onnxruntime:, graph_transformer.cc:15 Apply] GraphTransformer TransposeOptimizer_CPUExecutionProvider modified: 0 with status: OK"
+    ]
+  }
+}

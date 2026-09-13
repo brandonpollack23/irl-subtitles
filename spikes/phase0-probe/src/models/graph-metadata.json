@@ -1,0 +1,8014 @@
+{
+ "campplus-voxceleb/model": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 13
+   }
+  ],
+  "inputs": [
+   {
+    "name": "x",
+    "dtype": "float32",
+    "shape": [
+     "N",
+     "T",
+     80
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "embedding",
+    "dtype": "float32",
+    "shape": [
+     "BatchNormalizationembedding_dim_0",
+     512
+    ]
+   }
+  ],
+  "opCounts": {
+   "Constant": 950,
+   "Unsqueeze": 369,
+   "Shape": 265,
+   "Conv": 225,
+   "Gather": 213,
+   "Relu": 171,
+   "Concat": 158,
+   "Mul": 107,
+   "Reshape": 105,
+   "Add": 56,
+   "BatchNormalization": 56,
+   "ReduceMean": 55,
+   "AveragePool": 52,
+   "ConstantOfShape": 52,
+   "Equal": 52,
+   "Where": 52,
+   "Expand": 52,
+   "Slice": 52,
+   "Sigmoid": 52,
+   "Sub": 2,
+   "Transpose": 1,
+   "ReduceProd": 1,
+   "Cast": 1,
+   "Div": 1,
+   "Sqrt": 1,
+   "Squeeze": 1
+  },
+  "fileBytes": 29596978
+ },
+ "ecapa-tdnn/model": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 17
+   }
+  ],
+  "inputs": [
+   {
+    "name": "features",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     "frames",
+     80
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "embedding",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     192
+    ]
+   }
+  ],
+  "opCounts": {
+   "Constant": 415,
+   "Reshape": 80,
+   "Slice": 62,
+   "Cast": 58,
+   "Concat": 53,
+   "ConstantOfShape": 46,
+   "Mul": 44,
+   "Transpose": 40,
+   "Pad": 38,
+   "Conv": 38,
+   "Relu": 33,
+   "BatchNormalization": 31,
+   "Unsqueeze": 26,
+   "Add": 24,
+   "Shape": 17,
+   "ReduceSum": 13,
+   "Gather": 10,
+   "Div": 9,
+   "Equal": 6,
+   "Expand": 6,
+   "Range": 5,
+   "Less": 5,
+   "Where": 5,
+   "Sub": 4,
+   "Clip": 3,
+   "Sigmoid": 3,
+   "Pow": 2,
+   "Sqrt": 2,
+   "Tile": 2,
+   "Squeeze": 1,
+   "Tanh": 1,
+   "Softmax": 1,
+   "If": 1
+  },
+  "fileBytes": 83481218
+ },
+ "gemma-4-e2b-qat-mobile/decoder-step-q2f16": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 21
+   },
+   {
+    "domain": "com.microsoft",
+    "version": 1
+   }
+  ],
+  "inputs": [
+   {
+    "name": "inputs_embeds",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "sequence_length",
+     1536
+    ]
+   },
+   {
+    "name": "attention_mask",
+    "dtype": "int64",
+    "shape": [
+     "batch_size",
+     "total_sequence_length"
+    ]
+   },
+   {
+    "name": "position_ids",
+    "dtype": "int64",
+    "shape": [
+     "batch_size",
+     "sequence_length"
+    ]
+   },
+   {
+    "name": "num_logits_to_keep",
+    "dtype": "int64",
+    "shape": []
+   },
+   {
+    "name": "per_layer_inputs",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "sequence_length",
+     35,
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.0.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.0.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.1.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.1.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.2.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.2.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.3.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.3.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.4.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "past_key_values.4.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "past_key_values.5.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.5.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.6.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.6.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.7.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.7.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.8.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.8.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.9.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "past_key_values.9.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "past_key_values.10.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.10.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.11.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.11.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.12.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.12.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.13.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.13.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.14.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "past_key_values.14.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "past_sequence_length",
+     512
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "logits",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     "num_logits_to_keep",
+     262144
+    ]
+   },
+   {
+    "name": "present.0.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.0.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.1.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.1.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.2.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.2.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.3.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.3.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.4.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "present.4.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "present.5.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.5.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.6.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.6.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.7.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.7.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.8.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.8.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.9.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "present.9.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "present.10.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.10.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.11.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.11.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.12.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.12.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.13.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.13.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.14.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "present.14.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     1,
+     "total_sequence_length",
+     512
+    ]
+   }
+  ],
+  "opCounts": {
+   "Reshape": 364,
+   "Expand": 243,
+   "SimplifiedLayerNormalization": 242,
+   "com.microsoft.MatMulNBits": 241,
+   "Mul": 109,
+   "Add": 106,
+   "Transpose": 71,
+   "Gelu": 70,
+   "com.microsoft.RotaryEmbedding": 50,
+   "MatMul": 47,
+   "Gather": 42,
+   "Where": 39,
+   "Split": 35,
+   "Softmax": 23,
+   "Unsqueeze": 12,
+   "com.microsoft.GroupQueryAttention": 12,
+   "Concat": 7,
+   "Shape": 6,
+   "Cast": 5,
+   "Range": 4,
+   "GreaterOrEqual": 4,
+   "Sub": 3,
+   "Less": 1,
+   "Neg": 1,
+   "Slice": 1,
+   "Div": 1,
+   "Tanh": 1
+  },
+  "fileBytes": 995428624
+ },
+ "gemma-4-e2b-qat-mobile/embed-tokens-q2f16": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 21
+   },
+   {
+    "domain": "com.microsoft",
+    "version": 1
+   }
+  ],
+  "inputs": [
+   {
+    "name": "input_ids",
+    "dtype": "int64",
+    "shape": [
+     "batch_size",
+     "sequence_length"
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "inputs_embeds",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "sequence_length",
+     1536
+    ]
+   },
+   {
+    "name": "per_layer_inputs",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "sequence_length",
+     35,
+     256
+    ]
+   }
+  ],
+  "opCounts": {
+   "com.microsoft.GatherBlockQuantized": 2,
+   "Mul": 2,
+   "Cast": 2,
+   "Equal": 2,
+   "Not": 2,
+   "And": 2,
+   "Less": 1,
+   "Where": 1,
+   "Reshape": 1
+  },
+  "fileBytes": 1296569715
+ },
+ "gemma-4-e4b-qat-mobile/decoder-step-q2f16": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 21
+   },
+   {
+    "domain": "com.microsoft",
+    "version": 1
+   }
+  ],
+  "inputs": [
+   {
+    "name": "inputs_embeds",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "sequence_length",
+     2560
+    ]
+   },
+   {
+    "name": "attention_mask",
+    "dtype": "int64",
+    "shape": [
+     "batch_size",
+     "total_sequence_length"
+    ]
+   },
+   {
+    "name": "position_ids",
+    "dtype": "int64",
+    "shape": [
+     "batch_size",
+     "sequence_length"
+    ]
+   },
+   {
+    "name": "num_logits_to_keep",
+    "dtype": "int64",
+    "shape": []
+   },
+   {
+    "name": "per_layer_inputs",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "sequence_length",
+     42,
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.0.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.0.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.1.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.1.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.2.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.2.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.3.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.3.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.4.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.4.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.5.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "past_key_values.5.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "past_key_values.6.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.6.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.7.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.7.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.8.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.8.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.9.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.9.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.10.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.10.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.11.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "past_key_values.11.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "past_key_values.12.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.12.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.13.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.13.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.14.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.14.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.15.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.15.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.16.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.16.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.17.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "past_key_values.17.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "past_key_values.18.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.18.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.19.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.19.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.20.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.20.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.21.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.21.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.22.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.22.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.23.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "past_key_values.23.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     512
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "logits",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     "num_logits_to_keep",
+     262144
+    ]
+   },
+   {
+    "name": "present.0.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.0.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.1.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.1.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.2.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.2.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.3.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.3.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.4.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.4.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.5.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "present.5.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "present.6.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.6.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.7.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.7.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.8.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.8.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.9.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.9.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.10.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.10.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.11.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "present.11.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "present.12.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.12.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.13.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.13.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.14.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.14.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.15.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.15.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.16.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.16.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.17.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "present.17.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "present.18.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.18.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.19.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.19.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.20.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.20.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.21.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.21.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.22.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.22.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.23.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     512
+    ]
+   },
+   {
+    "name": "present.23.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     512
+    ]
+   }
+  ],
+  "opCounts": {
+   "Reshape": 544,
+   "Expand": 313,
+   "SimplifiedLayerNormalization": 302,
+   "com.microsoft.MatMulNBits": 301,
+   "Mul": 130,
+   "Add": 127,
+   "Gelu": 84,
+   "Transpose": 71,
+   "com.microsoft.RotaryEmbedding": 66,
+   "Gather": 50,
+   "MatMul": 45,
+   "Split": 42,
+   "Where": 37,
+   "Unsqueeze": 23,
+   "Softmax": 22,
+   "com.microsoft.GroupQueryAttention": 20,
+   "Concat": 9,
+   "Shape": 7,
+   "Cast": 5,
+   "Range": 5,
+   "GreaterOrEqual": 5,
+   "Sub": 3,
+   "Less": 1,
+   "Neg": 1,
+   "Slice": 1,
+   "Div": 1,
+   "Tanh": 1
+  },
+  "fileBytes": 2429564968
+ },
+ "moonshine-streaming-medium-en/decoder-with-past-int8": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 20
+   }
+  ],
+  "inputs": [
+   {
+    "name": "decoder_input_ids",
+    "dtype": "int64",
+    "shape": [
+     "batch",
+     1
+    ]
+   },
+   {
+    "name": "encoder_hidden_states",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     "enc_seq",
+     768
+    ]
+   },
+   {
+    "name": "past_self_key_0",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_value_0",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_key_1",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_value_1",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_key_2",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_value_2",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_key_3",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_value_3",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_key_4",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_value_4",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_key_5",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_value_5",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_key_6",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_value_6",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_key_7",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_value_7",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_key_8",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_value_8",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_key_9",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_value_9",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_key_10",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_value_10",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_key_11",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_value_11",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_key_12",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_value_12",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_key_13",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "past_self_value_13",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_0_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_0_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_1_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_1_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_2_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_2_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_3_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_3_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_4_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_4_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_5_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_5_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_6_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_6_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_7_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_7_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_8_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_8_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_9_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_9_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_10_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_10_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_11_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_11_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_12_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_12_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_13_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_13_orig",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "logits",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     1,
+     32768
+    ]
+   },
+   {
+    "name": "present_self_key_0",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_value_0",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_key_1",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_value_1",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_key_2",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_value_2",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_key_3",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_value_3",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_key_4",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_value_4",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_key_5",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_value_5",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_key_6",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_value_6",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_key_7",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_value_7",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_key_8",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_value_8",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_key_9",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_value_9",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_key_10",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_value_10",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_key_11",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_value_11",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_key_12",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_value_12",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_key_13",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_self_value_13",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "past_seq + 1",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_0",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_0",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_1",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_1",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_2",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_2",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_3",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_3",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_4",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_4",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_5",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_5",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_6",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_6",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_7",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_7",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_8",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_8",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_9",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_9",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_10",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_10",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_11",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_11",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_12",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_12",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_key_13",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   },
+   {
+    "name": "present_cross_value_13",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     10,
+     "enc_seq",
+     64
+    ]
+   }
+  ],
+  "opCounts": {
+   "Mul": 338,
+   "Add": 127,
+   "Reshape": 115,
+   "Cast": 114,
+   "Slice": 114,
+   "Transpose": 113,
+   "MatMulInteger": 113,
+   "Concat": 91,
+   "DynamicQuantizeLinear": 85,
+   "Unsqueeze": 64,
+   "MatMul": 57,
+   "LayerNormalization": 43,
+   "Identity": 28,
+   "Neg": 28,
+   "Softmax": 28,
+   "Split": 14,
+   "Sigmoid": 14,
+   "Expand": 4,
+   "Shape": 3,
+   "Range": 2,
+   "Where": 2,
+   "Gather": 1,
+   "Squeeze": 1,
+   "LessOrEqual": 1,
+   "Cos": 1,
+   "Sin": 1
+  },
+  "fileBytes": 211467644
+ },
+ "moonshine-streaming-medium-en/encoder-int8": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 20
+   }
+  ],
+  "inputs": [
+   {
+    "name": "input_values",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     "audio_length"
+    ]
+   },
+   {
+    "name": "attention_mask",
+    "dtype": "int64",
+    "shape": [
+     "batch",
+     "audio_length"
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "encoder_hidden_states",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     "(((((audio_length//80)) - 1)//4)) + 1",
+     768
+    ]
+   }
+  ],
+  "opCounts": {
+   "Mul": 219,
+   "Cast": 93,
+   "MatMulInteger": 85,
+   "Add": 73,
+   "Reshape": 65,
+   "Transpose": 58,
+   "DynamicQuantizeLinear": 57,
+   "LayerNormalization": 29,
+   "MatMul": 28,
+   "Softmax": 14,
+   "Gelu": 14,
+   "And": 11,
+   "Concat": 8,
+   "Unsqueeze": 7,
+   "Expand": 5,
+   "Less": 5,
+   "Squeeze": 4,
+   "Div": 4,
+   "Conv": 4,
+   "Shape": 3,
+   "Range": 3,
+   "Sub": 3,
+   "ReduceMean": 2,
+   "GreaterOrEqual": 2,
+   "Pad": 2,
+   "Or": 2,
+   "Greater": 2,
+   "Sigmoid": 2,
+   "Where": 2,
+   "ReduceSum": 1,
+   "Sign": 1,
+   "Mod": 1,
+   "Equal": 1,
+   "Not": 1,
+   "Pow": 1,
+   "Max": 1,
+   "Sqrt": 1,
+   "Neg": 1,
+   "Asinh": 1,
+   "GatherND": 1
+  },
+  "fileBytes": 142060073
+ },
+ "moonshine-streaming-small-en/decoder-merged-fp32": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 18
+   }
+  ],
+  "inputs": [
+   {
+    "name": "input_ids",
+    "dtype": "int64",
+    "shape": [
+     "batch_size",
+     "decoder_sequence_length"
+    ]
+   },
+   {
+    "name": "encoder_hidden_states",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "encoder_sequence_length",
+     620
+    ]
+   },
+   {
+    "name": "past_key_values.0.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.0.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.0.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.0.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.1.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.1.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.1.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.1.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.2.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.2.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.2.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.2.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.3.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.3.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.3.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.3.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.4.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.4.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.4.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.4.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.5.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.5.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.5.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.5.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.6.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.6.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.6.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.6.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.7.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.7.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.7.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.7.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.8.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.8.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.8.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.8.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.9.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.9.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.9.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.9.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "use_cache_branch",
+    "dtype": "bool",
+    "shape": [
+     1
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "logits",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "decoder_sequence_length",
+     32768
+    ]
+   },
+   {
+    "name": "present.0.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.0.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.0.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.0.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.1.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.1.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.1.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.1.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.2.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.2.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.2.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.2.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.3.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.3.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.3.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.3.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.4.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.4.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.4.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.4.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.5.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.5.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.5.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.5.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.6.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.6.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.6.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.6.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.7.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.7.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.7.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.7.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.8.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.8.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.8.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.8.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.9.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.9.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "past_decoder_sequence_length + decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.9.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "present.9.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     8,
+     "encoder_sequence_length",
+     64
+    ]
+   }
+  ],
+  "opCounts": {
+   "If": 1
+  },
+  "fileBytes": 356714424
+ },
+ "moonshine-streaming-small-en/encoder-fp32": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 18
+   }
+  ],
+  "inputs": [
+   {
+    "name": "input_values",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "encoder_sequence_length"
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "last_hidden_state",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "( ( encoder_sequence_length // 80 - 1 ) // 2 + 1 - 1 ) // 2 + 1",
+     620
+    ]
+   }
+  ],
+  "opCounts": {
+   "Constant": 676,
+   "Unsqueeze": 206,
+   "Cast": 92,
+   "Mul": 87,
+   "Shape": 83,
+   "MatMul": 81,
+   "Reshape": 79,
+   "Add": 79,
+   "Gather": 72,
+   "Concat": 65,
+   "And": 60,
+   "Transpose": 46,
+   "Range": 31,
+   "Less": 31,
+   "Where": 30,
+   "ConstantOfShape": 25,
+   "LayerNormalization": 21,
+   "GreaterOrEqual": 20,
+   "Div": 12,
+   "Sub": 11,
+   "Neg": 10,
+   "Or": 10,
+   "Flatten": 10,
+   "Equal": 10,
+   "Expand": 10,
+   "Softmax": 10,
+   "IsNaN": 10,
+   "Erf": 10,
+   "Slice": 4,
+   "Pad": 4,
+   "Conv": 4,
+   "ReduceMean": 2,
+   "Sigmoid": 2,
+   "Greater": 2,
+   "Squeeze": 2,
+   "Pow": 1,
+   "Sqrt": 1,
+   "Exp": 1,
+   "Asinh": 1,
+   "ReduceSum": 1
+  },
+  "fileBytes": 205253486
+ },
+ "moonshine-streaming-small-en/encoder-q4": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 18
+   },
+   {
+    "domain": "com.microsoft",
+    "version": 1
+   }
+  ],
+  "inputs": [
+   {
+    "name": "input_values",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "encoder_sequence_length"
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "last_hidden_state",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "( ( encoder_sequence_length // 80 - 1 ) // 2 + 1 - 1 ) // 2 + 1",
+     620
+    ]
+   }
+  ],
+  "opCounts": {
+   "Constant": 676,
+   "Unsqueeze": 206,
+   "Cast": 92,
+   "Mul": 87,
+   "Shape": 83,
+   "Reshape": 79,
+   "Add": 79,
+   "Gather": 72,
+   "Concat": 65,
+   "com.microsoft.MatMulNBits": 61,
+   "And": 60,
+   "Transpose": 46,
+   "Range": 31,
+   "Less": 31,
+   "Where": 30,
+   "ConstantOfShape": 25,
+   "LayerNormalization": 21,
+   "GreaterOrEqual": 20,
+   "MatMul": 20,
+   "Div": 12,
+   "Sub": 11,
+   "Neg": 10,
+   "Or": 10,
+   "Flatten": 10,
+   "Equal": 10,
+   "Expand": 10,
+   "Softmax": 10,
+   "IsNaN": 10,
+   "Erf": 10,
+   "Slice": 4,
+   "Pad": 4,
+   "Conv": 4,
+   "ReduceMean": 2,
+   "Sigmoid": 2,
+   "Greater": 2,
+   "Squeeze": 2,
+   "Pow": 1,
+   "Sqrt": 1,
+   "Exp": 1,
+   "Asinh": 1,
+   "ReduceSum": 1
+  },
+  "fileBytes": 59023075
+ },
+ "parakeet-tdt-0.6b-v3/decoder-joint-int8": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 17
+   },
+   {
+    "domain": "com.microsoft",
+    "version": 1
+   }
+  ],
+  "inputs": [
+   {
+    "name": "encoder_outputs",
+    "dtype": "float32",
+    "shape": [
+     "encoder_outputs_dynamic_axes_1",
+     1024,
+     "encoder_outputs_dynamic_axes_2"
+    ]
+   },
+   {
+    "name": "targets",
+    "dtype": "int32",
+    "shape": [
+     "targets_dynamic_axes_1",
+     "targets_dynamic_axes_2"
+    ]
+   },
+   {
+    "name": "target_length",
+    "dtype": "int32",
+    "shape": [
+     "target_length_dynamic_axes_1"
+    ]
+   },
+   {
+    "name": "input_states_1",
+    "dtype": "float32",
+    "shape": [
+     2,
+     "input_states_1_dynamic_axes_1",
+     640
+    ]
+   },
+   {
+    "name": "input_states_2",
+    "dtype": "float32",
+    "shape": [
+     2,
+     "input_states_2_dynamic_axes_1",
+     640
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "outputs",
+    "dtype": "float32",
+    "shape": [
+     "Addoutputs_dim_0",
+     "Addoutputs_dim_1",
+     "Addoutputs_dim_2",
+     8198
+    ]
+   },
+   {
+    "name": "prednet_lengths",
+    "dtype": "int32",
+    "shape": [
+     "target_length_dynamic_axes_1"
+    ]
+   },
+   {
+    "name": "output_states_1",
+    "dtype": "float32",
+    "shape": [
+     2,
+     "Concatoutput_states_1_dim_1",
+     640
+    ]
+   },
+   {
+    "name": "output_states_2",
+    "dtype": "float32",
+    "shape": [
+     2,
+     "Concatoutput_states_2_dim_1",
+     640
+    ]
+   }
+  ],
+  "opCounts": {
+   "Constant": 16,
+   "Mul": 6,
+   "Cast": 4,
+   "Slice": 4,
+   "Add": 4,
+   "Transpose": 3,
+   "DynamicQuantizeLinear": 3,
+   "MatMulInteger": 3,
+   "com.microsoft.DynamicQuantizeLSTM": 2,
+   "Squeeze": 2,
+   "Unsqueeze": 2,
+   "Concat": 2,
+   "Identity": 1,
+   "Gather": 1,
+   "DequantizeLinear": 1,
+   "Relu": 1
+  },
+  "fileBytes": 18202004
+ },
+ "parakeet-tdt-0.6b-v3/encoder-int8": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 17
+   }
+  ],
+  "inputs": [
+   {
+    "name": "audio_signal",
+    "dtype": "float32",
+    "shape": [
+     "audio_signal_dynamic_axes_1",
+     128,
+     "audio_signal_dynamic_axes_2"
+    ]
+   },
+   {
+    "name": "length",
+    "dtype": "int64",
+    "shape": [
+     "length_dynamic_axes_1"
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "outputs",
+    "dtype": "float32",
+    "shape": [
+     "Transposeoutputs_dim_0",
+     1024,
+     "Transposeoutputs_dim_2"
+    ]
+   },
+   {
+    "name": "encoded_lengths",
+    "dtype": "int64",
+    "shape": [
+     "length_dynamic_axes_1"
+    ]
+   }
+  ],
+  "opCounts": {
+   "Constant": 1661,
+   "Mul": 733,
+   "Cast": 426,
+   "Unsqueeze": 328,
+   "Reshape": 295,
+   "Transpose": 244,
+   "DynamicQuantizeLinear": 223,
+   "Concat": 221,
+   "MatMulInteger": 217,
+   "Add": 205,
+   "Shape": 175,
+   "Gather": 149,
+   "Slice": 123,
+   "LayerNormalization": 120,
+   "Sigmoid": 96,
+   "ConvInteger": 77,
+   "Where": 73,
+   "MatMul": 72,
+   "ConstantOfShape": 51,
+   "Pad": 48,
+   "Div": 27,
+   "Squeeze": 24,
+   "Softmax": 24,
+   "Split": 24,
+   "Floor": 3,
+   "Relu": 3,
+   "Sub": 2,
+   "Expand": 2,
+   "Not": 2,
+   "And": 2,
+   "Equal": 1,
+   "Range": 1,
+   "Less": 1,
+   "Tile": 1
+  },
+  "fileBytes": 652183999
+ },
+ "qwen3-asr-0.6b/decoder-step-int4": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 18
+   },
+   {
+    "domain": "ai.onnx.ml",
+    "version": 5
+   },
+   {
+    "domain": "ai.onnx.training",
+    "version": 1
+   },
+   {
+    "domain": "ai.onnx.preview.training",
+    "version": 1
+   },
+   {
+    "domain": "com.microsoft",
+    "version": 1
+   },
+   {
+    "domain": "com.microsoft.experimental",
+    "version": 1
+   },
+   {
+    "domain": "com.microsoft.nchwc",
+    "version": 1
+   },
+   {
+    "domain": "org.pytorch.aten",
+    "version": 1
+   }
+  ],
+  "inputs": [
+   {
+    "name": "input_embeds",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     1,
+     1024
+    ]
+   },
+   {
+    "name": "position_ids",
+    "dtype": "int64",
+    "shape": [
+     "batch",
+     1
+    ]
+   },
+   {
+    "name": "past_keys",
+    "dtype": "float32",
+    "shape": [
+     28,
+     "batch",
+     8,
+     "past_seq_len",
+     128
+    ]
+   },
+   {
+    "name": "past_values",
+    "dtype": "float32",
+    "shape": [
+     28,
+     "batch",
+     8,
+     "past_seq_len",
+     128
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "logits",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     1,
+     151936
+    ]
+   },
+   {
+    "name": "present_keys",
+    "dtype": "float32",
+    "shape": [
+     28,
+     "batch",
+     8,
+     "past_seq_len + 1",
+     128
+    ]
+   },
+   {
+    "name": "present_values",
+    "dtype": "float32",
+    "shape": [
+     28,
+     "batch",
+     8,
+     "past_seq_len + 1",
+     128
+    ]
+   }
+  ],
+  "opCounts": {
+   "com.microsoft.MatMulNBits": 197,
+   "Mul": 196,
+   "Reshape": 169,
+   "Transpose": 147,
+   "Concat": 120,
+   "Unsqueeze": 118,
+   "Slice": 114,
+   "SimplifiedLayerNormalization": 113,
+   "Add": 113,
+   "Gather": 61,
+   "Expand": 58,
+   "MatMul": 57,
+   "Neg": 56,
+   "Softmax": 28,
+   "Sigmoid": 28,
+   "Shape": 3,
+   "ScatterND": 2,
+   "ScatterElements": 2,
+   "Squeeze": 1,
+   "Cast": 1,
+   "Sin": 1,
+   "Cos": 1
+  },
+  "fileBytes": 962815560
+ },
+ "qwen3-asr-0.6b/encoder": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 18
+   },
+   {
+    "domain": "ai.onnx.ml",
+    "version": 5
+   },
+   {
+    "domain": "ai.onnx.training",
+    "version": 1
+   },
+   {
+    "domain": "ai.onnx.preview.training",
+    "version": 1
+   },
+   {
+    "domain": "com.microsoft",
+    "version": 1
+   },
+   {
+    "domain": "com.microsoft.experimental",
+    "version": 1
+   },
+   {
+    "domain": "com.microsoft.nchwc",
+    "version": 1
+   },
+   {
+    "domain": "org.pytorch.aten",
+    "version": 1
+   }
+  ],
+  "inputs": [
+   {
+    "name": "mel",
+    "dtype": "float32",
+    "shape": [
+     1,
+     128,
+     "time"
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "audio_features",
+    "dtype": "float32",
+    "shape": [
+     1,
+     "u1",
+     1024
+    ]
+   }
+  ],
+  "opCounts": {
+   "MatMul": 147,
+   "Add": 83,
+   "Reshape": 82,
+   "Transpose": 74,
+   "com.microsoft.SkipLayerNormalization": 35,
+   "Mul": 22,
+   "com.microsoft.BiasGelu": 19,
+   "Softmax": 18,
+   "Div": 5,
+   "Mod": 4,
+   "Concat": 4,
+   "Unsqueeze": 3,
+   "Conv": 3,
+   "com.microsoft.Gelu": 3,
+   "Squeeze": 2,
+   "Pad": 2,
+   "Slice": 2,
+   "LayerNormalization": 2,
+   "Shape": 1,
+   "Range": 1,
+   "GreaterOrEqual": 1,
+   "Cast": 1
+  },
+  "fileBytes": 745762694
+ },
+ "qwen3-forced-aligner-0.6b/model-q4": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 18
+   },
+   {
+    "domain": "com.microsoft",
+    "version": 1
+   }
+  ],
+  "inputs": [
+   {
+    "name": "input_ids",
+    "dtype": "int64",
+    "shape": [
+     "batch",
+     "text_sequence"
+    ]
+   },
+   {
+    "name": "input_features",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     128,
+     "feature_sequence"
+    ]
+   },
+   {
+    "name": "attention_mask",
+    "dtype": "int64",
+    "shape": [
+     "batch",
+     "text_sequence"
+    ]
+   },
+   {
+    "name": "feature_attention_mask",
+    "dtype": "int32",
+    "shape": [
+     "batch",
+     "feature_sequence"
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "logits",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     "text_sequence",
+     5000
+    ]
+   }
+  ],
+  "opCounts": {
+   "Constant": 3575,
+   "Unsqueeze": 1129,
+   "Mul": 661,
+   "Shape": 528,
+   "Add": 510,
+   "Gather": 459,
+   "Cast": 413,
+   "Concat": 391,
+   "com.microsoft.MatMulNBits": 344,
+   "Reshape": 339,
+   "Transpose": 266,
+   "Div": 202,
+   "Slice": 175,
+   "Where": 128,
+   "Pow": 113,
+   "ReduceMean": 113,
+   "Sqrt": 113,
+   "MatMul": 105,
+   "Equal": 72,
+   "Expand": 69,
+   "ConstantOfShape": 68,
+   "Neg": 56,
+   "Softmax": 52,
+   "LayerNormalization": 49,
+   "Erf": 28,
+   "IsNaN": 28,
+   "Sigmoid": 28,
+   "Sub": 12,
+   "Range": 10,
+   "And": 7,
+   "Less": 6,
+   "Mod": 6,
+   "Xor": 5,
+   "Not": 5,
+   "Conv": 3,
+   "ScatterND": 3,
+   "NonZero": 2,
+   "CumSum": 1,
+   "Flatten": 1,
+   "ReduceSum": 1,
+   "Pad": 1,
+   "Clip": 1,
+   "Greater": 1,
+   "Cos": 1,
+   "Sin": 1,
+   "GatherND": 1,
+   "LessOrEqual": 1
+  },
+  "fileBytes": 1048397349
+ },
+ "qwen3.5-2b/decoder-step-q4f16": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 21
+   },
+   {
+    "domain": "com.microsoft",
+    "version": 1
+   }
+  ],
+  "inputs": [
+   {
+    "name": "inputs_embeds",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "sequence_length",
+     2048
+    ]
+   },
+   {
+    "name": "attention_mask",
+    "dtype": "int64",
+    "shape": [
+     "batch_size",
+     "total_sequence_length"
+    ]
+   },
+   {
+    "name": "position_ids",
+    "dtype": "int64",
+    "shape": [
+     3,
+     "batch_size",
+     "sequence_length"
+    ]
+   },
+   {
+    "name": "past_conv.0",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "past_recurrent.0",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "past_conv.1",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "past_recurrent.1",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "past_conv.2",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "past_recurrent.2",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "past_key_values.3.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.3.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_conv.4",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "past_recurrent.4",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "past_conv.5",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "past_recurrent.5",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "past_conv.6",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "past_recurrent.6",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "past_key_values.7.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.7.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_conv.8",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "past_recurrent.8",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "past_conv.9",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "past_recurrent.9",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "past_conv.10",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "past_recurrent.10",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "past_key_values.11.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.11.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_conv.12",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "past_recurrent.12",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "past_conv.13",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "past_recurrent.13",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "past_conv.14",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "past_recurrent.14",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "past_key_values.15.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.15.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_conv.16",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "past_recurrent.16",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "past_conv.17",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "past_recurrent.17",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "past_conv.18",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "past_recurrent.18",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "past_key_values.19.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.19.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_conv.20",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "past_recurrent.20",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "past_conv.21",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "past_recurrent.21",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "past_conv.22",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "past_recurrent.22",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "past_key_values.23.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "past_key_values.23.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "past_sequence_length",
+     256
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "logits",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     "sequence_length",
+     248320
+    ]
+   },
+   {
+    "name": "present_conv.0",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "present_recurrent.0",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "present_conv.1",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "present_recurrent.1",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "present_conv.2",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "present_recurrent.2",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "present.3.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.3.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present_conv.4",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "present_recurrent.4",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "present_conv.5",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "present_recurrent.5",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "present_conv.6",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "present_recurrent.6",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "present.7.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.7.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present_conv.8",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "present_recurrent.8",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "present_conv.9",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "present_recurrent.9",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "present_conv.10",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "present_recurrent.10",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "present.11.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.11.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present_conv.12",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "present_recurrent.12",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "present_conv.13",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "present_recurrent.13",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "present_conv.14",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "present_recurrent.14",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "present.15.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.15.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present_conv.16",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "present_recurrent.16",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "present_conv.17",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "present_recurrent.17",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "present_conv.18",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "present_recurrent.18",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "present.19.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.19.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present_conv.20",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "present_recurrent.20",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "present_conv.21",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "present_recurrent.21",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "present_conv.22",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     6144,
+     4
+    ]
+   },
+   {
+    "name": "present_recurrent.22",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     16,
+     128,
+     128
+    ]
+   },
+   {
+    "name": "present.23.key",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   },
+   {
+    "name": "present.23.value",
+    "dtype": "float16",
+    "shape": [
+     "batch_size",
+     2,
+     "total_sequence_length",
+     256
+    ]
+   }
+  ],
+  "opCounts": {
+   "Cast": 245,
+   "com.microsoft.MatMulNBits": 187,
+   "Reshape": 84,
+   "Mul": 67,
+   "Slice": 66,
+   "Gather": 52,
+   "com.microsoft.SkipSimplifiedLayerNormalization": 48,
+   "Shape": 33,
+   "Sigmoid": 30,
+   "Transpose": 25,
+   "Concat": 18,
+   "Equal": 18,
+   "If": 18,
+   "SimplifiedLayerNormalization": 13,
+   "Range": 12,
+   "com.microsoft.RotaryEmbedding": 12,
+   "Unsqueeze": 6,
+   "Split": 6,
+   "Squeeze": 6,
+   "com.microsoft.GroupQueryAttention": 6,
+   "Expand": 3,
+   "Sub": 2,
+   "MatMul": 1,
+   "Cos": 1,
+   "Sin": 1
+  },
+  "fileBytes": 1090824102
+ },
+ "redimnet2-b6/model": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 18
+   }
+  ],
+  "inputs": [
+   {
+    "name": "audio",
+    "dtype": "float32",
+    "shape": [
+     1,
+     96000
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "embedding",
+    "dtype": "float32",
+    "shape": [
+     "Divembedding_dim_0",
+     "Divembedding_dim_1"
+    ]
+   }
+  ],
+  "opCounts": {
+   "Constant": 496,
+   "Conv": 175,
+   "Add": 163,
+   "Mul": 121,
+   "Unsqueeze": 116,
+   "Concat": 97,
+   "Reshape": 79,
+   "Shape": 70,
+   "Gather": 60,
+   "Transpose": 57,
+   "BatchNormalization": 49,
+   "Relu": 48,
+   "MatMul": 48,
+   "Div": 35,
+   "Erf": 24,
+   "ReduceMean": 21,
+   "Pow": 15,
+   "Sub": 13,
+   "LayerNormalization": 12,
+   "Sqrt": 10,
+   "ReduceSum": 9,
+   "Cast": 8,
+   "InstanceNormalization": 7,
+   "Softmax": 7,
+   "Tanh": 7,
+   "Resize": 6,
+   "Clip": 4,
+   "Expand": 3,
+   "Squeeze": 2,
+   "Slice": 2,
+   "ConstantOfShape": 1,
+   "Pad": 1,
+   "Log": 1,
+   "ReduceProd": 1,
+   "Gemm": 1,
+   "ReduceL2": 1
+  },
+  "fileBytes": 51223453
+ },
+ "silero-vad-v6/ifless-op18": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 18
+   }
+  ],
+  "inputs": [
+   {
+    "name": "input",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     "sequence"
+    ]
+   },
+   {
+    "name": "sr",
+    "dtype": "int64",
+    "shape": []
+   },
+   {
+    "name": "state",
+    "dtype": "float32",
+    "shape": [
+     2,
+     "batch",
+     128
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "output",
+    "dtype": "float32",
+    "shape": [
+     "batch",
+     1
+    ]
+   },
+   {
+    "name": "stateN",
+    "dtype": "float32",
+    "shape": [
+     2,
+     "batch",
+     128
+    ]
+   }
+  ],
+  "opCounts": {
+   "Reshape": 1,
+   "Gather": 1,
+   "Equal": 1,
+   "If": 1
+  },
+  "fileBytes": 2845718
+ },
+ "silero-vad-v6/standard": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 16
+   }
+  ],
+  "inputs": [
+   {
+    "name": "input",
+    "dtype": "float32",
+    "shape": [
+     "?",
+     "?"
+    ]
+   },
+   {
+    "name": "state",
+    "dtype": "float32",
+    "shape": [
+     2,
+     "?",
+     128
+    ]
+   },
+   {
+    "name": "sr",
+    "dtype": "int64",
+    "shape": []
+   }
+  ],
+  "outputs": [
+   {
+    "name": "output",
+    "dtype": "float32",
+    "shape": [
+     "?",
+     1
+    ]
+   },
+   {
+    "name": "stateN",
+    "dtype": "float32",
+    "shape": [
+     "?",
+     "?",
+     "?"
+    ]
+   }
+  ],
+  "opCounts": {
+   "Identity": 2,
+   "Constant": 1,
+   "Equal": 1,
+   "If": 1
+  },
+  "fileBytes": 2327524
+ },
+ "ten-vad/model": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 9
+   },
+   {
+    "domain": "ai.onnx.ml",
+    "version": 2
+   }
+  ],
+  "inputs": [
+   {
+    "name": "input_1",
+    "dtype": "float32",
+    "shape": [
+     "unk__187",
+     3,
+     41
+    ]
+   },
+   {
+    "name": "input_2",
+    "dtype": "float32",
+    "shape": [
+     "unk__188",
+     64
+    ]
+   },
+   {
+    "name": "input_3",
+    "dtype": "float32",
+    "shape": [
+     "unk__189",
+     64
+    ]
+   },
+   {
+    "name": "input_6",
+    "dtype": "float32",
+    "shape": [
+     "unk__192",
+     64
+    ]
+   },
+   {
+    "name": "input_7",
+    "dtype": "float32",
+    "shape": [
+     "unk__193",
+     64
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "output_1",
+    "dtype": "float32",
+    "shape": [
+     "unk__194",
+     "unk__195",
+     1
+    ]
+   },
+   {
+    "name": "output_2",
+    "dtype": "float32",
+    "shape": [
+     "unk__196",
+     64
+    ]
+   },
+   {
+    "name": "output_3",
+    "dtype": "float32",
+    "shape": [
+     "unk__197",
+     64
+    ]
+   },
+   {
+    "name": "output_6",
+    "dtype": "float32",
+    "shape": [
+     "unk__200",
+     64
+    ]
+   },
+   {
+    "name": "output_7",
+    "dtype": "float32",
+    "shape": [
+     "unk__201",
+     64
+    ]
+   }
+  ],
+  "opCounts": {
+   "Squeeze": 8,
+   "Reshape": 7,
+   "Unsqueeze": 6,
+   "Conv": 6,
+   "Relu": 4,
+   "Cast": 4,
+   "Transpose": 3,
+   "Concat": 3,
+   "LSTM": 2,
+   "Shape": 2,
+   "Gather": 2,
+   "MatMul": 2,
+   "Add": 2,
+   "MaxPool": 1,
+   "Sigmoid": 1
+  },
+  "fileBytes": 315449
+ },
+ "wespeaker-resnet34-lm/model": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 14
+   }
+  ],
+  "inputs": [
+   {
+    "name": "feats",
+    "dtype": "float32",
+    "shape": [
+     "B",
+     "T",
+     80
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "embs",
+    "dtype": "float32",
+    "shape": [
+     "B",
+     256
+    ]
+   }
+  ],
+  "opCounts": {
+   "Conv": 36,
+   "Relu": 33,
+   "Add": 17,
+   "Constant": 4,
+   "ReduceMean": 3,
+   "Sub": 3,
+   "Mul": 2,
+   "Flatten": 2,
+   "Transpose": 1,
+   "Unsqueeze": 1,
+   "Shape": 1,
+   "Gather": 1,
+   "ReduceProd": 1,
+   "Cast": 1,
+   "Div": 1,
+   "Sqrt": 1,
+   "Concat": 1,
+   "Gemm": 1
+  },
+  "fileBytes": 26530550
+ },
+ "whisper-large-v3-turbo/decoder-merged-q4f16": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 14
+   },
+   {
+    "domain": "com.microsoft",
+    "version": 1
+   }
+  ],
+  "inputs": [
+   {
+    "name": "input_ids",
+    "dtype": "int64",
+    "shape": [
+     "batch_size",
+     "decoder_sequence_length"
+    ]
+   },
+   {
+    "name": "encoder_hidden_states",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "encoder_sequence_length / 2",
+     1280
+    ]
+   },
+   {
+    "name": "past_key_values.0.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.0.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.0.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.0.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.1.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.1.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.1.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.1.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.2.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.2.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.2.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.2.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.3.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.3.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.3.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.3.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "use_cache_branch",
+    "dtype": "bool",
+    "shape": [
+     1
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "logits",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "decoder_sequence_length",
+     51866
+    ]
+   },
+   {
+    "name": "present.0.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.0.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.0.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.0.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.1.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.1.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.1.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.1.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.2.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.2.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.2.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.2.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.3.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.3.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.3.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.3.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "cross_attentions.0",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "decoder_sequence_length",
+     "encoder_sequence_length_out"
+    ]
+   },
+   {
+    "name": "cross_attentions.1",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "decoder_sequence_length",
+     "encoder_sequence_length_out"
+    ]
+   },
+   {
+    "name": "cross_attentions.2",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "decoder_sequence_length",
+     "encoder_sequence_length_out"
+    ]
+   },
+   {
+    "name": "cross_attentions.3",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     20,
+     "decoder_sequence_length",
+     "encoder_sequence_length_out"
+    ]
+   }
+  ],
+  "opCounts": {
+   "Cast": 46,
+   "If": 1
+  },
+  "fileBytes": 193566135
+ },
+ "whisper-large-v3-turbo/encoder-q4f16": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 14
+   },
+   {
+    "domain": "com.microsoft",
+    "version": 1
+   }
+  ],
+  "inputs": [
+   {
+    "name": "input_features",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     128,
+     3000
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "last_hidden_state",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     1500,
+     1280
+    ]
+   }
+  ],
+  "opCounts": {
+   "Add": 389,
+   "Reshape": 288,
+   "com.microsoft.MatMulNBits": 192,
+   "Mul": 165,
+   "Transpose": 161,
+   "ReduceMean": 130,
+   "Div": 99,
+   "Sub": 65,
+   "Pow": 65,
+   "Sqrt": 65,
+   "MatMul": 64,
+   "Erf": 34,
+   "Softmax": 32,
+   "Cast": 2,
+   "Conv": 2
+  },
+  "fileBytes": 370035242
+ },
+ "whisper-small/decoder-merged-fp16": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 14
+   }
+  ],
+  "inputs": [
+   {
+    "name": "input_ids",
+    "dtype": "int64",
+    "shape": [
+     "batch_size",
+     "decoder_sequence_length"
+    ]
+   },
+   {
+    "name": "encoder_hidden_states",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "encoder_sequence_length / 2",
+     768
+    ]
+   },
+   {
+    "name": "past_key_values.0.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.0.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.0.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.0.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.1.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.1.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.1.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.1.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.2.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.2.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.2.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.2.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.3.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.3.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.3.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.3.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.4.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.4.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.4.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.4.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.5.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.5.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.5.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.5.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.6.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.6.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.6.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.6.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.7.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.7.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.7.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.7.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.8.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.8.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.8.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.8.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.9.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.9.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.9.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.9.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.10.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.10.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.10.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.10.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.11.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.11.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.11.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.11.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "use_cache_branch",
+    "dtype": "bool",
+    "shape": [
+     1
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "logits",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "decoder_sequence_length",
+     51865
+    ]
+   },
+   {
+    "name": "present.0.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.0.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.0.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.0.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.1.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.1.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.1.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.1.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.2.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.2.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.2.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.2.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.3.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.3.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.3.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.3.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.4.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.4.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.4.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.4.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.5.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.5.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.5.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.5.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.6.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.6.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.6.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.6.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.7.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.7.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.7.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.7.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.8.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.8.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.8.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.8.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.9.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.9.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.9.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.9.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.10.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.10.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.10.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.10.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.11.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.11.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.11.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.11.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     12,
+     "encoder_sequence_length_out",
+     64
+    ]
+   }
+  ],
+  "opCounts": {
+   "Cast": 98,
+   "If": 1
+  },
+  "fileBytes": 308583076
+ },
+ "whisper-small/encoder-fp16": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 14
+   }
+  ],
+  "inputs": [
+   {
+    "name": "input_features",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "feature_size",
+     "encoder_sequence_length"
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "last_hidden_state",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     1500,
+     768
+    ]
+   }
+  ],
+  "opCounts": {
+   "Constant": 476,
+   "Add": 149,
+   "Unsqueeze": 132,
+   "MatMul": 96,
+   "Concat": 96,
+   "Reshape": 96,
+   "Mul": 77,
+   "Transpose": 61,
+   "ReduceMean": 50,
+   "Div": 39,
+   "Sub": 25,
+   "Pow": 25,
+   "Sqrt": 25,
+   "Shape": 24,
+   "Gather": 24,
+   "Erf": 14,
+   "Softmax": 12,
+   "Cast": 2,
+   "Conv": 2
+  },
+  "fileBytes": 176607756
+ },
+ "whisper-tiny/decoder-merged-fp32": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 14
+   }
+  ],
+  "inputs": [
+   {
+    "name": "input_ids",
+    "dtype": "int64",
+    "shape": [
+     "batch_size",
+     "decoder_sequence_length"
+    ]
+   },
+   {
+    "name": "encoder_hidden_states",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "encoder_sequence_length / 2",
+     384
+    ]
+   },
+   {
+    "name": "past_key_values.0.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.0.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.0.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.0.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.1.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.1.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.1.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.1.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.2.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.2.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.2.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.2.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.3.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.3.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "past_decoder_sequence_length",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.3.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "past_key_values.3.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "use_cache_branch",
+    "dtype": "bool",
+    "shape": [
+     1
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "logits",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "decoder_sequence_length",
+     51865
+    ]
+   },
+   {
+    "name": "present.0.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.0.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.0.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.0.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.1.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.1.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.1.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.1.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.2.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.2.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.2.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.2.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.3.decoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.3.decoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "past_decoder_sequence_length + 1",
+     64
+    ]
+   },
+   {
+    "name": "present.3.encoder.key",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "encoder_sequence_length_out",
+     64
+    ]
+   },
+   {
+    "name": "present.3.encoder.value",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     6,
+     "encoder_sequence_length_out",
+     64
+    ]
+   }
+  ],
+  "opCounts": {
+   "If": 1
+  },
+  "fileBytes": 118553827
+ },
+ "whisper-tiny/encoder-fp32": {
+  "opset": [
+   {
+    "domain": "ai.onnx",
+    "version": 14
+   }
+  ],
+  "inputs": [
+   {
+    "name": "input_features",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "feature_size",
+     "encoder_sequence_length"
+    ]
+   }
+  ],
+  "outputs": [
+   {
+    "name": "last_hidden_state",
+    "dtype": "float32",
+    "shape": [
+     "batch_size",
+     "encoder_sequence_length / 2",
+     384
+    ]
+   }
+  ],
+  "opCounts": {
+   "Constant": 164,
+   "Add": 53,
+   "Unsqueeze": 44,
+   "MatMul": 32,
+   "Concat": 32,
+   "Reshape": 32,
+   "Mul": 29,
+   "Transpose": 21,
+   "ReduceMean": 18,
+   "Div": 15,
+   "Sub": 9,
+   "Pow": 9,
+   "Sqrt": 9,
+   "Shape": 8,
+   "Gather": 8,
+   "Erf": 6,
+   "Softmax": 4,
+   "Conv": 2
+  },
+  "fileBytes": 32904992
+ }
+}

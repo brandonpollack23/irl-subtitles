@@ -1,0 +1,39 @@
+:root {
+  color-scheme: light dark;
+  --bg: #fafaf7;
+  --fg: #1c1c1a;
+  --muted: #6b6b66;
+  --card: #ffffff;
+  --line: #deddd6;
+  --accent: #2f6f4f;
+  --bad: #b3261e;
+  font: 15px/1.4 system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #151514; --fg: #ecebe6; --muted: #9a9a93; --card: #1f1f1d; --line: #33332f; --accent: #6fbf8f; --bad: #f2b8b5; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); padding: 0 12px env(safe-area-inset-bottom); }
+.top { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; padding-block: 10px; }
+.muted { color: var(--muted); font-size: 13px; }
+.pill { font-size: 12px; padding: 1px 8px; border-radius: 99px; border: 1px solid var(--line); }
+.pill.ok { color: var(--accent); border-color: var(--accent); }
+.pill.bad { color: var(--bad); border-color: var(--bad); }
+.tabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.tabs button { white-space: nowrap; }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+button { font: inherit; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--fg); min-height: 40px; }
+button:disabled { opacity: 0.5; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-block: 8px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-block: 10px; }
+.card h3 { margin: 0 0 6px; font-size: 15px; }
+.field { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--muted); }
+input, select { font: inherit; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); min-width: 0; }
+pre { white-space: pre-wrap; word-break: break-word; font-size: 12px; margin: 6px 0 0; }
+pre.log { max-height: 40vh; overflow: auto; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px; }
+pre.report { max-height: 50vh; overflow: auto; }
+.kv { border-collapse: collapse; font-size: 13px; width: 100%; }
+.kv th { text-align: left; font-weight: 500; color: var(--muted); padding-right: 10px; vertical-align: top; white-space: nowrap; }
+.kv td { word-break: break-word; }
+.big { font-size: 28px; font-variant-numeric: tabular-nums; }
+.warn { color: var(--bad); }

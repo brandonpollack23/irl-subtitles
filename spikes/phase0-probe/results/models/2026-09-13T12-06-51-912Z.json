@@ -1,0 +1,86 @@
+{
+  "spike": "models",
+  "appVersion": "0.1.0",
+  "buildId": "2026-09-13T11:42:39.710Z",
+  "createdAt": "2026-09-13T12:06:51.909Z",
+  "environment": {
+    "origin": "http://localhost:5173",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "inEvenApp": false,
+    "glasses": null,
+    "servedWithCoiHeaders": true,
+    "crossOriginIsolated": true,
+    "hardwareConcurrency": 16,
+    "deviceMemoryGb": 32,
+    "tester": null
+  },
+  "data": {
+    "kind": "graph",
+    "matrix": "defaults",
+    "role": "stt-live",
+    "catalogDefault": true,
+    "modelId": "moonshine-streaming-medium-en",
+    "graph": "encoder-int8",
+    "ep": "wasm",
+    "ortVersion": "1.29.0",
+    "downloadMs": 173,
+    "graphBytes": 142060073,
+    "createMs": 318,
+    "inputs": [
+      {
+        "name": "input_values",
+        "isTensor": true,
+        "type": "float32",
+        "shape": [
+          1,
+          3200
+        ]
+      },
+      {
+        "name": "attention_mask",
+        "isTensor": true,
+        "type": "int64",
+        "shape": [
+          1,
+          3200
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "encoder_hidden_states",
+        "isTensor": true,
+        "type": "float32",
+        "shape": [
+          1,
+          10,
+          768
+        ]
+      }
+    ],
+    "inputSource": "fixture (onnxruntime 1.30.0 CPUExecutionProvider)",
+    "firstRunMs": 20,
+    "driftVsFixture": {
+      "encoder_hidden_states": {
+        "maxAbsDiff": 0.28644895553588867,
+        "meanAbsDiff": 0.0078115003227156405,
+        "cosine": 0.9974455690650699,
+        "nonFinite": 0
+      }
+    },
+    "latencyMs": {
+      "n": 5,
+      "p50": 28.62,
+      "p95": 28.94,
+      "max": 28.94,
+      "mean": 27.42
+    },
+    "realTimeHeadroom": 6.91,
+    "ok": true,
+    "webnnCoverage": null,
+    "ortLog": [
+      "error: 2026-09-13 21:06:51.534070 [I:onnxruntime:, graph_partitioner.cc:1413 InlineFunctionsAOT] This model does not have any local functions defined. AOT Inlining is not performed",
+      "error: 2026-09-13 21:06:51.630054 [I:onnxruntime:, graph_transformer.cc:15 Apply] GraphTransformer TransposeOptimizer_CPUExecutionProvider modified: 0 with status: OK"
+    ]
+  }
+}

@@ -1,0 +1,588 @@
+{
+  "$comment": "Phase 0 benchmark registry: one entry per plan.md \u00a76.1 catalog option. Graph-level benchmarks only (op coverage, per-step latency, drift); end-to-end pipelines are a follow-up. dims = symbolic dimension values; shapes = per-input overrides; values = constant fills. cadenceHz = runs per second of audio for the concurrent live-stack proxy.",
+  "models": [
+    {
+      "id": "silero-vad-v6",
+      "role": "vad",
+      "displayName": "Silero VAD v6.2",
+      "catalogDefault": true,
+      "license": "MIT",
+      "source": {
+        "type": "hf",
+        "repo": "istupakov/silero-vad-onnx"
+      },
+      "graphs": [
+        {
+          "name": "ifless-op18",
+          "file": "silero_vad_op18_ifless.onnx",
+          "cadenceHz": 31.25,
+          "values": {
+            "sr": 16000
+          },
+          "notes": "If-free export; WebNN has no If/Loop ops",
+          "shapes": {
+            "input": [
+              1,
+              576
+            ],
+            "state": [
+              2,
+              1,
+              128
+            ]
+          },
+          "dims": {
+            "batch": 1,
+            "sequence": 576
+          }
+        },
+        {
+          "name": "standard",
+          "file": "silero_vad.onnx",
+          "cadenceHz": 31.25,
+          "values": {
+            "sr": 16000
+          },
+          "shapes": {
+            "input": [
+              1,
+              576
+            ],
+            "state": [
+              2,
+              1,
+              128
+            ]
+          },
+          "notes": "Unnamed dynamic dims ('?') cannot be pinned by freeDimensionOverrides; expected to fail or fall back on WebNN"
+        }
+      ]
+    },
+    {
+      "id": "ten-vad",
+      "role": "vad",
+      "displayName": "TEN VAD",
+      "license": "Apache-2.0 with additional conditions (license review required)",
+      "source": {
+        "type": "hf",
+        "repo": "TEN-framework/ten-vad"
+      },
+      "graphs": [
+        {
+          "name": "model",
+          "file": "src/onnx_model/ten-vad.onnx",
+          "cadenceHz": 62.5,
+          "notes": "Graph needs the library's own feature frontend; graph-level timing only",
+          "shapes": {
+            "input_1": [
+              1,
+              3,
+              41
+            ],
+            "input_2": [
+              1,
+              64
+            ],
+            "input_3": [
+              1,
+              64
+            ],
+            "input_6": [
+              1,
+              64
+            ],
+            "input_7": [
+              1,
+              64
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "moonshine-streaming-medium-en",
+      "role": "stt-live",
+      "displayName": "Moonshine Streaming Medium (en), int8 community export",
+      "catalogDefault": true,
+      "license": "MIT (weights: Moonshine Community License, review)",
+      "source": {
+        "type": "hf",
+        "repo": "Mazino0/moonshine-streaming-medium-onnx"
+      },
+      "graphs": [
+        {
+          "name": "encoder-int8",
+          "file": "encoder_model_int8.onnx",
+          "cadenceHz": 5,
+          "dims": {
+            "batch": 1,
+            "audio_length": 3200
+          },
+          "notes": "200 ms audio chunk per step"
+        },
+        {
+          "name": "decoder-with-past-int8",
+          "file": "decoder_with_past_model_int8.onnx",
+          "cadenceHz": 6,
+          "dims": {
+            "batch": 1,
+            "enc_seq": 50,
+            "past_seq": 64
+          }
+        }
+      ],
+      "notes": "Only a dynamic-int8 export exists; an fp16 export may be needed for WebNN NPU/GPU placement."
+    },
+    {
+      "id": "moonshine-streaming-small-en",
+      "role": "stt-live",
+      "displayName": "Moonshine Streaming Small (en)",
+      "license": "MIT (weights: Moonshine Community License, review)",
+      "source": {
+        "type": "hf",
+        "repo": "Workmind/moonshine-streaming-small-ONNX"
+      },
+      "graphs": [
+        {
+          "name": "encoder-fp32",
+          "file": "onnx/encoder_model.onnx",
+          "cadenceHz": 5,
+          "dims": {
+            "batch_size": 1,
+            "encoder_sequence_length": 3200
+          }
+        },
+        {
+          "name": "encoder-q4",
+          "file": "onnx/encoder_model_q4.onnx",
+          "cadenceHz": 5,
+          "dims": {
+            "batch_size": 1,
+            "encoder_sequence_length": 3200
+          }
+        },
+        {
+          "name": "decoder-merged-fp32",
+          "file": "onnx/decoder_model_merged.onnx",
+          "cadenceHz": 6,
+          "dims": {
+            "batch_size": 1,
+            "decoder_sequence_length": 1,
+            "encoder_sequence_length": 50,
+            "past_decoder_sequence_length": 64
+          },
+          "values": {
+            "use_cache_branch": true
+          },
+          "notes": "Merged decoder uses an If node (use_cache_branch); WebNN has no If op"
+        }
+      ]
+    },
+    {
+      "id": "moonshine-streaming-tiny-en",
+      "role": "stt-live",
+      "displayName": "Moonshine Streaming Tiny (en)",
+      "license": "MIT",
+      "status": "needs-export",
+      "notes": "No ONNX export found on Hugging Face (2026-09-13). Export from UsefulSensors/moonshine-streaming-tiny.",
+      "graphs": []
+    },
+    {
+      "id": "moonshine-streaming-small-ja",
+      "role": "stt-live",
+      "displayName": "Moonshine Streaming Small (ja)",
+      "license": "MIT",
+      "status": "needs-export",
+      "notes": "No per-language Moonshine Streaming ONNX export found (2026-09-13).",
+      "graphs": []
+    },
+    {
+      "id": "whisper-small",
+      "role": "stt-live",
+      "displayName": "Whisper Small multilingual (fp16)",
+      "license": "Apache-2.0",
+      "source": {
+        "type": "hf",
+        "repo": "onnx-community/whisper-small"
+      },
+      "graphs": [
+        {
+          "name": "encoder-fp16",
+          "file": "onnx/encoder_model_fp16.onnx",
+          "cadenceHz": 1,
+          "dims": {
+            "batch_size": 1,
+            "feature_size": 80,
+            "encoder_sequence_length": 3000
+          }
+        },
+        {
+          "name": "decoder-merged-fp16",
+          "file": "onnx/decoder_model_merged_fp16.onnx",
+          "cadenceHz": 6,
+          "dims": {
+            "batch_size": 1,
+            "decoder_sequence_length": 1,
+            "encoder_sequence_length / 2": 1500,
+            "encoder_sequence_length_out": 1500,
+            "past_decoder_sequence_length": 64
+          },
+          "values": {
+            "use_cache_branch": true
+          },
+          "notes": "Merged decoder uses an If node (use_cache_branch); WebNN has no If op"
+        }
+      ]
+    },
+    {
+      "id": "whisper-tiny",
+      "role": "stt-live",
+      "displayName": "Whisper Tiny multilingual",
+      "license": "Apache-2.0",
+      "source": {
+        "type": "hf",
+        "repo": "onnx-community/whisper-tiny"
+      },
+      "graphs": [
+        {
+          "name": "encoder-fp32",
+          "file": "onnx/encoder_model.onnx",
+          "cadenceHz": 1,
+          "dims": {
+            "batch_size": 1,
+            "feature_size": 80,
+            "encoder_sequence_length": 3000
+          }
+        },
+        {
+          "name": "decoder-merged-fp32",
+          "file": "onnx/decoder_model_merged.onnx",
+          "cadenceHz": 6,
+          "dims": {
+            "batch_size": 1,
+            "decoder_sequence_length": 1,
+            "encoder_sequence_length / 2": 1500,
+            "encoder_sequence_length_out": 1500,
+            "past_decoder_sequence_length": 64
+          },
+          "values": {
+            "use_cache_branch": true
+          },
+          "notes": "Merged decoder uses an If node (use_cache_branch); WebNN has no If op"
+        }
+      ]
+    },
+    {
+      "id": "qwen3-asr-0.6b",
+      "role": "stt-final",
+      "displayName": "Qwen3-ASR-0.6B (int4 decoder)",
+      "catalogDefault": true,
+      "license": "Apache-2.0",
+      "source": {
+        "type": "hf",
+        "repo": "andrewleech/qwen3-asr-0.6b-onnx"
+      },
+      "graphs": [
+        {
+          "name": "encoder",
+          "file": "encoder.int4.onnx",
+          "notes": "30 s mel window",
+          "dims": {
+            "time": 3000
+          }
+        },
+        {
+          "name": "decoder-step-int4",
+          "file": "decoder_step.int4.onnx",
+          "externalData": [
+            "decoder_weights.int4.data"
+          ],
+          "dims": {
+            "batch": 1,
+            "past_seq_len": 512
+          },
+          "notes": "int4 MatMulNBits (com.microsoft); 512-token KV cache"
+        }
+      ]
+    },
+    {
+      "id": "qwen3-forced-aligner-0.6b",
+      "role": "stt-final",
+      "displayName": "Qwen3-ForcedAligner-0.6B (q4)",
+      "catalogDefault": true,
+      "license": "Apache-2.0",
+      "source": {
+        "type": "hf",
+        "repo": "valoomba/Qwen3-ForcedAligner-0.6B-ONNX"
+      },
+      "graphs": [
+        {
+          "name": "model-q4",
+          "file": "onnx/model_q4.onnx",
+          "dims": {
+            "batch": 1,
+            "text_sequence": 256,
+            "feature_sequence": 3000
+          }
+        }
+      ]
+    },
+    {
+      "id": "whisper-large-v3-turbo",
+      "role": "stt-final",
+      "displayName": "Whisper Large-v3-Turbo timestamped (q4f16)",
+      "license": "MIT",
+      "source": {
+        "type": "hf",
+        "repo": "onnx-community/whisper-large-v3-turbo_timestamped"
+      },
+      "graphs": [
+        {
+          "name": "encoder-q4f16",
+          "file": "onnx/encoder_model_q4f16.onnx",
+          "dims": {
+            "batch_size": 1
+          },
+          "notes": "MatMulNBits int4 weights"
+        },
+        {
+          "name": "decoder-merged-q4f16",
+          "file": "onnx/decoder_model_merged_q4f16.onnx",
+          "dims": {
+            "batch_size": 1,
+            "decoder_sequence_length": 1,
+            "encoder_sequence_length / 2": 1500,
+            "encoder_sequence_length_out": 1500,
+            "past_decoder_sequence_length": 128
+          },
+          "values": {
+            "use_cache_branch": true
+          },
+          "notes": "Merged decoder uses an If node (use_cache_branch); WebNN has no If op"
+        }
+      ]
+    },
+    {
+      "id": "parakeet-tdt-0.6b-v3",
+      "role": "stt-final",
+      "displayName": "Parakeet TDT 0.6B v3 (int8)",
+      "license": "CC-BY-4.0",
+      "source": {
+        "type": "hf",
+        "repo": "istupakov/parakeet-tdt-0.6b-v3-onnx"
+      },
+      "graphs": [
+        {
+          "name": "encoder-int8",
+          "file": "encoder-model.int8.onnx",
+          "dims": {
+            "audio_signal_dynamic_axes_1": 1,
+            "audio_signal_dynamic_axes_2": 3000,
+            "length_dynamic_axes_1": 1
+          },
+          "values": {
+            "length": 3000
+          },
+          "notes": "30 s of 128-bin features (nemo128 frontend not included)"
+        },
+        {
+          "name": "decoder-joint-int8",
+          "file": "decoder_joint-model.int8.onnx",
+          "dims": {
+            "encoder_outputs_dynamic_axes_1": 1,
+            "encoder_outputs_dynamic_axes_2": 1,
+            "targets_dynamic_axes_1": 1,
+            "targets_dynamic_axes_2": 1,
+            "target_length_dynamic_axes_1": 1,
+            "input_states_1_dynamic_axes_1": 1,
+            "input_states_2_dynamic_axes_1": 1
+          },
+          "values": {
+            "target_length": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "campplus-voxceleb",
+      "role": "speaker-embedding",
+      "displayName": "CAM++ (3D-Speaker, VoxCeleb en)",
+      "catalogDefault": true,
+      "license": "Apache-2.0",
+      "source": {
+        "type": "url",
+        "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx"
+      },
+      "graphs": [
+        {
+          "name": "model",
+          "file": "3dspeaker_speech_campplus_sv_en_voxceleb_16k.onnx",
+          "cadenceHz": 1,
+          "dims": {
+            "N": 1,
+            "T": 300
+          },
+          "notes": "80-dim fbank input, 3 s window (fbank extraction not included)"
+        }
+      ]
+    },
+    {
+      "id": "wespeaker-resnet34-lm",
+      "role": "speaker-embedding",
+      "displayName": "WeSpeaker ResNet34-LM (VoxCeleb)",
+      "license": "Apache-2.0",
+      "source": {
+        "type": "url",
+        "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/wespeaker_en_voxceleb_resnet34_LM.onnx"
+      },
+      "graphs": [
+        {
+          "name": "model",
+          "file": "wespeaker_en_voxceleb_resnet34_LM.onnx",
+          "cadenceHz": 1,
+          "dims": {
+            "B": 1,
+            "T": 300
+          },
+          "notes": "80-dim fbank input, 3 s window"
+        }
+      ]
+    },
+    {
+      "id": "ecapa-tdnn",
+      "role": "speaker-embedding",
+      "displayName": "ECAPA-TDNN (SpeechBrain, community export)",
+      "license": "Apache-2.0",
+      "source": {
+        "type": "hf",
+        "repo": "penta2himajin/ecapa-tdnn-onnx"
+      },
+      "graphs": [
+        {
+          "name": "model",
+          "file": "ecapa_tdnn.onnx",
+          "cadenceHz": 1,
+          "dims": {
+            "batch": 1,
+            "frames": 300
+          }
+        }
+      ]
+    },
+    {
+      "id": "redimnet2-b6",
+      "role": "speaker-embedding",
+      "displayName": "ReDimNet2-B6",
+      "license": "MIT",
+      "source": {
+        "type": "hf",
+        "repo": "soniqo/ReDimNet2-B6-ONNX-FP32"
+      },
+      "graphs": [
+        {
+          "name": "model",
+          "file": "ReDimNet2B6.onnx",
+          "cadenceHz": 1,
+          "notes": "Raw 6 s waveform input [1, 96000]"
+        }
+      ]
+    },
+    {
+      "id": "gemma-4-e2b-qat-mobile",
+      "role": "summary",
+      "displayName": "Gemma 4 E2B mobile QAT",
+      "catalogDefault": true,
+      "license": "Gemma Terms of Use",
+      "source": {
+        "type": "hf",
+        "repo": "onnx-community/gemma-4-E2B-it-qat-mobile-ONNX"
+      },
+      "graphs": [
+        {
+          "name": "decoder-step-q2f16",
+          "file": "onnx/decoder_model_merged_q2f16.onnx",
+          "externalData": [
+            "onnx/decoder_model_merged_q2f16.onnx_data"
+          ],
+          "dims": {
+            "batch_size": 1,
+            "sequence_length": 1,
+            "past_sequence_length": 1024,
+            "total_sequence_length": 1025
+          },
+          "values": {
+            "num_logits_to_keep": 1
+          }
+        },
+        {
+          "name": "embed-tokens-q2f16",
+          "file": "onnx/embed_tokens_q2f16.onnx",
+          "externalData": [
+            "onnx/embed_tokens_q2f16.onnx_data"
+          ],
+          "dims": {
+            "batch_size": 1,
+            "sequence_length": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "gemma-4-e4b-qat-mobile",
+      "role": "summary",
+      "displayName": "Gemma 4 E4B mobile QAT",
+      "license": "Gemma Terms of Use",
+      "source": {
+        "type": "hf",
+        "repo": "onnx-community/gemma-4-E4B-it-qat-mobile-ONNX"
+      },
+      "graphs": [
+        {
+          "name": "decoder-step-q2f16",
+          "file": "onnx/decoder_model_merged_q2f16.onnx",
+          "externalData": [
+            "onnx/decoder_model_merged_q2f16.onnx_data",
+            "onnx/decoder_model_merged_q2f16.onnx_data_1"
+          ],
+          "dims": {
+            "batch_size": 1,
+            "sequence_length": 1,
+            "past_sequence_length": 1024,
+            "total_sequence_length": 1025
+          },
+          "values": {
+            "num_logits_to_keep": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "qwen3.5-2b",
+      "role": "summary",
+      "displayName": "Qwen3.5-2B (q4f16)",
+      "license": "Apache-2.0",
+      "source": {
+        "type": "hf",
+        "repo": "onnx-community/Qwen3.5-2B-ONNX"
+      },
+      "graphs": [
+        {
+          "name": "decoder-step-q4f16",
+          "file": "onnx/decoder_model_merged_q4f16.onnx",
+          "externalData": [
+            "onnx/decoder_model_merged_q4f16.onnx_data"
+          ],
+          "dims": {
+            "batch_size": 1,
+            "sequence_length": 1,
+            "past_sequence_length": 1024,
+            "total_sequence_length": 1025
+          },
+          "values": {
+            "num_logits_to_keep": 1
+          }
+        }
+      ]
+    }
+  ]
+}

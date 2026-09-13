@@ -1,0 +1,56 @@
+{
+  "spike": "storage",
+  "appVersion": "0.1.0",
+  "buildId": "2026-09-13T11:42:39.710Z",
+  "createdAt": "2026-09-13T11:49:12.993Z",
+  "environment": {
+    "origin": "http://localhost:5173",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "inEvenApp": false,
+    "glasses": null,
+    "servedWithCoiHeaders": true,
+    "crossOriginIsolated": true,
+    "hardwareConcurrency": 16,
+    "deviceMemoryGb": 32,
+    "tester": null
+  },
+  "data": {
+    "kind": "torture-verify",
+    "acked": 5843,
+    "interruptedSince": "2026-09-13T11:48:04.860Z",
+    "currentAppVersion": "0.1.0",
+    "openMs": 16,
+    "integrityCheck": [
+      {
+        "integrity_check": "ok"
+      }
+    ],
+    "meta": [
+      {
+        "key": "created_by_version",
+        "value": "0.1.0"
+      },
+      {
+        "key": "created_at",
+        "value": "2026-09-13T11:47:15.884Z"
+      }
+    ],
+    "rows": 5844,
+    "maxCounter": 5844,
+    "lostAckedCommits": 0,
+    "unackedButCommitted": 1,
+    "holes": 0,
+    "badPayloadCrc": 0,
+    "missingChunkFiles": 0,
+    "badChunkCrc": 0,
+    "rowsByAppVersion": {
+      "0.1.0": 5844
+    },
+    "ok": true,
+    "quota": {
+      "quotaMiB": 10313,
+      "usageMiB": 73.3,
+      "persisted": false
+    }
+  }
+}

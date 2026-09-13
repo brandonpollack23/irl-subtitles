@@ -1,0 +1,76 @@
+{
+  "spike": "models",
+  "appVersion": "0.1.0",
+  "buildId": "2026-09-13T11:42:39.710Z",
+  "createdAt": "2026-09-13T12:01:58.741Z",
+  "environment": {
+    "origin": "http://localhost:5173",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "inEvenApp": false,
+    "glasses": null,
+    "servedWithCoiHeaders": true,
+    "crossOriginIsolated": true,
+    "hardwareConcurrency": 16,
+    "deviceMemoryGb": 32,
+    "tester": null
+  },
+  "data": {
+    "kind": "graph",
+    "role": "stt-live",
+    "catalogDefault": false,
+    "modelId": "whisper-tiny",
+    "graph": "encoder-fp32",
+    "ep": "wasm",
+    "ortVersion": "1.29.0",
+    "downloadMs": 51,
+    "graphBytes": 32904992,
+    "createMs": 229,
+    "inputs": [
+      {
+        "name": "input_features",
+        "isTensor": true,
+        "type": "float32",
+        "shape": [
+          1,
+          80,
+          3000
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "last_hidden_state",
+        "isTensor": true,
+        "type": "float32",
+        "shape": [
+          1,
+          1500,
+          384
+        ]
+      }
+    ],
+    "inputSource": "fixture (onnxruntime 1.30.0 CPUExecutionProvider)",
+    "firstRunMs": 370,
+    "driftVsFixture": {
+      "last_hidden_state": {
+        "maxAbsDiff": 0.0003954172134399414,
+        "meanAbsDiff": 0.0000016514703112133273,
+        "cosine": 0.9999999999984454,
+        "nonFinite": 0
+      }
+    },
+    "latencyMs": {
+      "n": 30,
+      "p50": 345.8,
+      "p95": 364.57,
+      "max": 375.61,
+      "mean": 347.65
+    },
+    "realTimeHeadroom": 2.74,
+    "ok": true,
+    "ortLog": [
+      "error: 2026-09-13 21:01:46.697789 [I:onnxruntime:, graph_partitioner.cc:1413 InlineFunctionsAOT] This model does not have any local functions defined. AOT Inlining is not performed",
+      "error: 2026-09-13 21:01:46.753963 [I:onnxruntime:, graph_transformer.cc:15 Apply] GraphTransformer TransposeOptimizer_CPUExecutionProvider modified: 0 with status: OK"
+    ]
+  }
+}

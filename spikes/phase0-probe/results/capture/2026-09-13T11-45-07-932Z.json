@@ -1,0 +1,97 @@
+{
+  "spike": "capture",
+  "appVersion": "0.1.0",
+  "buildId": "2026-09-13T11:42:39.710Z",
+  "createdAt": "2026-09-13T11:45:07.931Z",
+  "environment": {
+    "origin": "http://localhost:5173",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "inEvenApp": false,
+    "glasses": null,
+    "servedWithCoiHeaders": true,
+    "crossOriginIsolated": true,
+    "hardwareConcurrency": 16,
+    "deviceMemoryGb": 32,
+    "tester": null
+  },
+  "data": {
+    "sessionId": "2026-09-13T11-44-55-424Z",
+    "options": {
+      "source": "synthetic",
+      "persistPcm": true,
+      "autoRearm": false
+    },
+    "startedAt": "2026-09-13T11:44:55.424Z",
+    "endedAt": "2026-09-13T11:45:07.930Z",
+    "summary": {
+      "frames": 107,
+      "bytes": 342400,
+      "samples": 171200,
+      "oddByteFrames": 0,
+      "wallSeconds": 10.6,
+      "audioSeconds": 10.7,
+      "effectiveSampleRate": 16122,
+      "coveragePct": 100.8,
+      "frameSizes": {
+        "3200": 107
+      },
+      "interArrivalMs": {
+        "p50": 100,
+        "p95": 100,
+        "max": 100
+      },
+      "gapCount": 0,
+      "totalGapMs": 0,
+      "gaps": []
+    },
+    "persistence": {
+      "path": "capture/2026-09-13T11-44-55-424Z.pcm",
+      "persistedBytes": 342400,
+      "expectedBytes": 342400,
+      "writeMs": {
+        "n": 3,
+        "min": 4.444999992847443,
+        "max": 4.75,
+        "mean": 4.548333331942558,
+        "p50": 4.450000002980232,
+        "p95": 4.75,
+        "p99": 4.75
+      },
+      "writeErrors": []
+    },
+    "frameMeta": {
+      "directions": {
+        "null": 107
+      },
+      "speakerRoles": {
+        "unknown": 107
+      }
+    },
+    "levelsDbfsEvery10s": [
+      -24
+    ],
+    "rearms": 0,
+    "hudFailures": 0,
+    "battery": {
+      "start": {
+        "phone": 100,
+        "glasses": null
+      },
+      "end": {
+        "phone": 100,
+        "glasses": null
+      }
+    },
+    "timeline": [
+      {
+        "tMs": 1786,
+        "event": "started",
+        "detail": {
+          "source": "synthetic",
+          "persistPcm": true,
+          "autoRearm": false
+        }
+      }
+    ]
+  }
+}

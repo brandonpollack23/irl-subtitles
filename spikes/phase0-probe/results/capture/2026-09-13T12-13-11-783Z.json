@@ -1,0 +1,150 @@
+{
+  "spike": "capture",
+  "appVersion": "0.1.0",
+  "buildId": "2026-09-13T11:42:39.710Z",
+  "createdAt": "2026-09-13T12:13:11.782Z",
+  "environment": {
+    "origin": "http://localhost:5173",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/60.5 Safari/605.1.15",
+    "inEvenApp": true,
+    "glasses": {
+      "model": "g2",
+      "snSuffix": "7890",
+      "battery": 100
+    },
+    "servedWithCoiHeaders": true,
+    "crossOriginIsolated": true,
+    "hardwareConcurrency": 8,
+    "deviceMemoryGb": null,
+    "tester": null
+  },
+  "data": {
+    "sessionId": "2026-09-13T12-12-57-635Z",
+    "options": {
+      "source": "glasses",
+      "persistPcm": true,
+      "autoRearm": false
+    },
+    "startedAt": "2026-09-13T12:12:57.635Z",
+    "endedAt": "2026-09-13T12:13:11.780Z",
+    "summary": {
+      "frames": 138,
+      "bytes": 441600,
+      "samples": 220800,
+      "oddByteFrames": 0,
+      "wallSeconds": 13.7,
+      "audioSeconds": 13.8,
+      "effectiveSampleRate": 16094,
+      "coveragePct": 100.6,
+      "frameSizes": {
+        "3200": 138
+      },
+      "interArrivalMs": {
+        "p50": 1,
+        "p95": 255,
+        "max": 258
+      },
+      "gapCount": 0,
+      "totalGapMs": 0,
+      "gaps": []
+    },
+    "persistence": {
+      "path": null,
+      "error": "Error: TypeError: undefined is not an object (evaluating 'navigator.storage.getDirectory')",
+      "persistedBytes": 0,
+      "expectedBytes": 441600,
+      "writeMs": {
+        "n": 0,
+        "min": null,
+        "max": null,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "p99": null
+      },
+      "writeErrors": []
+    },
+    "frameMeta": {
+      "directions": {
+        "null": 138
+      },
+      "speakerRoles": {
+        "unknown": 138
+      }
+    },
+    "levelsDbfsEvery10s": [
+      -48
+    ],
+    "rearms": 0,
+    "hudFailures": 0,
+    "battery": {
+      "start": {
+        "phone": null,
+        "glasses": 100
+      },
+      "end": {
+        "phone": null,
+        "glasses": 100
+      }
+    },
+    "timeline": [
+      {
+        "tMs": 7,
+        "event": "persistence-unavailable",
+        "detail": "Error: TypeError: undefined is not an object (evaluating 'navigator.storage.getDirectory')"
+      },
+      {
+        "tMs": 140,
+        "event": "audioControl(true)",
+        "detail": true
+      },
+      {
+        "tMs": 140,
+        "event": "started",
+        "detail": {
+          "source": "glasses",
+          "persistPcm": true,
+          "autoRearm": false
+        }
+      },
+      {
+        "tMs": 266,
+        "event": "sysEvent",
+        "detail": {
+          "type": "FOREGROUND_EXIT_EVENT"
+        }
+      },
+      {
+        "tMs": 8006,
+        "event": "sysEvent",
+        "detail": {
+          "type": "FOREGROUND_ENTER_EVENT"
+        }
+      },
+      {
+        "tMs": 10925,
+        "event": "marker",
+        "detail": "glasses"
+      },
+      {
+        "tMs": 11182,
+        "event": "sysEvent",
+        "detail": {
+          "type": "FOREGROUND_EXIT_EVENT"
+        }
+      },
+      {
+        "tMs": 11931,
+        "event": "sysEvent",
+        "detail": {
+          "type": "FOREGROUND_ENTER_EVENT"
+        }
+      },
+      {
+        "tMs": 14145,
+        "event": "audioControl(false)",
+        "detail": false
+      }
+    ]
+  }
+}

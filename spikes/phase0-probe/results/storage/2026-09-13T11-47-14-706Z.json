@@ -1,0 +1,99 @@
+{
+  "spike": "storage",
+  "appVersion": "0.1.0",
+  "buildId": "2026-09-13T11:42:39.710Z",
+  "createdAt": "2026-09-13T11:47:14.705Z",
+  "environment": {
+    "origin": "http://localhost:5173",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+    "inEvenApp": false,
+    "glasses": null,
+    "servedWithCoiHeaders": true,
+    "crossOriginIsolated": true,
+    "hardwareConcurrency": 16,
+    "deviceMemoryGb": 32,
+    "tester": null
+  },
+  "data": {
+    "kind": "latency",
+    "options": {
+      "chunks": 20,
+      "chunkSeconds": 5,
+      "encrypt": true
+    },
+    "chunkBytes": 160000,
+    "quotaBefore": {
+      "quotaMiB": 10240,
+      "usageMiB": 0.3,
+      "persisted": false
+    },
+    "opfsFilesPlusTurso": {
+      "fileMs": {
+        "n": 20,
+        "min": 8.81,
+        "max": 10.91,
+        "mean": 9.43,
+        "p50": 9.27,
+        "p95": 10.67,
+        "p99": 10.91
+      },
+      "dbMs": {
+        "n": 20,
+        "min": 1.28,
+        "max": 3.7,
+        "mean": 1.55,
+        "p50": 1.41,
+        "p95": 1.97,
+        "p99": 3.7
+      },
+      "totalMs": {
+        "n": 20,
+        "min": 10.17,
+        "max": 14.61,
+        "mean": 10.98,
+        "p50": 10.65,
+        "p95": 12.15,
+        "p99": 14.61
+      },
+      "cryptoMs": {
+        "n": 20,
+        "min": 0.46,
+        "max": 0.88,
+        "mean": 0.6,
+        "p50": 0.57,
+        "p95": 0.8,
+        "p99": 0.88
+      }
+    },
+    "tursoBlobs": {
+      "totalMs": {
+        "n": 20,
+        "min": 30.13,
+        "max": 62.78,
+        "mean": 33.53,
+        "p50": 30.7,
+        "p95": 52.13,
+        "p99": 62.78
+      },
+      "firstRowLength": 160028,
+      "dbFileMiB": 0,
+      "walFileMiB": 3.5
+    },
+    "indexedDb": {
+      "totalMs": {
+        "n": 20,
+        "min": 3.6,
+        "max": 8.42,
+        "mean": 4.12,
+        "p50": 3.83,
+        "p95": 4.86,
+        "p99": 8.42
+      }
+    },
+    "quotaAfter": {
+      "quotaMiB": 10250,
+      "usageMiB": 10,
+      "persisted": false
+    }
+  }
+}

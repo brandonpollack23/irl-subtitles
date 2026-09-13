@@ -1,0 +1,34 @@
+{
+  "name": "phase0-probe",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "dev:no-coi": "PROBE_COI=0 vite --host",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "qr": "evenhub qr --port 5173",
+    "sim": "evenhub-simulator http://localhost:5173",
+    "models": "uv run scripts/models.py",
+    "ehpk": "vite build && evenhub pack app.json dist -o phase0-probe.ehpk"
+  },
+  "dependencies": {
+    "@evenrealities/even_hub_sdk": "0.0.15",
+    "@solidjs/web": "2.0.0-rc.8",
+    "@soniox/client": "2.3.0",
+    "@tursodatabase/database-wasm": "0.7.2",
+    "onnxruntime-web": "1.29.0",
+    "solid-js": "2.0.0-rc.8"
+  },
+  "devDependencies": {
+    "@evenrealities/evenhub-cli": "^0.1.14",
+    "@evenrealities/evenhub-simulator": "^0.9.5",
+    "@solidjs/vite-plugin": "3.0.0-next.35",
+    "@types/node": "^26.5.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.0"
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "spike": "models",
+  "appVersion": "0.1.0",
+  "buildId": "2026-09-13T11:42:39.710Z",
+  "createdAt": "2026-09-13T12:06:38.811Z",
+  "environment": {
+    "origin": "http://localhost:5173",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+    "inEvenApp": false,
+    "glasses": null,
+    "servedWithCoiHeaders": true,
+    "crossOriginIsolated": true,
+    "hardwareConcurrency": 16,
+    "deviceMemoryGb": 32,
+    "tester": null
+  },
+  "data": {
+    "kind": "graph",
+    "matrix": "defaults",
+    "role": "vad",
+    "catalogDefault": true,
+    "modelId": "silero-vad-v6",
+    "graph": "standard",
+    "ep": "wasm",
+    "ortVersion": "1.29.0",
+    "downloadMs": 11,
+    "graphBytes": 2327524,
+    "createMs": 360,
+    "inputs": [
+      {
+        "name": "input",
+        "isTensor": true,
+        "type": "float32",
+        "shape": [
+          4294967295,
+          4294967295
+        ]
+      },
+      {
+        "name": "state",
+        "isTensor": true,
+        "type": "float32",
+        "shape": [
+          2,
+          4294967295,
+          128
+        ]
+      },
+      {
+        "name": "sr",
+        "isTensor": true,
+        "type": "int64",
+        "shape": []
+      }
+    ],
+    "outputs": [
+      {
+        "name": "output",
+        "isTensor": true,
+        "type": "float32",
+        "shape": [
+          4294967295,
+          1
+        ]
+      },
+      {
+        "name": "stateN",
+        "isTensor": true,
+        "type": "float32",
+        "shape": [
+          4294967295,
+          4294967295,
+          4294967295
+        ]
+      }
+    ],
+    "inputSource": "fixture (onnxruntime 1.30.0 CPUExecutionProvider)",
+    "firstRunMs": 34,
+    "driftVsFixture": {
+      "output": {
+        "maxAbsDiff": 5.960464477539063e-8,
+        "meanAbsDiff": 5.960464477539063e-8,
+        "cosine": 1,
+        "nonFinite": 0
+      },
+      "stateN": {
+        "maxAbsDiff": 7.748603820800781e-7,
+        "meanAbsDiff": 1.0004379363826033e-7,
+        "cosine": 0.9999999999999556,
+        "nonFinite": 0
+      }
+    },
+    "latencyMs": {
+      "n": 5,
+      "p50": 0.43,
+      "p95": 0.48,
+      "max": 0.48,
+      "mean": 0.43
+    },
+    "realTimeHeadroom": 66.67,
+    "ok": true,
+    "webnnCoverage": null,
+    "ortLog": [
+      "error: 2026-09-13 21:06:38.528418 [I:onnxruntime:, graph_partitioner.cc:1413 InlineFunctionsAOT] This model does not have any local functions defined. AOT Inlining is not performed",
+      "error: 2026-09-13 21:06:38.631958 [I:onnxruntime:, graph_transformer.cc:15 Apply] GraphTransformer TransposeOptimizer_CPUExecutionProvider modified: 0 with status: OK"
+    ]
+  }
+}
