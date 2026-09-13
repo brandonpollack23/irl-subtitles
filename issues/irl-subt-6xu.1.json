@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:56Z",
   "description": "Threat model, key management, conflict resolution for attributions/people, embedding-space versioning across devices.",
   "id": "irl-subt-6xu.1",
-  "labels": [],
+  "labels": [
+    "post-mvp"
+  ],
   "parent": "irl-subt-6xu",
   "priority": 4,
   "status": "open",
