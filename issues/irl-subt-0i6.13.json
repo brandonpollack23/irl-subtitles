@@ -14,9 +14,15 @@
   "id": "irl-subt-0i6.13",
   "labels": [],
   "parent": "irl-subt-0i6",
+  "comments": [
+    {
+      "text": "Hand-rolled WS/REST version works against the real server from desktop Chromium (invalid key -\u003e readable 401 on REST =\u003e CORS OK for localhost origin; WS opens under COOP/COEP, server-error 401, clean close 1000). Superseded by SDK migration irl-subt-0i6.17.",
+      "timestamp": "2026-09-13T11:52:56Z"
+    }
+  ],
   "priority": 1,
   "status": "closed",
   "title": "Probe: Soniox WebSocket module",
   "type": "task",
-  "updated_at": "2026-09-13T11:51:25Z"
+  "updated_at": "2026-09-13T11:52:56Z"
 }
