@@ -3,7 +3,7 @@
   "blocked_by": [],
   "blocks": [],
   "created": "2026-09-13T11:20:47Z",
-  "description": "Time-boxed spikes that must pass before feature work (plan.md §13 Phase 0). WebNN exposed without flags in the Even Android WebView, and acceptable speaker-embedding performance through WebNN, are product blockers. Failure of live STT performance only changes the default tier (capture-now/process-later or Soniox).",
+  "description": "Time-boxed spikes that must pass before feature work (plan.md §13 Phase 0), on Android and iOS. WebGPU exposed without flags in the Even WebView, and acceptable speaker-embedding performance on WebGPU or WASM, are product blockers per platform. Failure of live STT performance only changes the default tier (capture-now/process-later or Soniox).",
   "id": "irl-subt-0i6",
   "labels": [
     "mvp"
@@ -12,5 +12,5 @@
   "status": "open",
   "title": "MVP Phase 0: Feasibility spikes",
   "type": "epic",
-  "updated_at": "2026-09-13T11:20:47Z"
+  "updated_at": "2026-09-13T12:52:18Z"
 }
