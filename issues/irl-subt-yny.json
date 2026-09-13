@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:54Z",
+  "description": "Use transcript cues (e.g. 'Hi Alice', 'thanks, Bob') to propose speaker names. Proposals only; user confirms. plan.md §2.",
+  "id": "irl-subt-yny",
+  "labels": [],
+  "priority": 3,
+  "status": "open",
+  "title": "Post-MVP: Automatic identification from names mentioned in conversation",
+  "type": "epic",
+  "updated_at": "2026-09-13T11:20:54Z"
+}
