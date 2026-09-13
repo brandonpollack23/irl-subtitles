@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-dp8.3"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:48Z",
   "description": "Fast live / Final local / Battery saver tiers. WebNN failure or model-not-ready never stops capture; session marked for later processing. plan.md §6.1.",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Performance tiers and capture-now/process-later fallback",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:48Z"
+  "updated_at": "2026-09-13T11:20:49Z"
 }

@@ -3,7 +3,9 @@
   "blocked_by": [
     "irl-subt-dp8.1"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-dp8.13"
+  ],
   "created": "2026-09-13T11:20:48Z",
   "description": "Priority: VAD + audio persistence \u003e embeddings on clean windows \u003e live STT (yield/reduce search when behind). Post-session work doesn't contend with capture. plan.md §6.1.",
   "id": "irl-subt-dp8.3",
@@ -15,5 +17,5 @@
   "status": "open",
   "title": "Compute scheduler: concurrency limits and thermal degradation",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:48Z"
+  "updated_at": "2026-09-13T11:20:49Z"
 }
