@@ -12,9 +12,15 @@
   "labels": [
     "mvp"
   ],
+  "comments": [
+    {
+      "text": "2026-09-13 user direction: build the whole MVP now without glasses/devices, debug later from a debug plan. Proceeding ahead of the Phase 0 go/no-go (irl-subt-0i6.7); Phase 0 tickets stay open. Approach: pnpm monorepo (apps/even-hub, packages/{domain,capture,storage,pipeline,provider-local,provider-soniox,provider-summary}, services/summary-api), TS source packages, Vite 8 + Solid 2 app, vitest. Storage: SqlDriver abstraction (Turso WASM/OPFS when cross-origin isolated; node:sqlite in tests) + IndexedDB repository fallback, both under one contract test suite; audio chunks as AES-GCM encrypted OPFS/IDB blobs. Models: transformers.js 4.2 (Whisper, Moonshine per-language, WeSpeaker, Gemma 4 / Qwen3.5) and ORT Web direct (Silero VAD, CAM++ with transformers.js fbank). Catalog entries without a working web adapter yet (Moonshine Streaming, Qwen3-ASR+ForcedAligner, Parakeet TDT, TEN VAD) ship disabled with the reason, per plan.md 6.1 selection rules; defaults fall to the best available entry. Non-persisted mode (default): audio goes to an encrypted scratch keyed by an in-memory-only key (crypto-erased on crash), deleted after processing; transcript/summary are kept.",
+      "timestamp": "2026-09-13T13:29:04Z"
+    }
+  ],
   "priority": 1,
   "status": "open",
   "title": "MVP Foundation: repo scaffolding, domain, storage, security baseline",
   "type": "epic",
-  "updated_at": "2026-09-13T11:20:48Z"
+  "updated_at": "2026-09-13T13:29:04Z"
 }
