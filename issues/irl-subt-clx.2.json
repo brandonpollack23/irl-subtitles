@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:57Z",
+  "description": "Same known-answer, sustained performance, battery, lifecycle gates as Android.",
+  "id": "irl-subt-clx.2",
+  "labels": [],
+  "parent": "irl-subt-clx",
+  "priority": 4,
+  "status": "open",
+  "title": "WebGPU compute-platform adapter behind WebNNRuntime-equivalent contract",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:57Z"
+}
