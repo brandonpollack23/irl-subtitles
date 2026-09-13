@@ -5,7 +5,7 @@
     "irl-subt-0i6.3.6"
   ],
   "created": "2026-09-13T11:20:47Z",
-  "description": "Export/validate Silero VAD v6 and TEN VAD (license review) under ONNX Runtime Web WebNN EP. Known-answer test, latency per frame, op coverage.",
+  "description": "Validate Silero VAD v6 and TEN VAD (license review) under ONNX Runtime Web on WASM and WebGPU. Known-answer test, latency per frame, placement. Desktop evidence: WASM 0.27 ms p50 vs WebGPU 11 ms, so WASM is the expected target.",
   "id": "irl-subt-0i6.3.1",
   "labels": [
     "mvp"
@@ -13,7 +13,7 @@
   "parent": "irl-subt-0i6.3",
   "priority": 1,
   "status": "open",
-  "title": "Benchmark VAD options (Silero VAD v6, TEN VAD) via WebNN",
+  "title": "Benchmark VAD options (Silero VAD v6, TEN VAD) on WebGPU/WASM",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:47Z"
+  "updated_at": "2026-09-13T12:51:34Z"
 }
