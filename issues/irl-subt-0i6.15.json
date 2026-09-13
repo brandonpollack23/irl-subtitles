@@ -18,9 +18,15 @@
   "id": "irl-subt-0i6.15",
   "labels": [],
   "parent": "irl-subt-0i6",
+  "comments": [
+    {
+      "text": "Done: docs/phase0/RUNBOOK.md covers spikes 1-6 on Android + iOS (Even app, Chrome, Safari), pass/blocker criteria, and a results sheet feeding irl-subt-0i6.7.",
+      "timestamp": "2026-09-13T12:55:33Z"
+    }
+  ],
   "priority": 0,
   "status": "open",
   "title": "Phase 0 device test runbook and results template",
   "type": "task",
-  "updated_at": "2026-09-13T11:52:56Z"
+  "updated_at": "2026-09-13T12:55:33Z"
 }
