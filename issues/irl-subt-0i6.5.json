@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:47Z",
+  "description": "Stream raw G2 PCM to Soniox stt-rt-v5 from inside the Even WebView, respecting manifest whitelist and CORS. plan.md §6.2, §13.5.",
+  "id": "irl-subt-0i6.5",
+  "labels": [],
+  "parent": "irl-subt-0i6",
+  "priority": 1,
+  "status": "open",
+  "title": "Spike: Soniox WebSocket through Even network whitelist/CORS with raw G2 PCM",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:47Z"
+}
