@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:51Z",
   "description": "Evaluate mode C live: export to ONNX, run through WebNN, measure RTF/thermals in the 60-min concurrent live stack, and accuracy on the code-switched eval set.",
   "id": "irl-subt-wfn.4",
-  "labels": [],
+  "labels": [
+    "post-mvp"
+  ],
   "parent": "irl-subt-wfn",
   "priority": 2,
   "status": "open",
