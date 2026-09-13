@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-6xu.2"
+  ],
   "created": "2026-09-13T11:20:56Z",
   "description": "Threat model, key management, conflict resolution for attributions/people, embedding-space versioning across devices.",
   "id": "irl-subt-6xu.1",
