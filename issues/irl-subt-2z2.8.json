@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-2z2.2"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:48Z",
   "description": "History list (date, duration, title, state), audio playback from chunks, independent delete of recording vs audio. plan.md §10.",
