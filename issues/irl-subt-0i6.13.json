@@ -3,7 +3,9 @@
   "blocked_by": [
     "irl-subt-0i6.8"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-0i6.5"
+  ],
   "created": "2026-09-13T11:29:22Z",
   "description": "Harness for irl-subt-0i6.5. Stream live G2 PCM to wss://stt-rt.soniox.com stt-rt-v5 with diarization + language ID; record connect errors, first-token latency, token stream; test REST (models list / temporary key) for whitelist + CORS behavior.",
   "id": "irl-subt-0i6.13",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Probe: Soniox WebSocket module",
   "type": "task",
-  "updated_at": "2026-09-13T11:29:22Z"
+  "updated_at": "2026-09-13T11:29:23Z"
 }
