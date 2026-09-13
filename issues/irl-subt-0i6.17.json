@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [
     "irl-subt-0i6.15",
@@ -11,8 +11,8 @@
   "labels": [],
   "parent": "irl-subt-0i6",
   "priority": 1,
-  "status": "open",
+  "status": "in_progress",
   "title": "Probe: migrate Soniox spike to official @soniox/client SDK",
   "type": "task",
-  "updated_at": "2026-09-13T11:52:56Z"
+  "updated_at": "2026-09-13T12:02:48Z"
 }
