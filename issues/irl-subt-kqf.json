@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:54Z",
+  "description": "Rich person profiles (how you met, who they are, notes) that cue onto the G2 when a person is recognized, unless marked do-not-show. plan.md §2.",
+  "id": "irl-subt-kqf",
+  "labels": [],
+  "priority": 3,
+  "status": "open",
+  "title": "Post-MVP: Person profiles with glasses cues on recognition",
+  "type": "epic",
+  "updated_at": "2026-09-13T11:20:54Z"
+}
