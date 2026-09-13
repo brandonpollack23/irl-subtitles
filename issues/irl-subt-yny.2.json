@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-yny.1"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:55Z",
   "description": "Surface 'Possibly Alice (mentioned by name)' suggestions in speaker sheet; never auto-enroll voice.",

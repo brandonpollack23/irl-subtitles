@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-yny.2"
+  ],
   "created": "2026-09-13T11:20:54Z",
   "description": "Vocative detection, addressee vs speaker, precision requirements given conservative identity policy.",
   "id": "irl-subt-yny.1",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Research: name-mention to speaker attribution heuristics/LLM approach",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:54Z"
+  "updated_at": "2026-09-13T11:20:55Z"
 }
