@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:55Z",
   "description": "Contextual prompts/suggestions during conversation within compute and privacy budgets.",
   "id": "irl-subt-3ih.2",
-  "labels": [],
+  "labels": [
+    "post-mvp"
+  ],
   "parent": "irl-subt-3ih",
   "priority": 3,
   "status": "open",
