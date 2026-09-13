@@ -5,7 +5,7 @@
     "irl-subt-9ij.9"
   ],
   "created": "2026-09-13T11:20:50Z",
-  "description": "Forced termination mid-recording, background reclaim, 60-minute endurance, quota exhaustion. plan.md §13 Phase 5.",
+  "description": "Forced termination mid-recording, background reclaim, 60-minute endurance, quota exhaustion, on Android and iOS. plan.md §13 Phase 5.",
   "id": "irl-subt-9ij.8",
   "labels": [
     "mvp"
@@ -13,7 +13,7 @@
   "parent": "irl-subt-9ij",
   "priority": 1,
   "status": "open",
-  "title": "Android kill/relaunch, extended battery and storage test suite",
+  "title": "Android and iOS kill/relaunch, extended battery and storage test suite",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:51Z"
+  "updated_at": "2026-09-13T12:52:30Z"
 }
