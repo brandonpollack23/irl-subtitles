@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:54Z",
+  "description": "Notes, how you met, relationship, context; stored locally and encrypted.",
+  "id": "irl-subt-kqf.1",
+  "labels": [],
+  "parent": "irl-subt-kqf",
+  "priority": 3,
+  "status": "open",
+  "title": "Person profile fields and editing UI",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:54Z"
+}
