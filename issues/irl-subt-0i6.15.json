@@ -1,7 +1,8 @@
 {
   "assignee": "",
   "blocked_by": [
-    "irl-subt-0i6.8"
+    "irl-subt-0i6.8",
+    "irl-subt-0i6.9"
   ],
   "blocks": [],
   "created": "2026-09-13T11:29:22Z",
@@ -13,5 +14,5 @@
   "status": "open",
   "title": "Phase 0 device test runbook and results template",
   "type": "task",
-  "updated_at": "2026-09-13T11:29:22Z"
+  "updated_at": "2026-09-13T11:29:23Z"
 }
