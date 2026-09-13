@@ -7,7 +7,7 @@
     "irl-subt-0i6.7"
   ],
   "created": "2026-09-13T11:20:47Z",
-  "description": "Encrypted IndexedDB record + non-extractable Web Crypto key: verify it survives .ehpk upgrades and WebView data lifecycle. plan.md §6.2, §13.6.",
+  "description": "Encrypted IndexedDB record + non-extractable Web Crypto key: verify it survives .ehpk upgrades and WebView data lifecycle on Android and iOS. plan.md §6.2, §13.6.",
   "id": "irl-subt-0i6.6",
   "labels": [
     "mvp"
@@ -17,5 +17,5 @@
   "status": "open",
   "title": "Spike: encrypted secret persistence across app upgrades",
   "type": "task",
-  "updated_at": "2026-09-13T11:29:23Z"
+  "updated_at": "2026-09-13T12:51:34Z"
 }
