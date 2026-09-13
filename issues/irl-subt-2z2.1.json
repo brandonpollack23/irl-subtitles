@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:47Z",
+  "description": "Create G2 page before requesting audio. Validate s16le/16kHz/mono, assign sequence and startSample, report gaps. plan.md §4, §9.",
+  "id": "irl-subt-2z2.1",
+  "labels": [],
+  "parent": "irl-subt-2z2",
+  "priority": 1,
+  "status": "open",
+  "title": "G2AudioSource: audioControl start/stop, PCM validation, sequencing, gap reports",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:47Z"
+}
