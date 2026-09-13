@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-dp8.2"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:48Z",
   "description": "One dropdown per role with size/languages/role/download state/measured RTF; disabled entries show reason. First-run benchmark pre-selects; selection applies to next recording; recordings persist model IDs/versions/hashes. Reprocess on final STT/summary change. plan.md §6.1 Selection rules.",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Model selection dropdowns, first-run benchmark, and Reprocess action",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:48Z"
+  "updated_at": "2026-09-13T11:20:49Z"
 }

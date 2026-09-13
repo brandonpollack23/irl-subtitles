@@ -4,6 +4,7 @@
     "irl-subt-dp8.1"
   ],
   "blocks": [
+    "irl-subt-dp8.12",
     "irl-subt-dp8.6",
     "irl-subt-dp8.7",
     "irl-subt-dp8.9"
@@ -19,5 +20,5 @@
   "status": "open",
   "title": "Model catalog, manifests, download/cache/hash verification",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:48Z"
+  "updated_at": "2026-09-13T11:20:49Z"
 }
