@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-c74.1"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:56Z",
   "description": "Store only opaque contact IDs; never duplicate the address book.",

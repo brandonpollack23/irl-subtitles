@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-c74.2"
+  ],
   "created": "2026-09-13T11:20:56Z",
   "description": "Monitor SDK releases; do not design around undocumented bridges.",
   "id": "irl-subt-c74.1",
