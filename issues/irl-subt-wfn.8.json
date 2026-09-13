@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:52Z",
   "description": "Make TranscriptToken.language first-class (BCP-47), add segment language + LID confidence, persist per provider run, and reconcile live vs final language disagreements.",
   "id": "irl-subt-wfn.8",
-  "labels": [],
+  "labels": [
+    "post-mvp"
+  ],
   "parent": "irl-subt-wfn",
   "priority": 2,
   "status": "open",
