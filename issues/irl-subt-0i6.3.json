@@ -8,7 +8,7 @@
     "irl-subt-0i6.7"
   ],
   "created": "2026-09-13T11:20:47Z",
-  "description": "Produce/verify ONNX exports for every catalog entry and run known-answer + sustained WebNN benchmarks. Record RTF, peak memory, battery, thermals, operator fallback, device preference, numerical drift. Confirm or revise §6.1 defaults. plan.md §6.1, §13.3.",
+  "description": "Produce/verify ONNX exports for every catalog entry and run known-answer + sustained benchmarks on ORT Web's native WebGPU EP and WASM, on Android and iOS. Record RTF, peak memory, battery, thermals, node placement (CPU fallback), chosen execution target per model, numerical drift. Confirm or revise §6.1 defaults. plan.md §6.1, §13.3.",
   "id": "irl-subt-0i6.3",
   "labels": [
     "mvp"
@@ -16,7 +16,7 @@
   "parent": "irl-subt-0i6",
   "priority": 0,
   "status": "open",
-  "title": "Spike: ONNX exports and WebNN benchmarks for model catalog",
+  "title": "Spike: ONNX exports and WebGPU/WASM benchmarks for model catalog",
   "type": "epic",
-  "updated_at": "2026-09-13T11:29:23Z"
+  "updated_at": "2026-09-13T12:51:34Z"
 }
