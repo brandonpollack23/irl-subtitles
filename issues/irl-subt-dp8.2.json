@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:48Z",
+  "description": "Bundled versioned catalog of pinned manifests. Download once, verify integrity hash, cache locally. Settings: Download local models for current selection; unselected entries on demand. Start never waits on download. plan.md §6.1.",
+  "id": "irl-subt-dp8.2",
+  "labels": [],
+  "parent": "irl-subt-dp8",
+  "priority": 1,
+  "status": "open",
+  "title": "Model catalog, manifests, download/cache/hash verification",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:48Z"
+}
