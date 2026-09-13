@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:52Z",
   "description": "Replace single-language picker with modes chosen in the decision record; model dropdowns filter by mode and language set; G2 shows current detected language when useful.",
   "id": "irl-subt-wfn.9",
-  "labels": [],
+  "labels": [
+    "post-mvp"
+  ],
   "parent": "irl-subt-wfn",
   "priority": 2,
   "status": "open",
