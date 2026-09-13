@@ -6,6 +6,7 @@ allowBuilds:
   protobufjs: false
   onnxruntime-node: false
   sharp: false
+  esbuild: true
 overrides:
   # One ONNX Runtime Web build for transformers.js and our direct ORT sessions.
   onnxruntime-web: 1.29.0

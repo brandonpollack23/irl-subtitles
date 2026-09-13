@@ -38,9 +38,18 @@ export class ComputeScheduler {
     return this.level;
   }
 
+  private sttRuns = 0;
+  private lastRtfSample: number | null = null;
+
   update(s: SchedulerSample): SchedulerDecision {
-    if (s.sttRtf !== null) this.rtfHistory = [...this.rtfHistory.slice(-9), s.sttRtf];
-    const rtf = this.rtfHistory.length ? this.rtfHistory.reduce((a, b) => a + b, 0) / this.rtfHistory.length : 0;
+    // Each STT run reports once; the first runs include model warm-up and shader compilation, so they
+    // don't count, and the median keeps one slow outlier from pinning the level.
+    if (s.sttRtf !== null && s.sttRtf !== this.lastRtfSample) {
+      this.lastRtfSample = s.sttRtf;
+      if (++this.sttRuns > 2) this.rtfHistory = [...this.rtfHistory.slice(-8), s.sttRtf];
+    }
+    const sorted = [...this.rtfHistory].sort((a, b) => a - b);
+    const rtf = sorted.length ? sorted[Math.floor(sorted.length / 2)]! : 0;
     let target: DegradationLevel = 0;
     let reason: string | null = null;
     if (s.sttBacklogS > 4 || rtf > 0.8) {

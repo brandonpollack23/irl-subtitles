@@ -18,7 +18,18 @@ import {
   recoverInterrupted,
   type RecoveredRecording,
 } from "@irl/pipeline";
-import { catalogEntry, defaultSelection, defaultWorkers, LocalEngines, LocalToolkit, type DeviceCapabilities } from "@irl/provider-local";
+import {
+  availabilityOnDevice,
+  catalogEntry,
+  defaultSelection,
+  defaultWorkers,
+  entriesForRole,
+  LocalEngines,
+  LocalToolkit,
+  ROLE_KEYS,
+  supportsLanguage,
+  type DeviceCapabilities,
+} from "@irl/provider-local";
 import { SonioxSpeechProvider } from "@irl/provider-soniox";
 import { openStorage, SettingsStore, type StorageHandles } from "@irl/storage";
 import workletUrl from "@irl/capture/worklet?worker&url";
@@ -66,6 +77,25 @@ export async function boot(): Promise<AppServices> {
   const caps = await engines.capabilities();
   log.info("capabilities", caps);
   engines.events.on((e) => log.warn("engine", e));
+
+  // Selections that can't run on this device (e.g. a model needing shader-f16) fall back to the most
+  // preferred option that can, so a fresh install never starts with an unusable model.
+  {
+    const current = settings.get();
+    const models = { ...current.models };
+    let changed = false;
+    for (const role of ["vad", "stt-live", "stt-final", "speaker-embedding", "summary"] as const) {
+      const key = ROLE_KEYS[role];
+      const entry = catalogEntry(models[key]);
+      if (!entry || availabilityOnDevice(entry, caps).status === "available") continue;
+      const options = entriesForRole(role).filter((e) => availabilityOnDevice(e, caps).status === "available" && supportsLanguage(e, current.language));
+      const next = options.find((e) => e.planDefault) ?? options[0];
+      (models as Record<string, string>)[key] = next?.id ?? (role === "stt-live" || role === "summary" ? "off" : role === "stt-final" ? "same-as-live" : models[key]);
+      log.warn(`${entry.displayName} can't run here; using ${next?.displayName ?? (models as Record<string, string>)[key]}`);
+      changed = true;
+    }
+    if (changed) await settings.update({ models });
+  }
 
   const ephemeral = new EphemeralKeys();
   const audio = new RecordingAudio(storage.repo, storage.blobs, (kind, id) => (kind === "durable" ? storage.durable : ephemeral.get(id)));

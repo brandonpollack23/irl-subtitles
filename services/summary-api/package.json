@@ -4,10 +4,14 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "start": "node --experimental-strip-types src/server.ts"
+    "start": "tsx src/server.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.125.0",
     "@irl/domain": "workspace:*",
     "@irl/provider-summary": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
   }
 }
