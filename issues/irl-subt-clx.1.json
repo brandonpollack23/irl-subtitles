@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:57Z",
   "description": "Feature inventory, background/lifecycle behavior, audio capture parity.",
   "id": "irl-subt-clx.1",
-  "labels": [],
+  "labels": [
+    "post-mvp"
+  ],
   "parent": "irl-subt-clx",
   "priority": 4,
   "status": "open",
