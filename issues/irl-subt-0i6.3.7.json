@@ -5,13 +5,13 @@
     "irl-subt-0i6.3.6"
   ],
   "created": "2026-09-13T12:08:22Z",
-  "description": "Gaps found while building the probe registry (spikes/phase0-probe/src/models/registry.json): (1) no ONNX export exists for Moonshine Streaming Tiny or any per-language Moonshine Streaming Small checkpoint (ja etc.); (2) Moonshine Streaming Medium only has a community dynamic-int8 export — produce fp16/fp32 for WebNN NPU/GPU placement; (3) Whisper/Moonshine *merged* decoders are a single If node (use_cache_branch) and WebNN has no If op — benchmark non-merged decoder_with_past graphs instead; (4) catalog entries use community exports — pin revisions + hashes once chosen. Use optimum / the upstream exporters; add each to registry.json and run the models inspect/fixtures tooling.",
+  "description": "Gaps found while building the probe registry (spikes/phase0-probe/src/models/registry.json): (1) no ONNX export exists for Moonshine Streaming Tiny or any per-language Moonshine Streaming Small checkpoint (ja etc.); (2) Moonshine Streaming Medium only has a community dynamic-int8 export whose MatMulInteger/DynamicQuantizeLinear nodes fall back to CPU on WebGPU; produce fp16 and q4 (MatMulNBits) exports; (3) Whisper/Moonshine merged decoders contain an If node (use_cache_branch); check placement and benchmark non-merged decoder_with_past graphs too; (4) catalog entries use community exports; pin revisions + hashes once chosen. Use optimum / the upstream exporters; add each to registry.json and run the models inspect/fixtures tooling.",
   "id": "irl-subt-0i6.3.7",
   "labels": [],
   "parent": "irl-subt-0i6.3",
   "priority": 1,
   "status": "open",
-  "title": "Produce missing/WebNN-friendly ONNX exports for catalog models",
+  "title": "Produce missing/WebGPU-friendly ONNX exports for catalog models",
   "type": "task",
-  "updated_at": "2026-09-13T12:08:22Z"
+  "updated_at": "2026-09-13T12:51:34Z"
 }
