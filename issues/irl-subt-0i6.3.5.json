@@ -5,7 +5,7 @@
     "irl-subt-0i6.3.6"
   ],
   "created": "2026-09-13T11:20:47Z",
-  "description": "Validate mobile-quantized ONNX exports, memory fit alongside other models, tokens/sec, JSON-constrained decoding feasibility, validated context length.",
+  "description": "Validate mobile-quantized ONNX exports (MatMulNBits/GroupQueryAttention on the WebGPU EP), memory fit alongside other models on Android and iOS, tokens/sec, JSON-constrained decoding feasibility, validated context length.",
   "id": "irl-subt-0i6.3.5",
   "labels": [
     "mvp"
@@ -13,7 +13,7 @@
   "parent": "irl-subt-0i6.3",
   "priority": 1,
   "status": "open",
-  "title": "Benchmark summary LLMs (Gemma 4 E2B QAT 4-bit, Gemma 4 E4B, Qwen3.5-2B) via WebNN",
+  "title": "Benchmark summary LLMs (Gemma 4 E2B QAT 4-bit, Gemma 4 E4B, Qwen3.5-2B) on WebGPU",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:47Z"
+  "updated_at": "2026-09-13T12:51:34Z"
 }
