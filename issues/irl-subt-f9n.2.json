@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:49Z",
+  "description": "Bottom sheet with likely people, all people, New person; set full/short name; Learn this voice toggle. plan.md §7.2.",
+  "id": "irl-subt-f9n.2",
+  "labels": [],
+  "parent": "irl-subt-f9n",
+  "priority": 1,
+  "status": "open",
+  "title": "Speaker sheet: tap any speaker name in transcript or summary",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:49Z"
+}
