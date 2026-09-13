@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:56Z",
   "description": "Optional encrypted sync of recordings, people, and (with explicit consent) voice profiles. plan.md §2 QoL.",
   "id": "irl-subt-6xu",
-  "labels": [],
+  "labels": [
+    "post-mvp"
+  ],
   "priority": 4,
   "status": "open",
   "title": "Post-MVP: Cloud sync and multi-device identity sharing",
