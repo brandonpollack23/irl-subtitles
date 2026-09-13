@@ -4,7 +4,9 @@
     "irl-subt-wfn.1",
     "irl-subt-wfn.2"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-wfn.7"
+  ],
   "created": "2026-09-13T11:20:51Z",
   "description": "Evaluate mode C for the post-Stop pass: auto LID vs forced language, per-token language output, alignment quality across switch points.",
   "id": "irl-subt-wfn.6",
