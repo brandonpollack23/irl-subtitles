@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-7ys.3"
+  ],
   "created": "2026-09-13T11:20:53Z",
   "description": "Separate translated tokens linked to source segments; never overwrite originals. plan.md §15.",
   "id": "irl-subt-7ys.2",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "TranslationProvider contract and translated-segment storage",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:53Z"
+  "updated_at": "2026-09-13T11:20:54Z"
 }
