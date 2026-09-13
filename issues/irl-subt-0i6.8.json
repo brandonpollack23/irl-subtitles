@@ -16,6 +16,12 @@
   "id": "irl-subt-0i6.8",
   "labels": [],
   "parent": "irl-subt-0i6",
+  "comments": [
+    {
+      "text": "Skeleton written (vite config w/ COOP/COEP + report sink + /models serving, bridge wrapper + G2 HUD, report envelope/publish). UI layer being moved to SolidJS 2 per user direction (irl-subt-0i6.16) instead of hand-rolled DOM helpers.",
+      "timestamp": "2026-09-13T11:37:33Z"
+    }
+  ],
   "priority": 0,
   "status": "in_progress",
   "title": "Probe app: Phase 0 on-device spike harness skeleton",
