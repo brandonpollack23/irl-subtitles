@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-b5w.2"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:47Z",
   "description": "Implement the Repository layer on the backend chosen by the Phase 0 storage spike (preferred: Turso WASM on OPFS, running in a dedicated storage worker; fallback: IndexedDB). Domain code must not depend on the backend. Repositories for recordings, audio_chunks, transcript_tokens, speaker_turns, speaker_attributions, people, voice_profiles, voice_samples, summaries, provider_runs, settings. Versioned migrations. Transcript rows reference clusterId, never names. plan.md §8.",
