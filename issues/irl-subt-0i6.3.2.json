@@ -5,7 +5,7 @@
     "irl-subt-0i6.3.6"
   ],
   "created": "2026-09-13T11:20:47Z",
-  "description": "Moonshine Streaming is among the least-proven exports under ORT Web. Validate sliding-window streaming loop end-to-end (features, upload, decode, readback), static shapes, MLTensor residency. Include per-language Small checkpoints (ja etc.).",
+  "description": "Moonshine Streaming is among the least-proven exports under ORT Web. Validate sliding-window streaming loop end-to-end (features, upload, decode, readback), static shapes, GPU-buffer residency for KV cache (preferredOutputLocation gpu-buffer). Include per-language Small checkpoints (ja etc.). Desktop evidence: the Moonshine Medium dynamic-int8 encoder puts ~150 MatMulInteger/DynamicQuantizeLinear nodes on CPU (282 ms WebGPU vs 18 ms WASM), so a GPU-friendly export (fp16/q4) is needed.",
   "id": "irl-subt-0i6.3.2",
   "labels": [
     "mvp"
@@ -13,7 +13,7 @@
   "parent": "irl-subt-0i6.3",
   "priority": 0,
   "status": "open",
-  "title": "Benchmark live STT (Moonshine Streaming Medium/Small/Tiny, Whisper Small/Tiny) via WebNN",
+  "title": "Benchmark live STT (Moonshine Streaming Medium/Small/Tiny, Whisper Small/Tiny) on WebGPU",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:47Z"
+  "updated_at": "2026-09-13T12:51:34Z"
 }
