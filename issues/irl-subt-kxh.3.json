@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:55Z",
+  "description": "No bundled secrets, CSP/whitelist review, privacy disclosures, store listing.",
+  "id": "irl-subt-kxh.3",
+  "labels": [],
+  "parent": "irl-subt-kxh",
+  "priority": 3,
+  "status": "open",
+  "title": "Even Hub submission checklist and packaging review",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:55Z"
+}
