@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-7ys.2"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:53Z",
   "description": "Toggle/side-by-side transcript views; summary in chosen language.",
