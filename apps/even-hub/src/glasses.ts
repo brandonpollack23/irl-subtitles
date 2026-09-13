@@ -35,8 +35,6 @@ export class GlassesController {
   private bridge: EvenAppBridge | null = null;
   private created: Promise<boolean> | null = null;
   private mode: Mode | null = null;
-  private pending = new Map<number, string>();
-  private flushing = false;
   private notice: string | null = null;
   private lastSnapshot: LiveSnapshot | null = null;
   private nameCache = new Map<string, string>();
@@ -148,6 +146,7 @@ export class GlassesController {
   private onSnapshot(s: LiveSnapshot): void {
     this.lastSnapshot = s;
     const mode = modeOf(s);
+    if (mode === "recording") this.notice = null;
     void this.refreshNames(s);
     void this.render(s, mode !== this.mode);
   }
@@ -169,36 +168,68 @@ export class GlassesController {
     if (changed && this.lastSnapshot) void this.render(this.lastSnapshot, false);
   }
 
-  private async render(s: LiveSnapshot, rebuild: boolean): Promise<void> {
+  private renderTail: Promise<void> = Promise.resolve();
+
+  /** Page rebuilds and text upgrades must not interleave, or a stale page can land after a newer one. */
+  private renderQueued = false;
+  private rebuildQueued = false;
+
+  private render(s: LiveSnapshot, rebuild: boolean): Promise<void> {
+    this.lastSnapshot ??= s;
+    this.rebuildQueued ||= rebuild;
+    // Coalesce: one queued render always draws the latest snapshot, so a slow BLE link never builds a backlog.
+    if (this.renderQueued) return this.renderTail;
+    this.renderQueued = true;
+    const next = this.renderTail.then(() => {
+      this.renderQueued = false;
+      const snap = this.lastSnapshot!;
+      const doRebuild = this.rebuildQueued || modeOf(snap) !== this.mode;
+      this.rebuildQueued = false;
+      return this.renderNow(snap, doRebuild);
+    });
+    this.renderTail = next.catch(() => undefined);
+    return next;
+  }
+
+  private async renderNow(s: LiveSnapshot, rebuild: boolean): Promise<void> {
     if (!this.bridge || !(await this.ensurePage())) return;
     const mode = modeOf(s);
     if (rebuild) {
       this.mode = mode;
       try {
-        const ok = await this.bridge.rebuildPageContainer(this.page(mode, s) as never);
-        if (!ok) this.failures++;
+        const page = this.page(mode, s);
+        const ok = await this.bridge.rebuildPageContainer(page as never);
+        if (ok) {
+          this.shown.set(STATUS.id, page.textObject[0]!.content);
+          this.shown.set(BODY.id, page.textObject[1]!.content);
+        } else {
+          this.failures++;
+          this.failedRebuild();
+        }
       } catch (e) {
         this.failures++;
+        this.failedRebuild();
         log.warn("rebuildPageContainer failed", errorMessage(e));
       }
       return;
     }
     const t = this.texts(mode, s);
-    this.pending.set(STATUS.id, t.status);
-    this.pending.set(BODY.id, t.body);
-    if (this.flushing) return;
-    this.flushing = true;
-    try {
-      while (this.pending.size) {
-        const [id, content] = this.pending.entries().next().value as [number, string];
-        this.pending.delete(id);
-        const name = id === STATUS.id ? STATUS.name : BODY.name;
-        const ok = await this.bridge.textContainerUpgrade({ containerID: id, containerName: name, content } as never).catch(() => false);
-        if (!ok) this.failures++;
-      }
-    } finally {
-      this.flushing = false;
+    for (const [id, content] of [[STATUS.id, t.status], [BODY.id, t.body]] as const) {
+      if (this.shown.get(id) === content) continue;
+      const name = id === STATUS.id ? STATUS.name : BODY.name;
+      const ok = await this.bridge.textContainerUpgrade({ containerID: id, containerName: name, content } as never).catch(() => false);
+      if (ok) this.shown.set(id, content);
+      else this.failures++;
     }
+  }
+
+  /** Last text sent per container, so unchanged text isn't resent over BLE. */
+  private shown = new Map<number, string>();
+
+  /** The glasses may still show the previous page: forget what's on it and rebuild on the next snapshot. */
+  private failedRebuild(): void {
+    this.mode = null;
+    this.shown.clear();
   }
 
   private async onEvent(e: EvenHubEvent): Promise<void> {

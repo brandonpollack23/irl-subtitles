@@ -18,6 +18,17 @@ const ort = setupRuntime();
 const WINDOW = 512;
 const CONTEXT = 64;
 
+/**
+ * ONNX Runtime Web rejects overlapping session.run calls within one WASM instance, and VAD and embedding
+ * requests interleave across awaits, so every inference in this worker runs through one queue.
+ */
+let runTail: Promise<unknown> = Promise.resolve();
+function exclusive<T>(fn: () => Promise<T>): Promise<T> {
+  const next = runTail.then(fn, fn);
+  runTail = next.catch(() => undefined);
+  return next;
+}
+
 interface VadModel {
   session: Ort.InferenceSession;
   sr: Ort.Tensor;
@@ -130,7 +141,7 @@ serveRpc({
   },
 
   /** Streaming: appends samples, returns one probability per complete 32 ms window. */
-  "vad.push": async (p: { samples: Float32Array }, ctx) => {
+  "vad.push": (p: { samples: Float32Array }, ctx) => exclusive(async () => {
     if (!vad) throw new Error("VAD not loaded");
     const joined = new Float32Array(stream.pending.length + p.samples.length);
     joined.set(stream.pending);
@@ -143,10 +154,10 @@ serveRpc({
     stream.nextSample += n * WINDOW;
     ctx.transfer([probs.buffer]);
     return { probs, firstWindowStart };
-  },
+  }),
 
   /** Offline speech regions for a block (fresh recurrent state). */
-  "vad.regions": async (p: { samples: Float32Array; startSample: number }) => {
+  "vad.regions": (p: { samples: Float32Array; startSample: number }) => exclusive(async () => {
     if (!vad) throw new Error("VAD not loaded");
     const state = new Float32Array(2 * 128);
     const context = new Float32Array(CONTEXT);
@@ -154,11 +165,11 @@ serveRpc({
     const probs = new Float32Array(n);
     for (let i = 0; i < n; i++) probs[i] = await vadWindow(state, context, p.samples.subarray(i * WINDOW, (i + 1) * WINDOW));
     return regionsFromProbabilities(probs, p.startSample);
-  },
+  }),
 
-  "embed.load": async (p: { modelId: string; target: ExecutionTarget }, ctx) => loadEmbedder(p.modelId, p.target, ctx.progress),
+  "embed.load": (p: { modelId: string; target: ExecutionTarget }, ctx) => exclusive(() => loadEmbedder(p.modelId, p.target, ctx.progress)),
 
-  "embed.run": async (p: { windows: { samples: Float32Array; startSample: number; endSample: number }[] }) => {
+  "embed.run": (p: { windows: { samples: Float32Array; startSample: number; endSample: number }[] }) => exclusive(async () => {
     if (!embedder) throw new Error("embedding model not loaded");
     const out: { vector: Float32Array; startSample: number; endSample: number; quality: number; ms: number }[] = [];
     for (const w of p.windows) {
@@ -167,7 +178,7 @@ serveRpc({
       out.push({ vector, startSample: w.startSample, endSample: w.endSample, quality: windowQuality(w.samples), ms: performance.now() - t0 });
     }
     return out;
-  },
+  }),
 
   "release": async () => {
     await vad?.session.release().catch(() => undefined);

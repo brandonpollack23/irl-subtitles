@@ -62,15 +62,17 @@ export interface AppServices {
 
 const BENCH_KEY = "benchmarks.v1";
 
-export async function boot(): Promise<AppServices> {
+export async function boot(onStep: (step: string) => void = () => undefined): Promise<AppServices> {
   installConsoleCapture();
+  onStep("Connecting to the Even app");
   const inEvenApp = (await getBridge(2500)) !== null;
   const preferTurso = localStorage.getItem("irl.storage.preferTurso") !== "0";
-  const storage = await openStorage({ preferTurso });
+  const storage = await openStorage({ preferTurso, onStep });
   log.info("storage", storage.diagnostics);
   const settings = await SettingsStore.open(storage.repo, defaultSettings(defaultSelection("en")));
   setLogContent(settings.get().diagnosticsIncludeContent);
 
+  onStep("Checking this device");
   const engines = new LocalEngines(defaultWorkers());
   engines.policy = settings.get().powerPolicy;
   engines.benchmarks = (await storage.repo.getSetting<BenchmarkResult[]>(BENCH_KEY)) ?? [];
@@ -173,7 +175,16 @@ export async function boot(): Promise<AppServices> {
   };
   const glasses = new GlassesController(controller, settings, names);
   glassesRef.current = glasses;
+  // After Stop the idle glasses page says what the phone is doing with the last conversation.
+  post.events.on((e) => {
+    if (e.stage === "finalStt" && e.status === "running" && e.progress === undefined && !e.note) glasses.showNotice("Processing your last conversation on the phone…");
+    if (e.stage === "done") {
+      void storage.repo.getRecording(e.recordingId).then((r) => glasses.showNotice(r?.title ? `Ready on your phone: ${r.title}` : "Ready on your phone."));
+    }
+  });
+  onStep("Setting up the glasses");
   if (inEvenApp) await glasses.init().catch((e) => log.error("glasses init failed", errorMessage(e)));
+  onStep("Checking for interrupted recordings");
 
   // Every launch is crash recovery (plan.md §9); capture never resumes on its own.
   const recovered = await recoverInterrupted(storage.repo, storage.blobs, audio, null).catch((e) => {

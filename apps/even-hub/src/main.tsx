@@ -8,7 +8,10 @@ import "./ui/style.css";
 const root = document.getElementById("root")!;
 root.textContent = "Starting…";
 
-boot().then(
+boot((step) => {
+  root.textContent = `${step}…`;
+  console.info(`[boot] ${step}`);
+}).then(
   (services) => {
     setServices(services);
     services.dataChanged.on(() => bumpData());

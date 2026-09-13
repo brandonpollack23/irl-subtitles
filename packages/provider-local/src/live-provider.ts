@@ -159,6 +159,8 @@ class LocalLiveRun implements LiveSpeechRun {
   }
 
   private emit(ev: SpeechEvent): void {
+    // Errors are otherwise only visible on the live screen; keep them in diagnostics.
+    if (ev.type === "error") console.warn(`[live] ${ev.message}`);
     if (!this.closed || ev.type !== "degraded") this.events.push(ev);
   }
 
@@ -170,12 +172,16 @@ class LocalLiveRun implements LiveSpeechRun {
 
   private async tick(): Promise<void> {
     if (this.ready.vad && !this.vadBusy) void this.feedVad();
-    this.decision = this.scheduler.update({
-      sttBacklogS: this.utterances.filter((u) => u.ended && !u.transcribed).reduce((n, u) => n + (u.endSample - u.startSample), 0) / SAMPLE_RATE,
+    const sample = {
+      // The oldest ended utterance is the one being (or about to be) transcribed; only what waits behind it is backlog.
+      sttBacklogS: this.utterances.filter((u) => u.ended && !u.transcribed).slice(1).reduce((n, u) => n + (u.endSample - u.startSample), 0) / SAMPLE_RATE,
       embedBacklogS: this.utterances.reduce((n, u) => n + (u.windowsQueued - u.windowsDone) * 2, 0),
       sttRtf: this.lastRtf,
       failure: this.failure,
-    });
+    };
+    const prevLevel = this.decision.level;
+    this.decision = this.scheduler.update(sample);
+    if (this.decision.level !== prevLevel) console.warn(`[scheduler] level ${prevLevel} → ${this.decision.level}`, JSON.stringify({ ...sample, sttRtf: sample.sttRtf?.toFixed(2) }));
     this.failure = false;
     // Model problems are reported where they happen; with every model healthy the scheduler owns the message.
     if (this.ready.vad && this.ready.embed && (this.ready.stt || this.config.sttModelId === "off")) this.emitDegraded(this.decision.reason);

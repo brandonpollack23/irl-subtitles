@@ -32,30 +32,39 @@ export interface OpenStorageOptions {
   dbName?: string;
 }
 
+/** Some engines hang instead of rejecting when a worker can't clone OPFS handles (seen in WebKitGTK). */
+function withTimeout<T>(p: Promise<T>, ms: number, what: string): Promise<T> {
+  return Promise.race([p, new Promise<never>((_, fail) => setTimeout(() => fail(new Error(`${what} timed out after ${ms / 1000}s`)), ms))]);
+}
+
 /** Chooses Turso/OPFS when the page supports it, IndexedDB otherwise; domain code never sees which. */
-export async function openStorage(opts: OpenStorageOptions): Promise<StorageHandles> {
+export async function openStorage(opts: OpenStorageOptions & { onStep?: (step: string) => void }): Promise<StorageHandles> {
   const reasons: string[] = [];
   const dbName = opts.dbName ?? "irl-subtitles";
   let table: TableStore | null = null;
   if (opts.preferTurso) {
+    opts.onStep?.("Opening database");
     try {
-      table = await SqlTableStore.open(await openTursoDriver(`${dbName}.db`));
+      table = await withTimeout(openTursoDriver(`${dbName}.db`).then((d) => SqlTableStore.open(d)), 10_000, "Turso open");
     } catch (e) {
       reasons.push(`turso: ${errorMessage(e)}`);
     }
   } else {
     reasons.push("turso: disabled by setting");
   }
+  if (!table) opts.onStep?.("Opening IndexedDB");
   table ??= await IdbTableStore.open(dbName);
 
   let blobs: BlobStore;
+  opts.onStep?.("Opening audio storage");
   try {
-    blobs = await OpfsBlobStore.open();
+    blobs = await withTimeout(OpfsBlobStore.open(), 8_000, "OPFS probe");
   } catch (e) {
     reasons.push(`opfs: ${errorMessage(e)}`);
     blobs = await IdbBlobStore.open();
   }
 
+  opts.onStep?.("Opening keys");
   const vault = await KeyVault.open();
   const durable = await vault.durableSealer();
   const secrets = await VaultSecretStore.open(vault);
