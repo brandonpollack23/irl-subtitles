@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-wfn.1"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:51Z",
   "description": "Evaluate mode C live: export to ONNX, run through WebNN, measure RTF/thermals in the 60-min concurrent live stack, and accuracy on the code-switched eval set.",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Spike: unified multilingual streaming ASR via WebNN (Nemotron 3.5 streaming, Whisper Small, others from survey)",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:51Z"
+  "updated_at": "2026-09-13T11:20:52Z"
 }
