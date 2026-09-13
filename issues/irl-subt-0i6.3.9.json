@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-0i6.3.6"
+  ],
   "created": "2026-09-13T12:52:31Z",
   "description": "Desktop Chrome 153 / RTX 40 / onnxruntime-web 1.29 native WebGPU EP: CAM++ 198 ms p50 fully on GPU vs 40 ms on WASM; Silero VAD 11 ms vs 0.27 ms. Kernel-dispatch and readback overhead dominates small graphs. Evaluate ORT WebGPU graph capture (enableGraphCapture, static shapes, all nodes on GPU), preferredOutputLocation gpu-buffer with GPU-tensor inputs, and fp16 exports where shader-f16 exists; add the options to spikes/phase0-probe bench.worker.ts and re-measure on phones. Decides whether speaker embedding targets WebGPU or WASM.",
   "id": "irl-subt-0i6.3.9",
