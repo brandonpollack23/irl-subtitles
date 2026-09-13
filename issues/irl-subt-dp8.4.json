@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:48Z",
+  "description": "One canonical audio clock; routes frames to storage and selected processors; supports fused capabilities; normalizes provider output. plan.md §4, §5.",
+  "id": "irl-subt-dp8.4",
+  "labels": [],
+  "parent": "irl-subt-dp8",
+  "priority": 1,
+  "status": "open",
+  "title": "ProviderCoordinator: fan-out, backpressure, restarts, normalized events",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:48Z"
+}
