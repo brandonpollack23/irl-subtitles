@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-dp8.2"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:48Z",
   "description": "Re-transcribe stored speech into final word-timestamped, language-identified tokens replacing live tokens. Target \u003c0.5x recording duration. plan.md §6.1 step 5.",

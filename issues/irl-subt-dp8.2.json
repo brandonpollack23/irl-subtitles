@@ -5,7 +5,8 @@
   ],
   "blocks": [
     "irl-subt-dp8.6",
-    "irl-subt-dp8.7"
+    "irl-subt-dp8.7",
+    "irl-subt-dp8.9"
   ],
   "created": "2026-09-13T11:20:48Z",
   "description": "Bundled versioned catalog of pinned manifests. Download once, verify integrity hash, cache locally. Settings: Download local models for current selection; unselected entries on demand. Start never waits on download. plan.md §6.1.",
