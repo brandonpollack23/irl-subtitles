@@ -3,7 +3,9 @@
   "blocked_by": [
     "irl-subt-2z2.1"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-2z2.3"
+  ],
   "created": "2026-09-13T11:20:47Z",
   "description": "Persist ordered PCM chunks every 5–10 s, checksum, advance recovery cursor after verification. Never block capture on processing/network/UI. plan.md §8, §9.",
   "id": "irl-subt-2z2.2",

@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-2z2.2"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:47Z",
   "description": "Compress finalized chunks to Opus (24–32 kbit/s) in a WASM worker; delete raw chunks after compressed verification. plan.md §8.",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Opus compression worker and raw chunk cleanup",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:47Z"
+  "updated_at": "2026-09-13T11:20:48Z"
 }
