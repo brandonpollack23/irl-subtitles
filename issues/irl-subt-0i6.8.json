@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:29:22Z",
+  "description": "Standalone Vite+TS Even Hub app at spikes/phase0-probe: Even bridge wrapper with browser fallback, phone UI shell with one panel per spike, minimal G2 status page, JSON result reports auto-uploaded to the dev server (sideload) with copy/localStorage fallback, COOP/COEP headers toggle, app.json + pack script. Throwaway spike code, not the Foundation scaffold (irl-subt-b5w.1).",
+  "id": "irl-subt-0i6.8",
+  "labels": [],
+  "parent": "irl-subt-0i6",
+  "priority": 0,
+  "status": "open",
+  "title": "Probe app: Phase 0 on-device spike harness skeleton",
+  "type": "task",
+  "updated_at": "2026-09-13T11:29:22Z"
+}
