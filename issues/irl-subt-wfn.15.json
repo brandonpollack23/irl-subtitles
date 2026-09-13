@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:52Z",
+  "description": "Check embedding match scores for the same person speaking different languages; adjust thresholds or prototypes per language if needed.",
+  "id": "irl-subt-wfn.15",
+  "labels": [],
+  "parent": "irl-subt-wfn",
+  "priority": 3,
+  "status": "open",
+  "title": "Verify speaker identity is language-independent",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:52Z"
+}
