@@ -2,7 +2,8 @@
   "assignee": "",
   "blocked_by": [],
   "blocks": [
-    "irl-subt-f9n.2"
+    "irl-subt-f9n.2",
+    "irl-subt-f9n.4"
   ],
   "created": "2026-09-13T11:20:49Z",
   "description": "speaker_attributions with provenance (auto/manual), confidence, revision. Relabel never rewrites transcript text. plan.md §7.1, §8.",
