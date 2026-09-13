@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:47Z",
   "description": "Encrypted IndexedDB record + non-extractable Web Crypto key: verify it survives .ehpk upgrades and WebView data lifecycle. plan.md §6.2, §13.6.",
   "id": "irl-subt-0i6.6",
-  "labels": [],
+  "labels": [
+    "mvp"
+  ],
   "parent": "irl-subt-0i6",
   "priority": 1,
   "status": "open",
