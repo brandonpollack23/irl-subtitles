@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:50Z",
   "description": "Overview, key points, decisions, action items, open questions; tap item opens supporting passage; names resolved at render time. plan.md §6.3, §10.",
   "id": "irl-subt-9ij.3",
-  "labels": [],
+  "labels": [
+    "mvp"
+  ],
   "parent": "irl-subt-9ij",
   "priority": 1,
   "status": "open",
