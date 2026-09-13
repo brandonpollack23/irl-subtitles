@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-ye7.2"
+  ],
   "created": "2026-09-13T11:20:49Z",
   "description": "Never redisplay stored key; Test does smallest authenticated request with sanitized errors; removal disables new sessions only. plan.md §6.2, §10.",
   "id": "irl-subt-ye7.1",

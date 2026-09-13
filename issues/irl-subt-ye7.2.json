@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-ye7.1"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:50Z",
   "description": "stt-rt-v5, pcm_s16le 16k mono, diarization + language identification enabled. Map speaker labels to ClusterIds; provisional labels never touch profiles. plan.md §6.2.",
