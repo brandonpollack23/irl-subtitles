@@ -5,7 +5,8 @@
     "irl-subt-f9n.9"
   ],
   "blocks": [
-    "irl-subt-f9n.7"
+    "irl-subt-f9n.7",
+    "irl-subt-ye7.4"
   ],
   "created": "2026-09-13T11:20:49Z",
   "description": "Aggregate windows; require min evidence (5–10 s), absolute score, runner-up margin, window agreement, no overlap/noise. Below threshold show Unknown/Possibly X. Never compare across embedding spaces. plan.md §7.3.",
@@ -18,5 +19,5 @@
   "status": "open",
   "title": "Identification and matching policy (evidence, score, margin, agreement)",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:49Z"
+  "updated_at": "2026-09-13T11:20:50Z"
 }
