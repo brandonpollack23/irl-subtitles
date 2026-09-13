@@ -3,7 +3,9 @@
   "blocked_by": [
     "irl-subt-2z2"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-f9n"
+  ],
   "created": "2026-09-13T11:20:48Z",
   "description": "Provider coordinator, WebNN runtime, model catalog, local VAD/STT/embedding/clustering, reconciler, transcript UI with anonymous clusters. plan.md §6.1, §13 Phase 2.",
   "id": "irl-subt-dp8",
