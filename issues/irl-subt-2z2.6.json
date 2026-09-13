@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:48Z",
+  "description": "Recordings are not persisted by default; toggle in G2 context menu. Define what 'not persisted' means for crash recovery and processing buffers. plan.md §2.",
+  "id": "irl-subt-2z2.6",
+  "labels": [],
+  "parent": "irl-subt-2z2",
+  "priority": 1,
+  "status": "open",
+  "title": "Non-persisted recording mode (default) toggle in glasses context menu",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:48Z"
+}
