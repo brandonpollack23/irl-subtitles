@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:50Z",
+  "description": "Forced termination mid-recording, background reclaim, 60-minute endurance, quota exhaustion. plan.md §13 Phase 5.",
+  "id": "irl-subt-9ij.8",
+  "labels": [],
+  "parent": "irl-subt-9ij",
+  "priority": 1,
+  "status": "open",
+  "title": "Android kill/relaunch, extended battery and storage test suite",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:50Z"
+}
