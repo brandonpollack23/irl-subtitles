@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:55Z",
+  "description": "Surface 'Possibly Alice (mentioned by name)' suggestions in speaker sheet; never auto-enroll voice.",
+  "id": "irl-subt-yny.2",
+  "labels": [],
+  "parent": "irl-subt-yny",
+  "priority": 3,
+  "status": "open",
+  "title": "Name-mention candidate extraction and suggestion UI",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:55Z"
+}
