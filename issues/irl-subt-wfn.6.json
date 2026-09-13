@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:51Z",
+  "description": "Evaluate mode C for the post-Stop pass: auto LID vs forced language, per-token language output, alignment quality across switch points.",
+  "id": "irl-subt-wfn.6",
+  "labels": [],
+  "parent": "irl-subt-wfn",
+  "priority": 2,
+  "status": "open",
+  "title": "Spike: final-pass code-switching accuracy (Qwen3-ASR + ForcedAligner, Whisper Large-v3-Turbo)",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:51Z"
+}
