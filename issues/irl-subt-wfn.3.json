@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:51Z",
   "description": "Evaluate mode B building block: standalone LID on VAD utterances or speaker turns. Measure accuracy vs utterance length (0.5–3 s), latency, memory alongside live stack. Explore restricting to a user-declared language set and using speaker-level language priors (a person's usual language).",
   "id": "irl-subt-wfn.3",
-  "labels": [],
+  "labels": [
+    "post-mvp"
+  ],
   "parent": "irl-subt-wfn",
   "priority": 2,
   "status": "open",
