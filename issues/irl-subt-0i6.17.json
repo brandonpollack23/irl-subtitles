@@ -10,9 +10,15 @@
   "id": "irl-subt-0i6.17",
   "labels": [],
   "parent": "irl-subt-0i6",
+  "comments": [
+    {
+      "text": "Migrated to @soniox/client 2.3.0: client.realtime.record() with a custom EvenAudioSource (G2/phone/silence), auto_reconnect, optional recording.reconnect() on foreground. Only temp-key minting stays a raw fetch (not in the client SDK by design; it probes whitelist/CORS). Verified vs real server from desktop Chromium: connected, typed AuthError(auth_error) on invalid key.",
+      "timestamp": "2026-09-13T12:05:13Z"
+    }
+  ],
   "priority": 1,
   "status": "in_progress",
   "title": "Probe: migrate Soniox spike to official @soniox/client SDK",
   "type": "task",
-  "updated_at": "2026-09-13T12:02:48Z"
+  "updated_at": "2026-09-13T12:05:13Z"
 }
