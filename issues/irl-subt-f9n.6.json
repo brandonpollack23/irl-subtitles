@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:49Z",
+  "description": "Undo removes the attribution and any profile samples added by that operation. plan.md §7.2.",
+  "id": "irl-subt-f9n.6",
+  "labels": [],
+  "parent": "irl-subt-f9n",
+  "priority": 1,
+  "status": "open",
+  "title": "Undo for attribution and enrollment operations",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:49Z"
+}
