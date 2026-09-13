@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:50Z",
   "description": "Clearly state whether audio leaves the phone; provider switch applies to next recording. plan.md §10, §11.",
   "id": "irl-subt-ye7.5",
-  "labels": [],
+  "labels": [
+    "mvp"
+  ],
   "parent": "irl-subt-ye7",
   "priority": 1,
   "status": "open",
