@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:47Z",
+  "description": "First vertical slice with no speech processing: G2 start/stop UX, chunk recorder, checksums, recovery journal, history, playback, delete. plan.md §13 Phase 1, §9.",
+  "id": "irl-subt-2z2",
+  "labels": [],
+  "priority": 1,
+  "status": "open",
+  "title": "MVP Phase 1: Durable capture",
+  "type": "epic",
+  "updated_at": "2026-09-13T11:20:47Z"
+}
