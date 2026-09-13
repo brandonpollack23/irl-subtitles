@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-0i6.3.1"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:47Z",
   "description": "Run VAD + live STT + speaker embedding concurrently for 60 minutes (thermals, dropped captions, battery). Then final STT followed by summary on a 60-minute recording. Confirm/revise defaults and performance tiers. plan.md §13.3, §14.",

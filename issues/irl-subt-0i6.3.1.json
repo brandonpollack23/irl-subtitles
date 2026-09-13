@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-0i6.3.6"
+  ],
   "created": "2026-09-13T11:20:47Z",
   "description": "Export/validate Silero VAD v6 and TEN VAD (license review) under ONNX Runtime Web WebNN EP. Known-answer test, latency per frame, op coverage.",
   "id": "irl-subt-0i6.3.1",
