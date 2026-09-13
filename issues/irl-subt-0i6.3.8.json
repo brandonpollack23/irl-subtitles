@@ -5,7 +5,7 @@
     "irl-subt-0i6.3.6"
   ],
   "created": "2026-09-13T12:08:22Z",
-  "description": "The Phase 0 probe benchmarks individual ONNX graphs (op coverage, per-step latency, drift). plan.md §6.1 requires timing the complete streaming loop: feature extraction (fbank for CAM++/WeSpeaker/ECAPA, log-mel for Whisper/Qwen3-ASR, nemo128 for Parakeet), tensor upload, autoregressive decode with KV cache, readback, and real audio (use G2 WAVs uploaded by the capture spike). Prefer @huggingface/transformers (v4.x, supports WebNN devices) where it supports the model instead of hand-rolling decode loops; fall back to ORT only for unsupported models. Also add semantic known-answer checks: VAD on labeled speech, same/different-speaker cosine for embeddings, WER on a short reference clip.",
+  "description": "The Phase 0 probe benchmarks individual ONNX graphs (placement, per-step latency, drift). plan.md §6.1 requires timing the complete streaming loop: feature extraction (fbank for CAM++/WeSpeaker/ECAPA, log-mel for Whisper/Qwen3-ASR, nemo128 for Parakeet), tensor upload, autoregressive decode with KV cache kept on GPU, readback, and real audio (use G2 WAVs uploaded by the capture spike). Prefer @huggingface/transformers (v4.x, device: 'webgpu' / 'wasm') where it supports the model instead of hand-rolling decode loops; fall back to ORT only for unsupported models. Run on Android and iOS. Also add semantic known-answer checks: VAD on labeled speech, same/different-speaker cosine for embeddings, WER on a short reference clip.",
   "id": "irl-subt-0i6.3.8",
   "labels": [],
   "parent": "irl-subt-0i6.3",
@@ -13,5 +13,5 @@
   "status": "open",
   "title": "End-to-end local pipeline benchmarks (features + decode loops), prefer @huggingface/transformers",
   "type": "task",
-  "updated_at": "2026-09-13T12:08:22Z"
+  "updated_at": "2026-09-13T12:51:34Z"
 }
