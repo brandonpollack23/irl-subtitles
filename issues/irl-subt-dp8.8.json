@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-dp8.7"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:48Z",
   "description": "Non-neural online clustering producing anonymous Speaker N; post-Stop pass revisits boundaries and merges/splits obvious errors. plan.md §6.1 steps 4–5.",
