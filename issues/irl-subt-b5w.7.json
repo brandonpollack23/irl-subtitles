@@ -4,6 +4,7 @@
     "irl-subt-b5w.4"
   ],
   "blocks": [],
+  "closed_at": "2026-09-13T13:41:55Z",
   "created": "2026-09-13T11:20:47Z",
   "description": "Provider selection, recording language, per-role model selection, performance tier, retention, persist-recording default. plan.md §2, §6.1.",
   "id": "irl-subt-b5w.7",
@@ -12,8 +13,8 @@
   ],
   "parent": "irl-subt-b5w",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "Settings model (non-secret) with change-applies-to-next-recording semantics",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:47Z"
+  "updated_at": "2026-09-13T13:41:55Z"
 }
