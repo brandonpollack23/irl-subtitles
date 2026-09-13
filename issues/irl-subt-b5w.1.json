@@ -2,7 +2,8 @@
   "assignee": "",
   "blocked_by": [],
   "blocks": [
-    "irl-subt-b5w.2"
+    "irl-subt-b5w.2",
+    "irl-subt-b5w.8"
   ],
   "created": "2026-09-13T11:20:47Z",
   "description": "Create layout from plan.md §12. Set up mise tooling, TypeScript, lint/format, unit test runner, Even Hub .ehpk build, Web Worker bundling, local-only bundling (no runtime third-party scripts).",
