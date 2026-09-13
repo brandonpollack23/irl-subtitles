@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-0i6.8"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:29:22Z",
   "description": "docs/phase0/RUNBOOK.md: exact steps for the human tester per spike, what to record, pass/fail criteria, where results land; results template feeding irl-subt-0i6.7.",
