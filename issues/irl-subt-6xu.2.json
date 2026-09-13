@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:56Z",
   "description": "Per design; opt-in only.",
   "id": "irl-subt-6xu.2",
-  "labels": [],
+  "labels": [
+    "post-mvp"
+  ],
   "parent": "irl-subt-6xu",
   "priority": 4,
   "status": "open",
