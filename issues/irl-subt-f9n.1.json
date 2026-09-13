@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-f9n.3"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:49Z",
   "description": "People list with full name, short name, profile quality, source samples; rename, manual merge, Forget voice (choose whether transcripts keep textual label). plan.md §10, §11.",
