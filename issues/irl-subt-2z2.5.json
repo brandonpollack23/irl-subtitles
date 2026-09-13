@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:48Z",
+  "description": "Inspect starting/recording/finalizing sessions, verify checksums, reconstruct last valid cursor, show Recovered recording with Finish processing / Discard. Never silently resume mic capture. plan.md §9.",
+  "id": "irl-subt-2z2.5",
+  "labels": [],
+  "parent": "irl-subt-2z2",
+  "priority": 1,
+  "status": "open",
+  "title": "Crash recovery on relaunch",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:48Z"
+}
