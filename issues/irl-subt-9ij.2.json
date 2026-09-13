@@ -3,7 +3,9 @@
   "blocked_by": [
     "irl-subt-9ij.1"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-9ij.9"
+  ],
   "created": "2026-09-13T11:20:50Z",
   "description": "Sends normalized transcript + display names only; independent of Soniox. plan.md §6.3.",
   "id": "irl-subt-9ij.2",
