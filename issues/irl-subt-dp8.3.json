@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-dp8.1"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:48Z",
   "description": "Priority: VAD + audio persistence \u003e embeddings on clean windows \u003e live STT (yield/reduce search when behind). Post-session work doesn't contend with capture. plan.md §6.1.",

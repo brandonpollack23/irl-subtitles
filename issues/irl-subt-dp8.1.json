@@ -2,7 +2,8 @@
   "assignee": "",
   "blocked_by": [],
   "blocks": [
-    "irl-subt-dp8.2"
+    "irl-subt-dp8.2",
+    "irl-subt-dp8.3"
   ],
   "created": "2026-09-13T11:20:48Z",
   "description": "ORT Web WebNN EP. Per-model device preference (NPU, GPU, CPU by power policy), eligibility = load + known-answer + tolerance + latency/memory benchmark. MLTensor residency where supported. Failure disposes sessions and emits provider event. plan.md §6.1 WebNN compute strategy.",
