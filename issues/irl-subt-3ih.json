@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:55Z",
+  "description": "Live and post-hoc AI features. plan.md §2 'For AI'.",
+  "id": "irl-subt-3ih",
+  "labels": [],
+  "priority": 3,
+  "status": "open",
+  "title": "Post-MVP: AI assist (fact checking, live cues like the native app)",
+  "type": "epic",
+  "updated_at": "2026-09-13T11:20:55Z"
+}
