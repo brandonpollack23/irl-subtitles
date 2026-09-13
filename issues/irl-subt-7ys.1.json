@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:53Z",
+  "description": "Survey small MT / speech translation models, latency for subtitle use, language pairs; compare with Soniox translation block.",
+  "id": "irl-subt-7ys.1",
+  "labels": [],
+  "parent": "irl-subt-7ys",
+  "priority": 3,
+  "status": "open",
+  "title": "Research: on-device streaming translation models under WebNN",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:53Z"
+}
