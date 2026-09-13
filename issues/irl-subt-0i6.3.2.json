@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:47Z",
+  "description": "Moonshine Streaming is among the least-proven exports under ORT Web. Validate sliding-window streaming loop end-to-end (features, upload, decode, readback), static shapes, MLTensor residency. Include per-language Small checkpoints (ja etc.).",
+  "id": "irl-subt-0i6.3.2",
+  "labels": [],
+  "parent": "irl-subt-0i6.3",
+  "priority": 0,
+  "status": "open",
+  "title": "Benchmark live STT (Moonshine Streaming Medium/Small/Tiny, Whisper Small/Tiny) via WebNN",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:47Z"
+}
