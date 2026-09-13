@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:56Z",
+  "description": "Monitor SDK releases; do not design around undocumented bridges.",
+  "id": "irl-subt-c74.1",
+  "labels": [],
+  "parent": "irl-subt-c74",
+  "priority": 4,
+  "status": "open",
+  "title": "Track Even Hub SDK for a contacts bridge",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:56Z"
+}
