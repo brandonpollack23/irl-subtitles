@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [
     "irl-subt-b5w.2",
@@ -13,8 +13,8 @@
   ],
   "parent": "irl-subt-b5w",
   "priority": 1,
-  "status": "open",
+  "status": "in_progress",
   "title": "Scaffold monorepo (apps/even-hub, packages/*, services/*) and toolchain",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:47Z"
+  "updated_at": "2026-09-13T13:29:10Z"
 }
