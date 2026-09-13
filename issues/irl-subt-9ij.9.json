@@ -12,7 +12,8 @@
   ],
   "blocks": [
     "irl-subt-kqf",
-    "irl-subt-wfn"
+    "irl-subt-wfn",
+    "irl-subt-yny"
   ],
   "created": "2026-09-13T11:20:51Z",
   "description": "Verify every §14 criterion on reference devices and record results. Completing this unblocks post-MVP work.",
@@ -25,5 +26,5 @@
   "status": "open",
   "title": "MVP acceptance verification (plan.md §14 checklist)",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:54Z"
+  "updated_at": "2026-09-13T11:20:55Z"
 }
