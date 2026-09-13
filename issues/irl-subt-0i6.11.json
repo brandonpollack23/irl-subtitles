@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-0i6.8"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:29:22Z",
   "description": "Harness for irl-subt-0i6.4. Turso WASM on OPFS: write latency (OPFS chunk files vs in-DB BLOBs vs IndexedDB), torture writer with acked-counter journal for force-stop testing, verify-on-relaunch (checksums, acked \u003c= committed), app-version stamping for upgrade test, quota/persist.",
