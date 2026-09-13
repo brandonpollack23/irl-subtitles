@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-b5w.5"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:47Z",
   "description": "put/get/delete for soniox_api_key backed by encrypted IndexedDB, isolated from settings state; never logged. plan.md §6.2.",
