@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:48Z",
+  "description": "Non-neural online clustering producing anonymous Speaker N; post-Stop pass revisits boundaries and merges/splits obvious errors. plan.md §6.1 steps 4–5.",
+  "id": "irl-subt-dp8.8",
+  "labels": [],
+  "parent": "irl-subt-dp8",
+  "priority": 1,
+  "status": "open",
+  "title": "Online speaker clustering (WASM) and post-session merge/split refinement",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:48Z"
+}
