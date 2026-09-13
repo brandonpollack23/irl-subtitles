@@ -13,9 +13,15 @@
   "id": "irl-subt-0i6.14",
   "labels": [],
   "parent": "irl-subt-0i6",
+  "comments": [
+    {
+      "text": "Done: WebGPU/WASM harness (native WebGPU EP, JSEP, WASM), node-placement capture, mixed live stack, HTTPS serving; verified on desktop Chrome (irl-subt-0i6.18, jj rev kssxupzp). Desktop results archived in jj rev sqozotmvqott. The stale WebNN defaults matrix from an earlier session was stopped; it had hung creating Silero sessions.",
+      "timestamp": "2026-09-13T12:55:33Z"
+    }
+  ],
   "priority": 0,
   "status": "in_progress",
   "title": "Probe: WebGPU/WASM ONNX model benchmark harness + model fetch scripts",
   "type": "task",
-  "updated_at": "2026-09-13T12:52:18Z"
+  "updated_at": "2026-09-13T12:55:33Z"
 }
