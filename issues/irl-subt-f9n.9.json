@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:49Z",
+  "description": "Same/different-speaker pairs with realistic G2 audio; calibrate minScore/minMargin/minEvidence per embedding model; report FAR/FRR. plan.md §13 Phase 3.",
+  "id": "irl-subt-f9n.9",
+  "labels": [],
+  "parent": "irl-subt-f9n",
+  "priority": 1,
+  "status": "open",
+  "title": "Speaker-ID evaluation harness and threshold calibration",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:49Z"
+}
