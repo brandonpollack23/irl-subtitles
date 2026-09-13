@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-0i6.7"
+  ],
   "created": "2026-09-13T11:20:47Z",
   "description": "Record uninterrupted G2 audio (16 kHz s16le mono via audioControl) for 60 minutes on reference flagship Android devices (Snapdragon 8 Elite Gen 5 / Dimensity 9500 / Tensor G5 class). Lock and background the phone; document actual behavior (WebView reclaim, capture drops, gaps). plan.md §3, §13.1.",
   "id": "irl-subt-0i6.1",
