@@ -3,7 +3,9 @@
   "blocked_by": [
     "irl-subt-0i6.8"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-0i6.3"
+  ],
   "created": "2026-09-13T11:29:22Z",
   "description": "Harness for irl-subt-0i6.3.x. Model registry with HF sources for every catalog entry, fetch script, ORT Web WebNN EP per deviceType with static shape overrides, op-partition capture, latency (warmup/p50/p95), numerical drift vs WASM reference, sustained loop with latency-over-time + battery, concurrent live-stack mode at target cadences.",
   "id": "irl-subt-0i6.14",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Probe: WebNN ONNX model benchmark harness + model fetch scripts",
   "type": "task",
-  "updated_at": "2026-09-13T11:29:22Z"
+  "updated_at": "2026-09-13T11:29:23Z"
 }

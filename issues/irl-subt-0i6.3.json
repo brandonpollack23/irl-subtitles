@@ -1,6 +1,7 @@
 {
   "assignee": "",
   "blocked_by": [
+    "irl-subt-0i6.14",
     "irl-subt-0i6.2"
   ],
   "blocks": [
@@ -17,5 +18,5 @@
   "status": "open",
   "title": "Spike: ONNX exports and WebNN benchmarks for model catalog",
   "type": "epic",
-  "updated_at": "2026-09-13T11:20:47Z"
+  "updated_at": "2026-09-13T11:29:23Z"
 }
