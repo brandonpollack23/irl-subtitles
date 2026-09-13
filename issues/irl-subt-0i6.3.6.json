@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:47Z",
   "description": "Run VAD + live STT + speaker embedding concurrently for 60 minutes (thermals, dropped captions, battery). Then final STT followed by summary on a 60-minute recording. Confirm/revise defaults and performance tiers. plan.md §13.3, §14.",
   "id": "irl-subt-0i6.3.6",
-  "labels": [],
+  "labels": [
+    "mvp"
+  ],
   "parent": "irl-subt-0i6.3",
   "priority": 0,
   "status": "open",
