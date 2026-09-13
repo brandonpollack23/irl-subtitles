@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-kxh.2"
+  ],
   "created": "2026-09-13T11:20:55Z",
   "description": "Authenticated service storing primary key encrypted, issuing temporary WebSocket keys; audio still streams phone-\u003eSoniox.",
   "id": "irl-subt-kxh.1",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Credential broker service issuing short-lived Soniox keys",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:55Z"
+  "updated_at": "2026-09-13T11:20:56Z"
 }

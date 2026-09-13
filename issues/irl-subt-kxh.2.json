@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-kxh.1"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:55Z",
   "description": "Replace SecretStore primary key usage with broker flow.",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Client migration from stored primary key to temporary keys",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:55Z"
+  "updated_at": "2026-09-13T11:20:56Z"
 }
