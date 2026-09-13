@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:57Z",
   "description": "Validate each catalog entry on reference iPhones; per-platform catalog availability.",
   "id": "irl-subt-clx.3",
-  "labels": [],
+  "labels": [
+    "post-mvp"
+  ],
   "parent": "irl-subt-clx",
   "priority": 4,
   "status": "open",
