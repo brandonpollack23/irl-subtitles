@@ -85,6 +85,8 @@ export const SCHEMA_V1: readonly TableDef[] = [
     evidenceMs: "real",
     providerLabel: "text?",
     mergedInto: "text?",
+    candidatePersonId: "text?",
+    candidateScore: "real?",
   }),
   table("voice_windows", ["id"], [["recordingId"]], {
     id: "text",

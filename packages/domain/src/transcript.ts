@@ -35,6 +35,9 @@ export interface SpeakerCluster {
   providerLabel?: string;
   /** Set when post-session refinement merged this cluster into another. */
   mergedInto?: ClusterId;
+  /** Best below-threshold identity candidate, shown as "Possibly X"; never an attribution. */
+  candidatePersonId?: string;
+  candidateScore?: number;
 }
 
 export interface VoiceMatch {
