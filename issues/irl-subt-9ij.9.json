@@ -13,6 +13,7 @@
   "blocks": [
     "irl-subt-3ih",
     "irl-subt-kqf",
+    "irl-subt-kxh",
     "irl-subt-wfn",
     "irl-subt-yny"
   ],
@@ -27,5 +28,5 @@
   "status": "open",
   "title": "MVP acceptance verification (plan.md §14 checklist)",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:55Z"
+  "updated_at": "2026-09-13T11:20:56Z"
 }
