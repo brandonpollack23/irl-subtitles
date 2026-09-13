@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:29:22Z",
+  "description": "Harness for irl-subt-0i6.2. navigator.ml + per-deviceType context + real graph compute, MLTensor, opSupportLimits, workers, WASM SIMD/threads, SharedArrayBuffer, crossOriginIsolated (headers and service-worker path), OPFS sync access handles in a worker, storage estimate/persist, IndexedDB, WebCrypto, battery, UA.",
+  "id": "irl-subt-0i6.9",
+  "labels": [],
+  "parent": "irl-subt-0i6",
+  "priority": 0,
+  "status": "open",
+  "title": "Probe: capability inventory module",
+  "type": "task",
+  "updated_at": "2026-09-13T11:29:22Z"
+}
