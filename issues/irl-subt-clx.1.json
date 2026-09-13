@@ -4,6 +4,7 @@
   "blocks": [
     "irl-subt-clx.2"
   ],
+  "closed_at": "2026-09-13T12:52:30Z",
   "created": "2026-09-13T11:20:57Z",
   "description": "Feature inventory, background/lifecycle behavior, audio capture parity.",
   "id": "irl-subt-clx.1",
@@ -18,7 +19,7 @@
     }
   ],
   "priority": 4,
-  "status": "open",
+  "status": "closed",
   "title": "Spike: WebGPU capability and lifecycle in Even iOS WKWebView",
   "type": "task",
   "updated_at": "2026-09-13T12:52:30Z"
