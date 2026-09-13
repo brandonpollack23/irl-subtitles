@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:47Z",
+  "description": "AudioFrame, TimeRange (sample-clock bigint), TranscriptToken (with language, timing), SpeakerTurn, VoiceMatch, Person + displayName (32-byte UTF-8 G2 limit), ConversationSummary. Timestamps derive from sample counts, never Date.now(). plan.md §5, §7.1.",
+  "id": "irl-subt-b5w.2",
+  "labels": [],
+  "parent": "irl-subt-b5w",
+  "priority": 1,
+  "status": "open",
+  "title": "Domain package: canonical types and invariants",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:47Z"
+}
