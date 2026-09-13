@@ -9,7 +9,7 @@
     "irl-subt-0i6.7"
   ],
   "created": "2026-09-13T11:20:47Z",
-  "description": "Verify the production Even Android WebView exposes navigator.ml WITHOUT flags. Inventory WebNN deviceType preferences (npu/gpu/cpu), MLTensor I/O binding, Web Workers, WASM SIMD, SharedArrayBuffer and whether cross-origin isolation (COOP/COEP) can be enabled for plugin content (needed by Turso WASM), OPFS sync access handles, storage quota. Do not infer from standalone Chrome. BLOCKER if WebNN is absent. plan.md §3, §13.2.",
+  "description": "Verify the production Even WebView on Android AND iOS exposes navigator.gpu WITHOUT flags, in the page and in a dedicated worker. Inventory adapter info, shader-f16, maxBufferSize/maxStorageBufferBindingSize, known-answer compute shader, Web Workers, WASM SIMD/threads, SharedArrayBuffer and whether cross-origin isolation (COOP/COEP) can be enabled for plugin content (needed by Turso WASM), OPFS sync access handles, storage quota, secure context. Also run in standalone Chrome (Android) and Safari (iOS 26+), but do not infer Even WebView support from them. Missing WebGPU in an Even WebView blocks local STT/summary on that platform. plan.md §3, §13.2. Runbook: docs/phase0/RUNBOOK.md Spike 2.",
   "id": "irl-subt-0i6.2",
   "labels": [
     "mvp"
@@ -17,7 +17,7 @@
   "parent": "irl-subt-0i6",
   "priority": 0,
   "status": "open",
-  "title": "Spike: WebNN and platform capability inventory in Even WebView",
+  "title": "Spike: WebGPU and platform capability inventory in Even WebView (Android + iOS)",
   "type": "task",
-  "updated_at": "2026-09-13T11:29:23Z"
+  "updated_at": "2026-09-13T12:51:34Z"
 }
