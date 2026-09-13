@@ -11,9 +11,15 @@
     "post-mvp"
   ],
   "parent": "irl-subt-clx",
+  "comments": [
+    {
+      "text": "Superseded by irl-subt-0i6.18: iOS and WebGPU are now MVP scope. WebGPU/lifecycle inventory moved into irl-subt-0i6.2 and 0i6.1 (Android + iOS), the WebGPU runtime into irl-subt-dp8.1, catalog validation into irl-subt-0i6.3.",
+      "timestamp": "2026-09-13T12:52:30Z"
+    }
+  ],
   "priority": 4,
   "status": "open",
   "title": "Spike: WebGPU capability and lifecycle in Even iOS WKWebView",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:57Z"
+  "updated_at": "2026-09-13T12:52:30Z"
 }
