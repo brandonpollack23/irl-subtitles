@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:47Z",
   "description": "StreamingRun, TranscriptionProvider, DiarizationProvider, VoiceIdentityProvider, SummaryProvider, ProviderCapabilities (incl. fused-with-stt), WebNNRuntime/Selector, ModelCatalogEntry/ModelSelection types. Reserve optional TranslationProvider slot. plan.md §5, §6.1.",
   "id": "irl-subt-b5w.3",
-  "labels": [],
+  "labels": [
+    "mvp"
+  ],
   "parent": "irl-subt-b5w",
   "priority": 1,
   "status": "open",
