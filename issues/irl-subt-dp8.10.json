@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:48Z",
   "description": "Join word timing with speaker turns and person matches; revisions; provisional vs final replacement. plan.md §4.",
   "id": "irl-subt-dp8.10",
-  "labels": [],
+  "labels": [
+    "mvp"
+  ],
   "parent": "irl-subt-dp8",
   "priority": 1,
   "status": "open",
