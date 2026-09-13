@@ -5,7 +5,8 @@
     "irl-subt-0i6.3.2",
     "irl-subt-0i6.3.3",
     "irl-subt-0i6.3.4",
-    "irl-subt-0i6.3.5"
+    "irl-subt-0i6.3.5",
+    "irl-subt-0i6.3.7"
   ],
   "blocks": [],
   "created": "2026-09-13T11:20:47Z",
@@ -19,5 +20,5 @@
   "status": "open",
   "title": "Sustained concurrent benchmarks: 60-min live stack and post-Stop stack",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:47Z"
+  "updated_at": "2026-09-13T12:08:22Z"
 }
