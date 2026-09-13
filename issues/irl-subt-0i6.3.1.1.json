@@ -3,13 +3,13 @@
   "blocked_by": [],
   "blocks": [],
   "created": "2026-09-13T12:08:22Z",
-  "description": "In desktop Chrome 153 with WebNN enabled, ORT Web 1.29 WebNN EP fails InferenceSession.create for silero_vad_op18_ifless.onnx on npu/gpu/cpu with 'ERROR_CODE: 6, absl::container_internal::raw_hash_map\u003c\u003e::at' even though GetCapability claims 1 partition of 43 nodes. WASM works (0.5 ms p50, drift 1e-6). Whisper-tiny encoder works on WebNN in the same harness, so the harness is not the cause. Confirm on the Even Android WebView; try freeDimensionOverrides variations, casting the int64 'sr' scalar, an opset/export variant, or report upstream to onnxruntime.",
+  "description": "Desktop Chrome 153 (Linux, NVIDIA), onnxruntime-web 1.29.0 native WebGPU EP (onnxruntime-web/webgpu): silero_vad_op18_ifless.onnx runs (81 nodes WebGPU, 3 CPU) but stateN drifts badly vs WASM and the CPU fixture (maxAbsDiff 1.55, cosine 0.936; output diff 1.9e-3). JSEP WebGPU EP and WASM agree to ~1e-6. Likely a kernel bug in the native EP. Since VAD should run on WASM anyway, this is only a blocker if WASM is unavailable; confirm on phones, bisect the offending op (forceCpuNodeNames), and report upstream. (Previously: WebNN session failure, moot after irl-subt-0i6.18.)",
   "id": "irl-subt-0i6.3.1.1",
   "labels": [],
   "parent": "irl-subt-0i6.3.1",
   "priority": 1,
   "status": "open",
-  "title": "Investigate Silero VAD WebNN session failure (absl raw_hash_map::at)",
+  "title": "Silero VAD wrong recurrent state on ORT Web native WebGPU EP",
   "type": "bug",
-  "updated_at": "2026-09-13T12:08:22Z"
+  "updated_at": "2026-09-13T12:51:34Z"
 }
