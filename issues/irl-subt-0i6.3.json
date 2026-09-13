@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-0i6.2"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:47Z",
   "description": "Produce/verify ONNX exports for every catalog entry and run known-answer + sustained WebNN benchmarks. Record RTF, peak memory, battery, thermals, operator fallback, device preference, numerical drift. Confirm or revise §6.1 defaults. plan.md §6.1, §13.3.",
