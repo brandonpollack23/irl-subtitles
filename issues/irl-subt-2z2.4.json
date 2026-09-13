@@ -4,7 +4,8 @@
     "irl-subt-2z2.2"
   ],
   "blocks": [
-    "irl-subt-2z2.5"
+    "irl-subt-2z2.5",
+    "irl-subt-2z2.6"
   ],
   "created": "2026-09-13T11:20:47Z",
   "description": "States starting -\u003e recording -\u003e finalizing -\u003e captured -\u003e ready. Mark recording only after durable capture succeeds. plan.md §9.",

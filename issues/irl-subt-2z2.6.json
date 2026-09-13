@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-2z2.4"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:48Z",
   "description": "Recordings are not persisted by default; toggle in G2 context menu. Define what 'not persisted' means for crash recovery and processing buffers. plan.md §2.",
