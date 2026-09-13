@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:53Z",
+  "description": "Enable Soniox real-time translation config and normalize output to TranslationProvider events.",
+  "id": "irl-subt-7ys.3",
+  "labels": [],
+  "parent": "irl-subt-7ys",
+  "priority": 3,
+  "status": "open",
+  "title": "Soniox translation block integration",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:53Z"
+}
