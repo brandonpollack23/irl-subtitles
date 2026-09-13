@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:48Z",
   "description": "Minimal G2 surface: Start recording, provider label, elapsed time, persistent recording indicator, degraded-state text, Add marker, Stop and summarize. Use textContainerUpgrade to avoid flicker; short menu labels. plan.md §10.",
   "id": "irl-subt-2z2.7",
-  "labels": [],
+  "labels": [
+    "mvp"
+  ],
   "parent": "irl-subt-2z2",
   "priority": 1,
   "status": "open",
