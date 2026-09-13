@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:56Z",
+  "description": "Link people to phone contacts via opaque ExternalPersonLink. Blocked on a future Even bridge or supported native companion. plan.md §15.",
+  "id": "irl-subt-c74",
+  "labels": [],
+  "priority": 4,
+  "status": "open",
+  "title": "Post-MVP: Phone-contact linking",
+  "type": "epic",
+  "updated_at": "2026-09-13T11:20:56Z"
+}
