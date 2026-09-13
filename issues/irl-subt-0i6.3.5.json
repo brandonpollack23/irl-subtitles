@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-0i6.3.6"
+  ],
   "created": "2026-09-13T11:20:47Z",
   "description": "Validate mobile-quantized ONNX exports, memory fit alongside other models, tokens/sec, JSON-constrained decoding feasibility, validated context length.",
   "id": "irl-subt-0i6.3.5",
