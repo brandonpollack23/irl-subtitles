@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-dp8.5"
+  ],
   "created": "2026-09-13T11:20:48Z",
   "description": "One canonical audio clock; routes frames to storage and selected processors; supports fused capabilities; normalizes provider output. plan.md §4, §5.",
   "id": "irl-subt-dp8.4",

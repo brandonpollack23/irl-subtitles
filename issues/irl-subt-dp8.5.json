@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-dp8.4"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:48Z",
   "description": "Speech/silence segmentation preserving original sample offsets. plan.md §6.1 step 1.",
