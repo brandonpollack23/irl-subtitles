@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:52Z",
+  "description": "Language chips/markers per segment, correct fonts/scripts on phone and G2 (CJK rendering, UTF-8 byte limits), search across languages.",
+  "id": "irl-subt-wfn.13",
+  "labels": [],
+  "parent": "irl-subt-wfn",
+  "priority": 2,
+  "status": "open",
+  "title": "Transcript UI for mixed-language conversations",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:52Z"
+}
