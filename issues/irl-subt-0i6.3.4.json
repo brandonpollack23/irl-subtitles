@@ -5,7 +5,7 @@
     "irl-subt-0i6.3.6"
   ],
   "created": "2026-09-13T11:20:47Z",
-  "description": "PRODUCT BLOCKER if no embedding model runs acceptably via WebNN. Measure latency on 1.5–3 s windows at ~1 Hz, NPU vs GPU placement, numerical drift vs reference EER.",
+  "description": "PRODUCT BLOCKER (per platform) if no embedding model runs acceptably on WebGPU or WASM. Measure latency on 1.5-3 s windows at ~1 Hz, WebGPU vs WASM, numerical drift vs reference EER. Desktop evidence: CAM++ runs fully on native WebGPU (drift 2e-5) but at 198 ms p50 vs 40 ms on WASM; fails on JSEP (AveragePool ceil_mode unimplemented).",
   "id": "irl-subt-0i6.3.4",
   "labels": [
     "mvp"
@@ -13,7 +13,7 @@
   "parent": "irl-subt-0i6.3",
   "priority": 0,
   "status": "open",
-  "title": "Benchmark speaker embedding (CAM++, WeSpeaker ResNet34-LM, ECAPA-TDNN, ReDimNet2-B6) via WebNN",
+  "title": "Benchmark speaker embedding (CAM++, WeSpeaker ResNet34-LM, ECAPA-TDNN, ReDimNet2-B6) on WebGPU/WASM",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:47Z"
+  "updated_at": "2026-09-13T12:51:34Z"
 }
