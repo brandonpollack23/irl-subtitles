@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:52Z",
   "description": "If mode C ships: add validated multilingual/code-switching models to catalog with language metadata; wire auto LID output into tokens.",
   "id": "irl-subt-wfn.11",
-  "labels": [],
+  "labels": [
+    "post-mvp"
+  ],
   "parent": "irl-subt-wfn",
   "priority": 2,
   "status": "open",
