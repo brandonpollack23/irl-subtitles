@@ -16,7 +16,7 @@
   "parent": "irl-subt-wfn",
   "priority": 2,
   "status": "open",
-  "title": "Spike: per-utterance/per-turn LID via WebNN (ECAPA VoxLingua107, Whisper/Qwen3 encoder LID)",
+  "title": "Spike: per-utterance/per-turn LID on WebGPU/WASM (ECAPA VoxLingua107, Whisper/Qwen3 encoder LID)",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:52Z"
+  "updated_at": "2026-09-13T12:52:18Z"
 }
