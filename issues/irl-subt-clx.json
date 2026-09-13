@@ -10,9 +10,15 @@
   "labels": [
     "post-mvp"
   ],
+  "comments": [
+    {
+      "text": "Superseded by irl-subt-0i6.18: iOS support via WebGPU is now in the MVP (plan.md §3, §13).",
+      "timestamp": "2026-09-13T12:52:31Z"
+    }
+  ],
   "priority": 4,
   "status": "open",
   "title": "Post-MVP: iOS support via WebGPU compute adapter",
   "type": "epic",
-  "updated_at": "2026-09-13T11:20:57Z"
+  "updated_at": "2026-09-13T12:52:31Z"
 }
