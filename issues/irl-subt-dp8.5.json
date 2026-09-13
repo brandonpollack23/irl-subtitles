@@ -4,7 +4,8 @@
     "irl-subt-dp8.4"
   ],
   "blocks": [
-    "irl-subt-dp8.6"
+    "irl-subt-dp8.6",
+    "irl-subt-dp8.7"
   ],
   "created": "2026-09-13T11:20:48Z",
   "description": "Speech/silence segmentation preserving original sample offsets. plan.md §6.1 step 1.",
