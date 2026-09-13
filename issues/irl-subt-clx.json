@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:56Z",
   "description": "WebGPU execution behind the same provider/domain contracts, if Even WKWebView exposes required features. plan.md §15.",
   "id": "irl-subt-clx",
-  "labels": [],
+  "labels": [
+    "post-mvp"
+  ],
   "priority": 4,
   "status": "open",
   "title": "Post-MVP: iOS support via WebGPU compute adapter",
