@@ -3,7 +3,9 @@
   "blocked_by": [
     "irl-subt-9ij.9"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-7ys"
+  ],
   "created": "2026-09-13T11:20:51Z",
   "description": "FIRST post-MVP priority. Move beyond one user-selected language per recording. Determine which of three operating modes are feasible on-device via WebNN, and ship the best one(s):\n(A) Select language: user picks one or a small set of languages per recording (MVP behavior, generalized).\n(B) Per-line detection: detect language per spoken line / VAD utterance / speaker turn and route to matching per-language models (e.g. switching Moonshine checkpoints mid-recording).\n(C) Fully mixed: first-class intra-sentential code-switching with token-level language tags.\nMode may differ between live and final passes (e.g. B live, C final). Soniox already does token-level LID natively. plan.md §2 (not in MVP), §6.1 live STT rationale.",
   "id": "irl-subt-wfn",
@@ -14,5 +16,5 @@
   "status": "open",
   "title": "Post-MVP: Multilingual support (language detection, routing, code-switching)",
   "type": "epic",
-  "updated_at": "2026-09-13T11:20:53Z"
+  "updated_at": "2026-09-13T11:20:54Z"
 }
