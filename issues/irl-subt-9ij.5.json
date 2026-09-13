@@ -5,7 +5,9 @@
   "created": "2026-09-13T11:20:50Z",
   "description": "Export transcript/summary with speaker label snapshot and confirmed/auto provenance. plan.md §11.",
   "id": "irl-subt-9ij.5",
-  "labels": [],
+  "labels": [
+    "mvp"
+  ],
   "parent": "irl-subt-9ij",
   "priority": 2,
   "status": "open",
