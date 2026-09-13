@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:48Z",
+  "description": "Incremental provisional tokens, timing segment-interpolated. Filter checkpoints by recording language. plan.md §6.1 step 2.",
+  "id": "irl-subt-dp8.6",
+  "labels": [],
+  "parent": "irl-subt-dp8",
+  "priority": 1,
+  "status": "open",
+  "title": "Local live STT provider (Moonshine Streaming default) in Web Worker",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:48Z"
+}
