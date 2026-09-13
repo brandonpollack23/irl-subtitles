@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:47Z",
+  "description": "Write decision record summarizing spike results: WebNN availability, confirmed default models per role, default performance tier, Soniox feasibility, storage approach. Update plan.md model catalog if defaults change.",
+  "id": "irl-subt-0i6.7",
+  "labels": [],
+  "parent": "irl-subt-0i6",
+  "priority": 0,
+  "status": "open",
+  "title": "Phase 0 go/no-go decision record",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:47Z"
+}
