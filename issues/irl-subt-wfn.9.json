@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-13T11:20:52Z",
+  "description": "Replace single-language picker with modes chosen in the decision record; model dropdowns filter by mode and language set; G2 shows current detected language when useful.",
+  "id": "irl-subt-wfn.9",
+  "labels": [],
+  "parent": "irl-subt-wfn",
+  "priority": 2,
+  "status": "open",
+  "title": "Language settings UI: single language, language set, auto per-line, mixed",
+  "type": "task",
+  "updated_at": "2026-09-13T11:20:52Z"
+}
