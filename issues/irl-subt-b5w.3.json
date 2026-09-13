@@ -5,7 +5,7 @@
   ],
   "blocks": [],
   "created": "2026-09-13T11:20:47Z",
-  "description": "StreamingRun, TranscriptionProvider, DiarizationProvider, VoiceIdentityProvider, SummaryProvider, ProviderCapabilities (incl. fused-with-stt), WebNNRuntime/Selector, ModelCatalogEntry/ModelSelection types. Reserve optional TranslationProvider slot. plan.md §5, §6.1.",
+  "description": "StreamingRun, TranscriptionProvider, DiarizationProvider, VoiceIdentityProvider, SummaryProvider, ProviderCapabilities (incl. fused-with-stt), ComputeRuntime/Selector (execution target webgpu|wasm), ModelCatalogEntry/ModelSelection types. Reserve optional TranslationProvider slot. plan.md §5, §6.1.",
   "id": "irl-subt-b5w.3",
   "labels": [
     "mvp"
@@ -15,5 +15,5 @@
   "status": "open",
   "title": "Provider contracts and capability descriptors",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:47Z"
+  "updated_at": "2026-09-13T12:52:18Z"
 }
