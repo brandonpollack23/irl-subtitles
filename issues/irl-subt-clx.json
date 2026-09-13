@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-9ij.9"
+  ],
   "blocks": [],
   "created": "2026-09-13T11:20:56Z",
   "description": "WebGPU execution behind the same provider/domain contracts, if Even WKWebView exposes required features. plan.md §15.",
@@ -12,5 +14,5 @@
   "status": "open",
   "title": "Post-MVP: iOS support via WebGPU compute adapter",
   "type": "epic",
-  "updated_at": "2026-09-13T11:20:56Z"
+  "updated_at": "2026-09-13T11:20:57Z"
 }
