@@ -4,7 +4,9 @@
     "irl-subt-7ys.1",
     "irl-subt-7ys.2"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-7ys.5"
+  ],
   "created": "2026-09-13T11:20:53Z",
   "description": "Implement chosen on-device model from research, scheduled against live stack budget.",
   "id": "irl-subt-7ys.4",
