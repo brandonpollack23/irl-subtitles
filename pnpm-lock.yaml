@@ -107,6 +107,12 @@ importers:
       '@irl/domain':
         specifier: workspace:*
         version: link:../domain
+      '@irl/pipeline':
+        specifier: workspace:*
+        version: link:../pipeline
+      '@irl/provider-summary':
+        specifier: workspace:*
+        version: link:../provider-summary
       onnxruntime-web:
         specifier: 1.29.0
         version: 1.29.0

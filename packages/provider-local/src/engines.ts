@@ -1,0 +1,199 @@
+import { Emitter, errorMessage, type BenchmarkResult, type ExecutionTarget, type ModelCatalogEntry, type PowerPolicy } from "@irl/domain";
+import { catalogEntry } from "./catalog";
+import { availabilityOnDevice, detectCapabilities, selectTarget, type DeviceCapabilities } from "./device";
+import { cachedFiles } from "./model-files";
+import { isGpuFailure } from "./ort-env";
+import { RpcClient } from "./rpc";
+import type { AsrResult } from "./workers/asr.worker";
+
+export type EngineKind = "audio" | "asr" | "llm";
+
+export interface LoadProgress {
+  modelId: string;
+  status: "downloading" | "loading" | "ready" | "failed";
+  loaded?: number;
+  total?: number;
+  error?: string;
+}
+
+export interface EngineEvent {
+  type: "gpu-failure" | "worker-crash";
+  engine: EngineKind;
+  message: string;
+}
+
+/**
+ * Owns the ML workers and which model each has loaded (plan.md §5 ComputeRuntime). Models load on demand
+ * per execution target; a WebGPU failure disposes that worker's sessions and is reported so callers can
+ * degrade to deferred processing without touching capture.
+ */
+export class LocalEngines {
+  private clients = new Map<EngineKind, RpcClient>();
+  private loaded = new Map<EngineKind, Map<string, Promise<void>>>();
+  readonly progress = new Emitter<LoadProgress>();
+  readonly events = new Emitter<EngineEvent>();
+  caps: DeviceCapabilities | null = null;
+  benchmarks: BenchmarkResult[] = [];
+  policy: PowerPolicy = "balanced";
+
+  constructor(private readonly workerFactory: Record<EngineKind, () => Worker>) {}
+
+  async capabilities(): Promise<DeviceCapabilities> {
+    this.caps ??= await detectCapabilities();
+    return this.caps;
+  }
+
+  private client(kind: EngineKind): RpcClient {
+    let c = this.clients.get(kind);
+    if (!c || !c.alive) {
+      c = new RpcClient(this.workerFactory[kind](), kind);
+      this.clients.set(kind, c);
+      this.loaded.set(kind, new Map());
+    }
+    return c;
+  }
+
+  async targetFor(entry: ModelCatalogEntry): Promise<ExecutionTarget> {
+    return selectTarget(entry, await this.capabilities(), this.policy, this.benchmarks);
+  }
+
+  /** A model counts as downloaded once it loaded successfully at its pinned revision and its files are still cached. */
+  async isDownloaded(modelId: string): Promise<boolean> {
+    const e = catalogEntry(modelId);
+    if (!e) return false;
+    if (readyRegistry()[modelId] !== e.manifest.version) return false;
+    const c = await cachedFiles(e);
+    return c.cached >= Math.min(requiredFileCount(e), c.total);
+  }
+
+  forgetDownloaded(modelId: string): void {
+    const reg = readyRegistry();
+    delete reg[modelId];
+    writeReadyRegistry(reg);
+  }
+
+  private ensure(kind: EngineKind, method: string, modelId: string, payload: Record<string, unknown>): Promise<void> {
+    const entry = catalogEntry(modelId);
+    if (!entry) return Promise.reject(new Error(`unknown model ${modelId}`));
+    const client = this.client(kind);
+    const key = `${modelId}:${JSON.stringify(payload)}`;
+    const cache = this.loaded.get(kind)!;
+    const existing = cache.get(key);
+    if (existing) return existing;
+    // One model per engine: loading another replaces it inside the worker.
+    cache.clear();
+    const p = (async () => {
+      const availability = availabilityOnDevice(entry, await this.capabilities());
+      if (availability.status === "unavailable") throw new Error(availability.reason);
+      this.progress.emit({ modelId, status: "loading" });
+      await client.call(method, { modelId, ...payload }, {
+        progress: (raw) => {
+          const r = raw as { status?: string; loaded?: number; total?: number };
+          if (r.loaded !== undefined) this.progress.emit({ modelId, status: "downloading", loaded: r.loaded, total: r.total });
+        },
+      });
+      writeReadyRegistry({ ...readyRegistry(), [modelId]: entry.manifest.version });
+      this.progress.emit({ modelId, status: "ready" });
+    })().catch((e) => {
+      cache.delete(key);
+      this.progress.emit({ modelId, status: "failed", error: errorMessage(e) });
+      throw e;
+    });
+    cache.set(key, p);
+    return p;
+  }
+
+  async ensureVad(modelId: string): Promise<void> {
+    return this.ensure("audio", "vad.load", modelId, {});
+  }
+
+  async ensureEmbedding(modelId: string): Promise<void> {
+    const target = await this.targetFor(catalogEntry(modelId)!);
+    return this.ensure("audio", "embed.load", `${modelId}`, { target }).catch(async (e) => {
+      if (target === "webgpu") return this.ensure("audio", "embed.load", modelId, { target: "wasm" });
+      throw e;
+    });
+  }
+
+  async ensureAsr(modelId: string): Promise<ExecutionTarget> {
+    const entry = catalogEntry(modelId)!;
+    const target = await this.targetFor(entry);
+    try {
+      await this.ensure("asr", "asr.load", modelId, { target });
+      return target;
+    } catch (e) {
+      if (target === "webgpu" && entry.manifest.params?.requiresWebGpu !== true) {
+        await this.ensure("asr", "asr.load", modelId, { target: "wasm" });
+        return "wasm";
+      }
+      throw e;
+    }
+  }
+
+  async ensureLlm(modelId: string): Promise<void> {
+    return this.ensure("llm", "llm.load", modelId, {});
+  }
+
+  async call<T>(kind: EngineKind, method: string, payload: unknown, opts: { transfer?: Transferable[]; progress?: (p: unknown) => void } = {}): Promise<T> {
+    try {
+      return await this.client(kind).call<T>(method, payload, opts);
+    } catch (e) {
+      if (isGpuFailure(e) || !this.clients.get(kind)?.alive) {
+        this.events.emit({ type: isGpuFailure(e) ? "gpu-failure" : "worker-crash", engine: kind, message: errorMessage(e) });
+        this.reset(kind);
+      }
+      throw e;
+    }
+  }
+
+  vadPush(samples: Float32Array) {
+    return this.call<{ probs: Float32Array; firstWindowStart: number }>("audio", "vad.push", { samples }, { transfer: [samples.buffer] });
+  }
+
+  transcribe(samples: Float32Array, language: string, wordTimestamps: boolean) {
+    return this.call<AsrResult>("asr", "asr.run", { samples, language, wordTimestamps }, { transfer: [samples.buffer] });
+  }
+
+  embed(windows: { samples: Float32Array; startSample: number; endSample: number }[]) {
+    return this.call<{ vector: Float32Array; startSample: number; endSample: number; quality: number; ms: number }[]>("audio", "embed.run", { windows });
+  }
+
+  /** Terminates a worker; its models reload on next use. */
+  reset(kind: EngineKind): void {
+    this.clients.get(kind)?.terminate();
+    this.clients.delete(kind);
+    this.loaded.delete(kind);
+  }
+
+  async release(kinds: readonly EngineKind[] = ["asr", "llm"]): Promise<void> {
+    for (const k of kinds) this.reset(k);
+  }
+}
+
+const READY_KEY = "irl.models.ready.v1";
+
+function readyRegistry(): Record<string, string> {
+  try {
+    return JSON.parse(localStorage.getItem(READY_KEY) ?? "{}") as Record<string, string>;
+  } catch {
+    return {};
+  }
+}
+
+function writeReadyRegistry(r: Record<string, string>): void {
+  try {
+    localStorage.setItem(READY_KEY, JSON.stringify(r));
+  } catch {
+    /* storage unavailable: models simply re-verify from cache next time */
+  }
+}
+
+/** Files a model actually needs: optional per-dtype alternatives in the manifest count once. */
+export function requiredFileCount(entry: ModelCatalogEntry): number {
+  const files = entry.manifest.files.map((f) => f.path);
+  if (entry.manifest.adapter.startsWith("ort-")) return Math.min(1, files.length);
+  const onnx = files.filter((f) => f.endsWith(".onnx"));
+  // For transformers.js entries require configs plus at least one encoder/decoder (or model) graph.
+  const configs = files.filter((f) => !f.includes("onnx/")).length;
+  return configs + Math.min(onnx.length, entry.role === "speaker-embedding" ? 1 : 2);
+}
