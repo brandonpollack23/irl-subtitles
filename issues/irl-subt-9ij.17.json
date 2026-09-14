@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-14T05:24:03Z",
+  "description": "Selected VAD, live STT and speaker-embedding models load in the background as soon as the app boots (and again after post-processing releases the ASR worker, and when the selection changes), not when a conversation starts. While they're still loading the glasses say so (idle page and while recording) so the user knows captions will be delayed; starting a recording is never blocked by loading.",
+  "id": "irl-subt-9ij.17",
+  "labels": [],
+  "parent": "irl-subt-9ij",
+  "priority": 1,
+  "status": "open",
+  "title": "Warm live models at app launch; show loading state on glasses",
+  "type": "task",
+  "updated_at": "2026-09-14T05:24:03Z"
+}
