@@ -11,6 +11,12 @@
   "id": "irl-subt-kdl.9",
   "labels": [],
   "parent": "irl-subt-kdl",
+  "comments": [
+    {
+      "text": "Landed (jj rev 'Live captions stream through Moonshine Streaming'). Design: separate 'stream' engine/worker (moonshine.worker.ts: ms.load w/ warm-up, ms.start, ms.push, ms.stop, ms.transcribe); LocalLiveRun streaming mode feeds ring audio continuously, maps line times from the stream origin, open lines -\u003e provisional tokens (replaceProvisional), completed lines -\u003e final tokens once (deduped host-side), flush on finish. Kept our Silero VadSegmenter for speaker windows/turns (one sample clock); Moonshine's internal VAD only segments lines. Turns no longer wait for text in streaming mode. Harness test 'captions speech live with Moonshine Streaming' (budget first caption \u003c 2.5 s, final p95 \u003c 1.5 s) passes: 1.39 s / 0.77 s. Simulator two_cities Small: load 1171 ms (+58 ms warm-up), interim lag p50/p95 0.31/0.51 s, final 0.50/0.86 s, compute 0.625 per s of new audio, first caption 2.18 s, 63 caption updates. Known: scheduler jumped to level 1 on one pass (rtf 0.99) and disabled interim text for 30 s -\u003e kdl.5. Whisper live path (auto) unchanged.",
+      "timestamp": "2026-09-14T10:37:54Z"
+    }
+  ],
   "priority": 0,
   "status": "in_progress",
   "title": "Live STT adapter on moonshine-wasm streaming",
