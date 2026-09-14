@@ -6,6 +6,7 @@
   "blocks": [
     "irl-subt-kdl.12"
   ],
+  "closed_at": "2026-09-14T10:37:54Z",
   "created": "2026-09-14T09:32:28Z",
   "description": "New live path for Moonshine Streaming: a dedicated worker hosting the single-thread moonshine-wasm module, fed the recording's 16 kHz frames continuously (not VAD utterances), transcript update interval ~0.3-0.5 s. Map onText -\u003e provisional tokens (replaceProvisional) and onLine -\u003e final tokens with segment-interpolated timing on our sample clock; decide whether its internal VAD replaces Silero for utterance boundaries or we keep our VadSegmenter for speaker windows and only use Moonshine for text (keep one sample clock, see irl-subt-9ij.16). Integrate with LocalEngines load/progress/ModelWarmup, degraded states, WebGPU-free error recovery, and the scheduler (A5). Live harness test with real models. Keep tjs-asr Whisper live path for language=auto.",
   "id": "irl-subt-kdl.9",
@@ -18,7 +19,7 @@
     }
   ],
   "priority": 0,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Live STT adapter on moonshine-wasm streaming",
   "type": "task",
   "updated_at": "2026-09-14T10:37:54Z"
