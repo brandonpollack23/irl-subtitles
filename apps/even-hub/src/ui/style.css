@@ -127,6 +127,8 @@ label.check input { width: 22px; height: 22px; margin-top: 1px; flex: none; acce
 .stage { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: baseline; }
 .progress { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
 .progress > div { height: 100%; background: var(--action); }
+.progress.large { height: 8px; border-radius: 4px; }
+.progress.large > div { transition: width 0.2s linear; }
 pre.diag { white-space: pre-wrap; word-break: break-word; font-size: 0.75rem; max-height: 40dvh; overflow: auto; background: var(--ground); padding: 8px; border-radius: 8px; }
 table.kv { border-collapse: collapse; width: 100%; font-size: 0.875rem; }
 table.kv th { text-align: left; font-weight: 600; color: var(--muted); padding: 2px 12px 2px 0; vertical-align: top; }

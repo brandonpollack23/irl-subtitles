@@ -86,10 +86,21 @@ export class LocalEngines {
       const availability = availabilityOnDevice(entry, await this.capabilities());
       if (availability.status === "unavailable") throw new Error(availability.reason);
       this.progress.emit({ modelId, status: "loading" });
+      // transformers.js reports each file separately (plus its own running totals); sum per file so
+      // the model's progress doesn't jump back to 0% when the next file starts.
+      const files = new Map<string, { loaded: number; total: number }>();
       await client.call(method, { modelId, ...payload }, {
         progress: (raw) => {
-          const r = raw as { status?: string; loaded?: number; total?: number };
-          if (r.loaded !== undefined) this.progress.emit({ modelId, status: "downloading", loaded: r.loaded, total: r.total });
+          const r = raw as { status?: string; file?: string; loaded?: number; total?: number };
+          if (r.loaded === undefined || r.status === "progress_total") return;
+          files.set(r.file ?? "", { loaded: r.loaded, total: Math.max(r.total ?? 0, r.loaded) });
+          let loaded = 0;
+          let total = 0;
+          for (const f of files.values()) {
+            loaded += f.loaded;
+            total += f.total;
+          }
+          this.progress.emit({ modelId, status: "downloading", loaded, total });
         },
       });
       writeReadyRegistry({ ...readyRegistry(), [modelId]: entry.manifest.version });

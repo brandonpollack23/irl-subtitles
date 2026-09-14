@@ -944,6 +944,11 @@ The G2 interface stays intentionally small:
 - Add marker.
 - Stop and summarize.
 
+Touchpad and R1 gestures mirror Even's Conversate: tap to start, tap to pause or
+resume, double tap to end (stop and summarize). Double tap on the idle page opens
+the system exit dialog (`shutDownPageContainer(1)`, required by Even Hub review).
+Add marker and the Save audio toggle live in the contextual menu.
+
 Use `textContainerUpgrade` for live status to avoid redraw flicker, and keep
 contextual-menu actions short. The app must retain a persistent, unambiguous
 recording indicator; it must not behave like a covert recorder.

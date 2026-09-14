@@ -172,15 +172,21 @@ audio from your laptop mic (choose with `--aid`) and supports the context menu.
 Automation: `curl -XPOST localhost:9898/api/input -d '{"action":"context_menu"}'`,
 `curl localhost:9898/api/screenshot/glasses > g.png`.
 
-- [ ] On launch the glasses show "IRL Subtitles  Local" and "Ready…".
+- [ ] On launch the glasses show "IRL Subtitles  Local" and "Ready… Tap to start. Double tap to exit."
       *Blank:* `createStartUpPageContainer` result in the console (`glasses` log scope).
+- [ ] Gestures mirror Conversate (`/api/input` `click` / `double_click`):
+  - [ ] Tap on Ready starts recording (after ~0.5 s): status line "REC 00:03 …", phone shows
+        the live banner; captions appear on the glasses body, speaker name prefix once clustered.
+  - [ ] Tap while recording pauses ("PAUSED", "Tap to resume. Double tap to end."); tap again resumes.
+  - [ ] Double tap while recording or paused stops and summarizes, without pausing first.
+  - [ ] Double tap on Ready shows the system exit dialog; confirming closes the phone WebView too.
+  - [ ] Tap-then-hold to open the menu while recording does not pause. *On hardware:* if it does,
+        the menu's tap is reaching us before `FOREGROUND_ENTER_EVENT`; raise `TAP_SETTLE_MS`.
+  - [ ] Log which field taps arrive on (`textEvent` vs `sysEvent`) on real glasses and the R1 ring.
 - [ ] Menu shows "Start recording" and "Save audio: off"; selecting the toggle
       flips the label and Settings → Save audio.
-- [ ] Start recording from the menu: status line "REC 00:03 …", phone shows the live
-      banner; captions appear on the glasses body, speaker name prefix once clustered.
 - [ ] Menu while recording: Add marker, Pause, Stop and summarize. Pause shows
       "PAUSED" and the menu changes to Resume / Stop.
-- [ ] Double tap while recording adds a marker.
 - [ ] Stop: glasses show "Saved. Processing on your phone…", then return to Ready.
 - [ ] A named person's short name is used on the glasses when the full name is long.
 - [ ] Text never overflows: long captions are cut with "…" (limit ~220 chars body).

@@ -11,6 +11,11 @@ const MENU = { start: 1, stop: 2, pause: 3, resume: 4, marker: 5, toggleAudio: 6
 const STATUS = { id: 1, name: "status" };
 const BODY = { id: 2, name: "body" };
 const TEXT_LIMIT = 900;
+/**
+ * A single tap waits this long before acting, so the second tap of a double tap (or the OS's
+ * tap-then-hold menu gesture) can cancel it instead of starting or pausing first.
+ */
+const TAP_SETTLE_MS = 500;
 
 type Mode = "idle" | "recording" | "paused" | "finalizing";
 
@@ -28,7 +33,9 @@ function label(text: string) {
 /**
  * The constrained G2 surface (plan.md §10): idle start page, and while recording a persistent REC
  * indicator with elapsed time, the current speaker, the last caption lines, and degraded-state text.
- * Menu actions: start, pause/resume, add marker, stop and summarize, and the "Save audio" toggle.
+ * Touchpad gestures mirror Even's Conversate: tap to start, tap to pause or resume, double tap to end
+ * (stop and summarize). Double tap on the idle root page opens the system exit dialog, as Even Hub
+ * app review requires. The contextual menu adds marker and the "Save audio" toggle.
  * Text updates use textContainerUpgrade and are coalesced so a slow BLE link never builds a backlog.
  */
 export class GlassesController {
@@ -50,7 +57,7 @@ export class GlassesController {
   async init(): Promise<boolean> {
     this.bridge = await getBridge();
     if (!this.bridge) return false;
-    onHubEvent((e) => void this.onEvent(e));
+    onHubEvent((e) => this.onEvent(e));
     this.controller.live.on((s) => this.onSnapshot(s));
     this.settings.changes.on(() => this.lastSnapshot && this.mode === "idle" && void this.render(this.lastSnapshot, true));
     await this.ensurePage();
@@ -122,7 +129,8 @@ export class GlassesController {
     const provider = s.provider === "soniox" ? "Soniox" : "Local";
     const audio = s.persistAudio ? "saving audio" : "audio not saved";
     if (mode === "idle") {
-      return { status: `IRL Subtitles  ${provider}`, body: truncateUtf8(this.notice ?? `Ready. ${s.persistAudio ? "Audio will be saved." : "Audio won't be saved."}\nOpen the menu to start recording.`, TEXT_LIMIT) };
+      const ready = `Ready. ${s.persistAudio ? "Audio will be saved." : "Audio won't be saved."}`;
+      return { status: `IRL Subtitles  ${provider}`, body: truncateUtf8(`${this.notice ?? ready}\nTap to start. Double tap to exit.`, TEXT_LIMIT) };
     }
     if (mode === "finalizing") return { status: "Stopped", body: "Saved. Processing on your phone…" };
     // The recording indicator is always the first thing on the status line (plan.md §11: never covert).
@@ -138,7 +146,8 @@ export class GlassesController {
       });
       const caption = [...last, s.provisionalText].filter(Boolean).join("\n");
       const tail = caption.length > 220 ? `…${caption.slice(-220)}` : caption;
-      body = [this.settings.get().showCaptionsOnGlasses ? tail : "", s.degraded ?? "", `(${audio})`].filter(Boolean).join("\n");
+      const hint = mode === "paused" ? "Tap to resume. Double tap to end." : "";
+      body = [this.settings.get().showCaptionsOnGlasses ? tail : "", s.degraded ?? "", hint, `(${audio})`].filter(Boolean).join("\n");
     }
     return { status: truncateUtf8(status, 120), body: truncateUtf8(body || " ", TEXT_LIMIT) };
   }
@@ -232,26 +241,86 @@ export class GlassesController {
     this.shown.clear();
   }
 
-  private async onEvent(e: EvenHubEvent): Promise<void> {
+  private pendingTap: ReturnType<typeof setTimeout> | null = null;
+
+  private cancelTap(): void {
+    if (this.pendingTap) clearTimeout(this.pendingTap);
+    this.pendingTap = null;
+  }
+
+  private onEvent(e: EvenHubEvent): void {
     const id = e.menuItemClickEvent?.itemID;
+    if (id !== undefined) {
+      this.cancelTap();
+      void this.act(() => this.onMenu(id));
+      return;
+    }
+    const sys = e.sysEvent?.eventType;
+    // The OS menu opens on tap-then-hold; that tap must not start or pause anything.
+    if (sys === OsEventTypeList.FOREGROUND_ENTER_EVENT || sys === OsEventTypeList.LONG_PRESS_EVENT) return this.cancelTap();
+    const gesture = gestureOf(e);
+    if (gesture === "tap") {
+      this.cancelTap();
+      this.pendingTap = setTimeout(() => {
+        this.pendingTap = null;
+        void this.act(() => this.onTap());
+      }, TAP_SETTLE_MS);
+    } else if (gesture === "double") {
+      this.cancelTap();
+      void this.act(() => this.onDoubleTap());
+    }
+  }
+
+  private async onMenu(id: number): Promise<void> {
+    if (id === MENU.start) await this.controller.start();
+    else if (id === MENU.stop) await this.controller.stop();
+    else if (id === MENU.pause) await this.controller.pause();
+    else if (id === MENU.resume) await this.controller.resume();
+    else if (id === MENU.marker) await this.controller.addMarker("Marker");
+    else if (id === MENU.toggleAudio) {
+      await this.controller.setPersistAudio(!this.settings.get().persistAudio);
+      if (this.lastSnapshot) await this.render({ ...this.controller.current }, true);
+    }
+  }
+
+  private async onTap(): Promise<void> {
+    const mode = modeOf(this.controller.current);
+    if (mode === "idle") await this.controller.start();
+    else if (mode === "recording") await this.controller.pause();
+    else if (mode === "paused") await this.controller.resume();
+  }
+
+  private async onDoubleTap(): Promise<void> {
+    const mode = modeOf(this.controller.current);
+    if (mode === "recording" || mode === "paused") await this.controller.stop();
+    // Root page: the system exit confirmation (mode 1); never a silent or custom exit.
+    else if (mode === "idle") await this.bridge?.shutDownPageContainer(1);
+  }
+
+  private async act(run: () => Promise<void>): Promise<void> {
     try {
-      if (id === MENU.start) await this.controller.start();
-      else if (id === MENU.stop) await this.controller.stop();
-      else if (id === MENU.pause) await this.controller.pause();
-      else if (id === MENU.resume) await this.controller.resume();
-      else if (id === MENU.marker) await this.controller.addMarker("Marker");
-      else if (id === MENU.toggleAudio) {
-        await this.controller.setPersistAudio(!this.settings.get().persistAudio);
-        if (this.lastSnapshot) await this.render({ ...this.controller.current }, true);
-      } else if (e.sysEvent?.eventType === OsEventTypeList.DOUBLE_CLICK_EVENT && this.mode === "recording") {
-        // Double tap while recording is a quick marker.
-        await this.controller.addMarker("Marker");
-        this.showNotice(null);
-      }
+      await run();
     } catch (err) {
       log.error("glasses action failed", errorMessage(err));
       this.notice = errorMessage(err);
       if (this.lastSnapshot) await this.render(this.lastSnapshot, false);
     }
   }
+}
+
+/**
+ * Taps reach the capturing text container as textEvent, where the SDK can normalize CLICK_EVENT (0)
+ * to undefined; ring and frame presses can also arrive as sysEvent.
+ */
+export function gestureOf(e: EvenHubEvent): "tap" | "double" | null {
+  const target = e.textEvent ?? e.listEvent;
+  if (target) {
+    if (target.eventType === OsEventTypeList.DOUBLE_CLICK_EVENT) return "double";
+    return target.eventType === OsEventTypeList.CLICK_EVENT || target.eventType === undefined ? "tap" : null;
+  }
+  const sys = e.sysEvent;
+  if (!sys) return null;
+  if (sys.eventType === OsEventTypeList.DOUBLE_CLICK_EVENT) return "double";
+  if (sys.eventType === OsEventTypeList.CLICK_EVENT) return "tap";
+  return sys.eventType === undefined && sys.eventSource !== undefined && !sys.imuData ? "tap" : null;
 }

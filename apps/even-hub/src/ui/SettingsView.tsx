@@ -210,6 +210,7 @@ function ModelsSection(props: SectionProps) {
   const [progress, setProgress] = createSignal<Record<string, LoadProgress>>({}, { ownedWrite: true });
   const [benchNote, setBenchNote] = createSignal<string | null>(null, { ownedWrite: true });
   const [version, setVersion] = createSignal(0, { ownedWrite: true });
+  const [download, setDownload] = createSignal<DownloadRun | null>(null, { ownedWrite: true });
   onSettled(() => app().engines.progress.on((p) => setProgress((cur) => ({ ...cur, [p.modelId]: p }))));
 
   const downloaded = useData(
@@ -246,21 +247,31 @@ function ModelsSection(props: SectionProps) {
   const downloadSelected = async () => {
     const e = app().engines;
     const m = props.s.models;
-    const tasks: [string, () => Promise<unknown>][] = [
+    const all: [string, () => Promise<unknown>][] = [
       [m.vad, () => e.ensureVad(m.vad)],
       [m.speakerEmbedding, () => e.ensureEmbedding(m.speakerEmbedding)],
       ...(m.sttLive !== "off" ? [[m.sttLive, () => e.ensureAsr(m.sttLive)] as [string, () => Promise<unknown>]] : []),
       ...(catalogEntry(m.sttFinal) ? [[m.sttFinal, async () => { await e.ensureAsr(m.sttFinal); }] as [string, () => Promise<unknown>]] : []),
       ...(catalogEntry(m.summary) ? [[m.summary, () => e.ensureLlm(m.summary)] as [string, () => Promise<unknown>]] : []),
     ];
+    const tasks = all.filter(([id], i) => all.findIndex(([other]) => other === id) === i);
+    const ids = tasks.map(([id]) => id);
+    setDownload({ ids, index: 0, percent: 0, current: null });
+    const off = e.progress.on((p) => setDownload((d) => (d && p.modelId === d.ids[d.index] ? advance(d, p) : d)));
     const failures: string[] = [];
-    for (const [id, run] of tasks) {
-      try {
-        await run();
-        await e.release(["asr", "llm"]);
-      } catch (err) {
-        failures.push(`${catalogEntry(id)?.displayName ?? id}: ${errorMessage(err)}`);
+    try {
+      for (const [i, [id, run]] of tasks.entries()) {
+        setDownload((d) => d && { ...d, index: i, current: null, percent: Math.max(d.percent, overallPercent(ids, i, 0)) });
+        try {
+          await run();
+          await e.release(["asr", "llm"]);
+        } catch (err) {
+          failures.push(`${catalogEntry(id)?.displayName ?? id}: ${errorMessage(err)}`);
+        }
       }
+    } finally {
+      off();
+      setDownload(null);
     }
     setVersion((v) => v + 1);
     toast(failures.length ? `Some models failed: ${failures.join("; ")}` : "Models downloaded and verified");
@@ -312,10 +323,62 @@ function ModelsSection(props: SectionProps) {
         <Button label="Download selected models" busyLabel="Downloading…" kind="primary" onClick={downloadSelected} />
         <Button label={props.s.firstRunBenchmarkAt ? "Measure again" : "Measure this phone"} busyLabel="Measuring…" onClick={benchmark} />
       </div>
+      <Show when={download()}>{(d) => <DownloadProgress run={d()} />}</Show>
       <Show when={benchNote()}>
         <p class="small muted">{benchNote()}</p>
       </Show>
     </section>
+  );
+}
+
+type DownloadRun = { ids: string[]; index: number; percent: number; current: LoadProgress | null };
+
+/** Catalog sizes weight each model, so a 2 GB summary model moves the bar more than a 3 MB VAD. */
+function overallPercent(ids: string[], index: number, fraction: number): number {
+  const weight = (id: string) => catalogEntry(id)?.downloadBytes || 1;
+  const total = ids.reduce((sum, id) => sum + weight(id), 0);
+  const done = ids.slice(0, index).reduce((sum, id) => sum + weight(id), 0);
+  return Math.min(100, ((done + weight(ids[index]!) * fraction) / total) * 100);
+}
+
+/** Reported totals only cover files that have started (small configs finish first), so measure against the catalog size too. */
+function expectedBytes(p: LoadProgress): number {
+  return Math.max(p.total ?? 0, catalogEntry(p.modelId)?.downloadBytes ?? 0);
+}
+
+function advance(d: DownloadRun, p: LoadProgress): DownloadRun {
+  const expected = expectedBytes(p);
+  const fraction = p.status === "ready" ? 1 : p.status === "downloading" && expected ? Math.min(1, (p.loaded ?? 0) / expected) : 0;
+  // Never let the bar move backwards.
+  return { ...d, current: p, percent: Math.max(d.percent, overallPercent(d.ids, d.index, fraction)) };
+}
+
+function DownloadProgress(props: { run: DownloadRun }) {
+  const name = () => catalogEntry(props.run.ids[props.run.index]!)?.displayName ?? props.run.ids[props.run.index];
+  const detail = () => {
+    const p = props.run.current;
+    if (p?.status === "downloading" && p.loaded !== undefined) return `${bytes(p.loaded)} of ${bytes(expectedBytes(p))}`;
+    return p?.status === "ready" ? "Verified" : "Checking…";
+  };
+  return (
+    <div class="stack" style={{ gap: "6px" }}>
+      <div
+        class="progress large"
+        role="progressbar"
+        aria-label="Model download"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(props.run.percent)}
+      >
+        <div style={{ width: `${props.run.percent}%` }} />
+      </div>
+      <div class="spread small">
+        <span>
+          {name()} <span class="muted">({props.run.index + 1} of {props.run.ids.length}) · {detail()}</span>
+        </span>
+        <span class="num">{Math.round(props.run.percent)}%</span>
+      </div>
+    </div>
   );
 }
 
