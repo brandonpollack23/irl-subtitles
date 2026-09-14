@@ -9,6 +9,8 @@
     "irl-subt-dp8.7",
     "irl-subt-dp8.9"
   ],
+  "closed_at": "2026-09-14T02:58:21Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:48Z",
   "description": "Bundled versioned catalog of pinned manifests. Download once, verify integrity hash, cache locally. Settings: Download local models for current selection; unselected entries on demand. Start never waits on download. plan.md §6.1.",
   "id": "irl-subt-dp8.2",
@@ -17,8 +19,8 @@
   ],
   "parent": "irl-subt-dp8",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "Model catalog, manifests, download/cache/hash verification",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:49Z"
+  "updated_at": "2026-09-14T02:58:21Z"
 }
