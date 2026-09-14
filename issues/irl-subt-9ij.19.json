@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-14T05:34:43Z",
+  "description": "LocalLiveRun.finish() doesn't feed the last unprocessed ring audio to the VAD (flush(ring.end) only closes an already-open utterance), so speech in the final tick is missed live. When VadStream re-anchors after skipped audio, VadSegmenter keeps its in-speech state, so an open utterance can span the gap. Also the 'Saving — processing later' degraded message set in runStt is overwritten by the next tick (flicker). Found during irl-subt-9ij.16.",
+  "id": "irl-subt-9ij.19",
+  "labels": [],
+  "parent": "irl-subt-9ij",
+  "priority": 3,
+  "status": "open",
+  "title": "Live run misses speech at the end and across VAD re-anchors",
+  "type": "bug",
+  "updated_at": "2026-09-14T05:34:43Z"
+}
