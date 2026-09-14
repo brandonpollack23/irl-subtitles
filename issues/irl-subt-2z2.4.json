@@ -8,6 +8,8 @@
     "irl-subt-2z2.6",
     "irl-subt-2z2.7"
   ],
+  "closed_at": "2026-09-14T02:58:20Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:47Z",
   "description": "States starting -\u003e recording -\u003e finalizing -\u003e captured -\u003e ready. Mark recording only after durable capture succeeds. plan.md §9.",
   "id": "irl-subt-2z2.4",
@@ -16,8 +18,8 @@
   ],
   "parent": "irl-subt-2z2",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "Recording lifecycle state machine (start, pause, resume, stop)",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:48Z"
+  "updated_at": "2026-09-14T02:58:20Z"
 }
