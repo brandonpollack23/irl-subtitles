@@ -6,6 +6,8 @@
     "irl-subt-f9n.2",
     "irl-subt-f9n.4"
   ],
+  "closed_at": "2026-09-14T02:58:20Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:49Z",
   "description": "speaker_attributions with provenance (auto/manual), confidence, revision. Relabel never rewrites transcript text. plan.md §7.1, §8.",
   "id": "irl-subt-f9n.3",
@@ -14,8 +16,8 @@
   ],
   "parent": "irl-subt-f9n",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "Cluster-to-person attributions with instant relabel of all references",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:49Z"
+  "updated_at": "2026-09-14T02:58:20Z"
 }
