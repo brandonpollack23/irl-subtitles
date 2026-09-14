@@ -6,10 +6,11 @@ import type { AppServices } from "./services";
 
 /**
  * Dev-only live-path bench (irl-subt-kdl.1), for engines we can only reach through a URL, like the Even
- * simulator: `?bench=live[&wav=/fixtures/dev/x.wav][&stt=<model id>][&tail=3000][&runs=1]`. Downloads missing live
+ * simulator: `?bench=live[&wav=/fixtures/dev/x.wav][&stt=<model id>][&tail=3000][&runs=1][&nowarm=1]`. Downloads missing live
  * models, waits for warmup, plays the WAV through a real local recording, and logs one `[bench] {json}`
  * line per run with load times, live metrics, and when captions appeared. With runs > 1, each later run starts once
- * post-processing of the previous one is idle, which shows whether the live models had to load again. Read it with the simulator's
+ * post-processing of the previous one is idle, which shows whether the live models had to load again. nowarm=1 starts
+ * the first recording without waiting for warmup, like talking the moment the app opens. Read it with the simulator's
  * `GET /api/console`.
  */
 export async function runBench(services: AppServices, params: URLSearchParams): Promise<void> {
@@ -36,7 +37,7 @@ export async function runBench(services: AppServices, params: URLSearchParams): 
     const downloadMs = pageMs() - downloadStart;
 
     const loadStart = pageMs();
-    await warmup.warm();
+    if (params.get("nowarm") !== "1") await warmup.warm();
     const status = warmup.current;
     const warmMs = pageMs() - loadStart;
     out("warm", { status, warmMs, downloadMs, bootedAtMs });
@@ -68,7 +69,7 @@ export async function runBench(services: AppServices, params: URLSearchParams): 
     off();
     const platform = platformReport(caps, storage.diagnostics, inEvenApp);
     out("done", {
-      run, host: platform.host, engine: platform.engine, userAgent: caps.userAgent, webgpu: caps.webgpu.available, crossOriginIsolated: caps.crossOriginIsolated, threads: caps.wasmThreads,
+      run, pageMsAtStart: Math.round(t0), host: platform.host, engine: platform.engine, userAgent: caps.userAgent, webgpu: caps.webgpu.available, crossOriginIsolated: caps.crossOriginIsolated, threads: caps.wasmThreads,
       models: live.map((id) => `${id}@${catalogEntry(id)?.manifest.version.slice(0, 8)}`), wav: wavUrl, warmMs,
       metrics: summarizeLiveMetrics(events), firstCaption: captions[0] ?? null, captionUpdates: captions.length, captions: captions.slice(0, 40), segments, startedAtMs: Math.round(t0), timeline: timeline.slice(0, 12),
     });
