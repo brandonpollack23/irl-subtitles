@@ -4,6 +4,8 @@
   "blocks": [
     "irl-subt-9ij.9"
   ],
+  "closed_at": "2026-09-14T02:58:22Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:50Z",
   "description": "Explain consent laws vary; verify persistent indicator on G2 and phone; no covert recording behavior. plan.md §10, §11.",
   "id": "irl-subt-9ij.7",
@@ -12,8 +14,8 @@
   ],
   "parent": "irl-subt-9ij",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "Recording-consent notice and dual-surface recording indicator audit",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:51Z"
+  "updated_at": "2026-09-14T02:58:22Z"
 }
