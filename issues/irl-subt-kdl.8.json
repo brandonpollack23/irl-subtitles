@@ -3,7 +3,9 @@
   "blocked_by": [
     "irl-subt-kdl.7"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-kdl.9"
+  ],
   "created": "2026-09-14T09:32:28Z",
   "description": "Replace the unavailable moonshine-streaming-* entries (catalog.ts NO_STREAMING_ADAPTER) with the models moonshine-wasm uses (.ort files: frontend(.model/.weights).ort, encoder.ort, adapter.ort, cross_kv.ort, decoder_kv.ort, streaming_config.json, tokenizer.bin). Source from download.moonshine.ai manifests (module.sttDependencies) or the HF safetensors-\u003eort path; mirror to a pinned host we allow (HF repo preferred, else add CDN to app.json whitelist and vite CONNECT), record sha256/size in catalog.lock.json via pnpm pin-models, keep verifyingFetch. New adapter id (e.g. moonshine-wasm-streaming). Per-language defaults: en Small (or Medium if B1 shows headroom), ja Small, es/de Small, zh/ar/vi Tiny. All MIT, which also removes our dependence on Community-licensed moonshine-base-ja/zh/ko. Update plan.md/IMPLEMENTATION.md deviations.",
   "id": "irl-subt-kdl.8",
