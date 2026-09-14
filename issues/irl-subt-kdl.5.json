@@ -9,6 +9,12 @@
   "id": "irl-subt-kdl.5",
   "labels": [],
   "parent": "irl-subt-kdl",
+  "comments": [
+    {
+      "text": "Landed (jj rev 'Scheduler judges STT load per second of new audio'). SchedulerSample now carries sttComputeMs/sttNewAudioS deltas; scheduler keeps a ~10 s-of-audio window (judged after 4 s) and degrades at load \u003e 1 (interims) / \u003e 1.5 (live STT) or backlog \u003e 4 / 20 s. Streaming backlog excludes catch-up audio. Unit test covers short/expensive calls not escalating and sustained overload escalating. Simulator two_cities: before (kdl.9) Small hit level 1 on one 0.99 pass; now level 0 throughout. Small interim lag p50/p95 0.32/0.62 s, final 0.68/0.97 s, compute 0.65; Tiny interim 0.11/0.20 s, final 0.21/0.43 s, compute 0.20, load 645 ms. Live tests 5/5.",
+      "timestamp": "2026-09-14T10:43:17Z"
+    }
+  ],
   "priority": 0,
   "status": "in_progress",
   "title": "Fix ComputeScheduler load signal",
