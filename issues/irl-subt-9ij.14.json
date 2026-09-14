@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-14T04:47:49Z",
+  "description": "WebKitGTK (Even simulator) has crossOriginIsolated=true but no SharedArrayBuffer and no OPFS; Turso's worker spawn throws DataCloneError as an unhandled rejection so connect() hangs until the 10s timeout. Pre-check SAB + OPFS (and sync access handles) before loading Turso so launch falls straight to IndexedDB. In dev builds show a platform marker: which platform (simulator / Even app / browser), what's available (COI, SAB, OPFS, sync handles, WebGPU, WASM threads, WebCodecs), the backing DB and blob store, and fallback reasons.",
+  "id": "irl-subt-9ij.14",
+  "labels": [],
+  "parent": "irl-subt-9ij",
+  "priority": 2,
+  "status": "open",
+  "title": "Skip Turso fast where it can't run; dev-mode platform/storage markers",
+  "type": "task",
+  "updated_at": "2026-09-14T04:47:49Z"
+}
