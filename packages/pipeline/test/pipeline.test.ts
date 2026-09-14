@@ -1,6 +1,6 @@
 import "fake-indexeddb/auto";
 import { IDBFactory } from "fake-indexeddb";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   AsyncQueue,
   defaultSettings,
@@ -250,6 +250,35 @@ describe("recording pipeline", () => {
     const rec = (await env.repo.getRecording(id))!;
     expect(rec.processing.finalStt.status).toBe("done");
     expect(rec.state).toBe("ready");
+  }, 30_000);
+
+  it("shows a live candidate below acceptance as Possibly X, and flushes keep it (irl-subt-kdl.16)", async () => {
+    const env = await setup();
+    const id = await record(env, [["A", 12]]);
+    const speakerA = (await loadTranscript(env.repo, id)).segments[0]!.clusterId!;
+    const { personId } = await env.identity.assign({ recordingId: id, clusterId: speakerA, person: { fullName: "Alice Liddell" }, learnVoice: true });
+    // Score and agreement pass; evidence can't, so the live decision is a candidate, not an attribution.
+    await env.settings.update({ matchPolicies: { [SPACE]: { minEvidenceMs: 600_000, minScore: 0.62, minMargin: 0.1, minWindowAgreement: 0.6, candidateScore: 0.5 } } });
+
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    try {
+      const source = new ManualSource();
+      const id2 = await env.controller.start({ source, persistAudio: false });
+      await sleep(200); // the live coordinator attaches after start returns
+      source.feed(8, "A");
+      await sleep(300);
+      await vi.advanceTimersByTimeAsync(10_000); // live identification tick
+      await sleep(300);
+      await vi.advanceTimersByTimeAsync(3_000); // flushes after it
+      await sleep(300);
+      const live = env.controller.current.clusters.find((c) => c.clusterId === "L1");
+      expect(live?.candidatePersonId).toBe(personId);
+      expect((await env.repo.listClusters(id2)).find((c) => c.clusterId === "L1")?.candidatePersonId).toBe(personId);
+      expect(await env.repo.listAttributions(id2)).toEqual([]);
+      await env.controller.stop();
+    } finally {
+      vi.useRealTimers();
+    }
   }, 30_000);
 
   it("recovers an interrupted recording and never resumes capture", async () => {

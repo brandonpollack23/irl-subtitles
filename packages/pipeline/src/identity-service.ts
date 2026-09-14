@@ -116,13 +116,15 @@ export class IdentityService {
   /**
    * Applies a match decision: accepted → auto attribution (never over a manual one); below threshold →
    * candidate on the cluster ("Possibly X"); a previously auto-accepted cluster that no longer passes is
-   * returned to unknown. Provisional provider speaker labels never reach profiles.
+   * returned to unknown. Provisional provider speaker labels never reach profiles. Returns the cluster row as
+   * written, or null when the cluster was left alone (manual attribution, or no stored row).
    */
-  async applyDecision(recordingId: string, decision: MatchDecision): Promise<void> {
+  async applyDecision(recordingId: string, decision: MatchDecision): Promise<SpeakerCluster | null> {
     const rows = (await this.repo.listAttributions(recordingId)).filter((a) => a.clusterId === decision.clusterId);
     const active = activeAttributions(rows).get(decision.clusterId);
     const cluster = (await this.repo.listClusters(recordingId)).find((c) => c.clusterId === decision.clusterId);
-    if (active?.source === "manual") return;
+    if (active?.source === "manual") return null;
+    let written: SpeakerCluster | null = null;
     if (decision.status === "accepted" && decision.best) {
       if (active?.personId !== decision.best.personId) {
         await this.repo.putAttribution({
@@ -130,15 +132,17 @@ export class IdentityService {
           source: "auto", revision: nextRevision(rows), operationId: newId("auto"), createdAt: nowIso(), undone: false,
         });
       }
-      if (cluster) await this.repo.putCluster(stripCandidate(cluster));
+      if (cluster) written = stripCandidate(cluster);
     } else {
       if (active?.source === "auto") await this.repo.putAttribution({ ...active, undone: true });
       if (cluster) {
         const cand = decision.status === "candidate" && decision.best ? { candidatePersonId: decision.best.personId, candidateScore: decision.best.score } : {};
-        await this.repo.putCluster({ ...stripCandidate(cluster), ...cand });
+        written = { ...stripCandidate(cluster), ...cand };
       }
     }
+    if (written) await this.repo.putCluster(written);
     this.changes.emit({ recordingId });
+    return written;
   }
 
   async evaluateCluster(recordingId: string, clusterId: ClusterId, windows?: readonly VoiceWindow[]): Promise<MatchDecision | null> {

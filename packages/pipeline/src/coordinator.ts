@@ -229,7 +229,14 @@ export class ProviderCoordinator {
       if (windows.length < 3) continue;
       try {
         const d = await this.identity.evaluateCluster(this.recording.id, clusterId, windows);
-        if (d) await this.identity.applyDecision(this.recording.id, d);
+        const written = d ? await this.identity.applyDecision(this.recording.id, d) : null;
+        // Flushes write our copy of the cluster, so take the candidate ("Possibly X") from the stored row, or it is
+        // overwritten within a second and never reaches the live labels.
+        const c = this.clusters.get(clusterId);
+        if (written && c) {
+          const { candidatePersonId: _p, candidateScore: _s, ...rest } = c;
+          this.clusters.set(clusterId, written.candidatePersonId ? { ...rest, candidatePersonId: written.candidatePersonId, ...(written.candidateScore !== undefined ? { candidateScore: written.candidateScore } : {}) } : rest);
+        }
       } catch {
         /* identification is best-effort during capture */
       }

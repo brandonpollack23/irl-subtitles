@@ -192,7 +192,8 @@ export async function boot(onStep: (step: string) => void = () => undefined): Pr
     const [clusters, attrs, people] = await Promise.all([storage.repo.listClusters(recordingId), storage.repo.listAttributions(recordingId), storage.repo.listPeople()]);
     const live = controller.current.clusters;
     const clusterMap = new Map([...clusters, ...live].map((c) => [c.clusterId, c]));
-    return speakerLabel(clusterId, clusterMap, activeAttributions(attrs), new Map<string, Person>(people.map((p) => [p.id, p])), { maxBytes: G2_SPEAKER_NAME_MAX_BYTES }).text;
+    const candidate = clusterMap.get(clusterId)?.candidatePersonId;
+    return speakerLabel(clusterId, clusterMap, activeAttributions(attrs), new Map<string, Person>(people.map((p) => [p.id, p])), { maxBytes: G2_SPEAKER_NAME_MAX_BYTES, candidate: candidate ? { personId: candidate } : null }).text;
   };
   const glasses = new GlassesController(controller, settings, names);
   glassesRef.current = glasses;

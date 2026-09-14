@@ -150,6 +150,27 @@ describe("glasses model loading notice", () => {
     vi.useRealTimers();
   });
 
+  it("re-resolves the speaker name when a live candidate lands after the label change (irl-subt-kdl.16)", async () => {
+    const snapshot = (candidate?: string) =>
+      ({
+        state: "recording", provider: "local", persistAudio: false, capturedSamples: 0, segments: [], provisionalText: "", recordingId: "rec", currentClusterId: "L1", labelsVersion: 1,
+        clusters: [{ recordingId: "rec", clusterId: "L1", ordinal: 1, evidenceMs: 0, ...(candidate ? { candidatePersonId: candidate } : {}) }],
+      }) as unknown as LiveSnapshot;
+    const settings = { get: () => ({ showCaptionsOnGlasses: true, persistAudio: false }), changes: { on: () => () => undefined } };
+    let current = snapshot();
+    const names = vi.fn(async () => (current.clusters[0]!.candidatePersonId ? "Possibly Alice" : "Speaker 1"));
+    const glasses = new GlassesController({ current } as unknown as RecordingController, settings as unknown as SettingsStore, names);
+    const bridge = { rebuildPageContainer: vi.fn(async (_page: { textObject: { content: string }[] }) => true), textContainerUpgrade: vi.fn(async (_u: { containerID: number; content: string }) => true) };
+    Object.assign(glasses, { bridge, created: Promise.resolve(true) });
+    const internals = glasses as unknown as { onSnapshot(s: LiveSnapshot): void; refreshNames(s: LiveSnapshot): Promise<void>; nameCache: Map<string, string> };
+    await internals.refreshNames(current);
+    expect(internals.nameCache.get("rec:L1")).toBe("Speaker 1");
+    // Same labelsVersion: the identity change was already counted before the coordinator attached the candidate.
+    current = snapshot("person_alice");
+    await internals.refreshNames(current);
+    expect(internals.nameCache.get("rec:L1")).toBe("Possibly Alice");
+  });
+
   it("says on the idle page when a model failed to load or isn't downloaded", async () => {
     vi.useFakeTimers();
     const { glasses, body } = page("idle");

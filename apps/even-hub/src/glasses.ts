@@ -62,7 +62,7 @@ export class GlassesController {
   private modelsTimer: ReturnType<typeof setTimeout> | null = null;
   private lastSnapshot: LiveSnapshot | null = null;
   private nameCache = new Map<string, string>();
-  private nameVersion = -1;
+  private nameVersion = "";
   failures = 0;
 
   constructor(
@@ -213,9 +213,11 @@ export class GlassesController {
   private async refreshNames(s: LiveSnapshot): Promise<void> {
     if (!s.recordingId) return;
     const ids = new Set([s.currentClusterId, ...s.segments.slice(-2).map((x) => x.clusterId)].filter((x): x is string => !!x));
-    if (s.labelsVersion !== this.nameVersion) {
+    // A live candidate ("Possibly X") lands on the clusters after the identity change that bumps labelsVersion.
+    const version = `${s.labelsVersion}|${s.clusters.map((c) => `${c.clusterId}=${c.candidatePersonId ?? ""}`).join(",")}`;
+    if (version !== this.nameVersion) {
       this.nameCache.clear();
-      this.nameVersion = s.labelsVersion;
+      this.nameVersion = version;
     }
     let changed = false;
     for (const id of ids) {
