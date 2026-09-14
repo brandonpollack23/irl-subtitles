@@ -324,12 +324,15 @@ Sideload with the QR (dev server) first, then an `.ehpk` build. Android first.
 
 ## Known risks to look at first
 
-1. **Live caption latency.** Moonshine Base re-decodes the whole utterance for interim
-   captions every 1.2 s; on phones this may not keep up. Mitigations already in place:
-   the scheduler drops interims, then pauses live STT. Consider Moonshine Tiny as the
-   phone default or longer interim intervals (`INTERIM_EVERY_SAMPLES`).
-2. **transformers.js on Safari/Even iOS** with the asyncify ORT build (`ort-env.ts`
-   forces it for everything).
+1. **Live caption latency on phones.** Live STT is Moonshine Streaming through the
+   single-thread `vendor/moonshine-wasm` build (irl-subt-kdl). In the Even simulator Small
+   uses 0.62–0.65 s of one core per second of audio with final caption lag p95 < 1 s; a
+   phone core may be 2–3x slower. Measure with `?bench=live&stt=…` (section 3) on both
+   phones (irl-subt-kdl.13); if Small can't keep up, make Tiny the phone default. The
+   scheduler drops interims above 1 s of compute per second, then pauses live STT.
+2. **ONNX Runtime on Safari/Even iOS.** CPU workers run the plain WASM build; only WebGPU
+   sessions (final STT, summaries) use asyncify, which was ~10x slower to load on
+   JavaScriptCore (`ort-env.ts`).
 3. **LLM memory** on phones (Gemma E2B ≈2.3–3.4 GB of weights).
 4. **Turso WASM in the packaged Even app** needs cross-origin isolation, which the
    `.ehpk` likely lacks; IndexedDB is the expected path there. Data does not migrate
