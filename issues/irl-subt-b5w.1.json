@@ -5,6 +5,8 @@
     "irl-subt-b5w.2",
     "irl-subt-b5w.8"
   ],
+  "closed_at": "2026-09-14T02:58:20Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:47Z",
   "description": "Create layout from plan.md §12. Set up mise tooling, TypeScript, lint/format, unit test runner, Even Hub .ehpk build, Web Worker bundling, local-only bundling (no runtime third-party scripts).",
   "id": "irl-subt-b5w.1",
@@ -13,8 +15,8 @@
   ],
   "parent": "irl-subt-b5w",
   "priority": 1,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Scaffold monorepo (apps/even-hub, packages/*, services/*) and toolchain",
   "type": "task",
-  "updated_at": "2026-09-13T13:29:10Z"
+  "updated_at": "2026-09-14T02:58:20Z"
 }
