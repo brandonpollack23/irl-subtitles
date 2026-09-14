@@ -109,6 +109,27 @@ describe("clustering", () => {
   });
 });
 
+describe("live VAD segmentation", () => {
+  const ends = (params: Partial<import("../src/vad-segmenter").VadParams>, probs: number[]) => {
+    const seg = new VadSegmenter(params);
+    return probs.flatMap((p, i) => seg.push(p, i * 512)).filter((e) => e.type === "end");
+  };
+  // 8 s of speech, a 100 ms breath, more speech.
+  const speech = (s: number) => Array<number>(Math.round((s * 16000) / 512)).fill(0.9);
+  const breath = Array<number>(3).fill(0.1);
+
+  it("cuts long speech at the next short pause", () => {
+    const out = ends({ softMaxSpeechMs: 7000 }, [...speech(8), ...breath, ...speech(2)]);
+    expect(out).toHaveLength(1);
+    expect(out[0]!.type === "end" && (out[0]!.range.endSample - out[0]!.range.startSample) / 16000).toBeCloseTo(8, 0);
+  });
+
+  it("leaves short pauses inside shorter speech alone", () => {
+    expect(ends({ softMaxSpeechMs: 7000 }, [...speech(4), ...breath, ...speech(2)])).toHaveLength(0);
+    expect(ends({}, [...speech(8), ...breath, ...speech(2)])).toHaveLength(0);
+  });
+});
+
 describe("scheduler", () => {
   const sample = (p: Partial<SchedulerSample> = {}): SchedulerSample => ({ sttBacklogS: 0, embedBacklogS: 0, sttComputeMs: 0, sttNewAudioS: 0, failure: false, ...p });
 

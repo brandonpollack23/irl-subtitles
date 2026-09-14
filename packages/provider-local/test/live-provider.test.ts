@@ -141,6 +141,28 @@ describe("local live provider", () => {
   });
 });
 
+describe("local live provider, utterance STT", () => {
+  it("keeps the last interim as the final when nothing was said after it", async () => {
+    vi.useFakeTimers();
+    const { engines, sttLoudness } = fakeEngines();
+    const run = await new LocalLiveSpeechProvider(engines).start(config);
+    await vi.advanceTimersByTimeAsync(0);
+    const events: SpeechEvent[] = [];
+    void (async () => {
+      for await (const ev of run.events) events.push(ev);
+    })();
+    const at = (s: number) => Math.round(s * SAMPLE_RATE);
+    // 1 s of speech: the interim lands just after it stops, then the pause ends the utterance.
+    await play(run, 0, at(3), [{ startSample: at(0.5), endSample: at(1.5) }]);
+    const finished = run.finish();
+    await vi.advanceTimersByTimeAsync(1000);
+    await finished;
+    const finals = events.flatMap((e) => (e.type === "tokens" ? e.tokens : [])).filter((t) => t.final);
+    expect(finals.map((t) => t.text.trim())).toEqual(["one", "two", "three", "four"]);
+    expect(sttLoudness).toHaveLength(1);
+  });
+});
+
 describe("local live provider with streaming STT", () => {
   it("streams audio from where captions start, open lines provisional and completed lines final on the recording clock", async () => {
     vi.useFakeTimers();

@@ -32,6 +32,8 @@ const INTERIM_EVERY_SAMPLES = Math.round(1.2 * SAMPLE_RATE);
  * scroll off the glasses before they appeared, and the final pass transcribes everything anyway.
  */
 const CATCH_UP_SAMPLES = 15 * SAMPLE_RATE;
+/** An utterance that grew by no more than its trailing pad after the last interim keeps that interim's text as its final. */
+const PROMOTE_INTERIM_SAMPLES = Math.round(0.3 * SAMPLE_RATE);
 
 /** Recent audio for live jobs; older audio is only on disk. */
 class RingBuffer {
@@ -67,6 +69,8 @@ interface Utterance extends TimeRange {
   windowsQueued: number;
   windowsDone: number;
   lastInterimEnd: number;
+  /** Text of the latest interim decode, which stands as the final when nothing was said after it. */
+  lastInterimText: string | null;
   nextWindowStart: number;
   /** End of the audio the latest STT call for this utterance covered. */
   decodedTo: number;
@@ -113,7 +117,11 @@ class LocalLiveRun implements LiveSpeechRun {
   private vadFed = 0;
   /** First sample this run received; frames are on the recording's clock, which started before the run attached. */
   private audioStart: number | null = null;
-  private segmenter = new VadSegmenter();
+  /**
+   * Live segmentation: a shorter silence ends an utterance (the final pass corrects early cuts), and past 7 s of speech
+   * any pause does, so a transformers.js caption model rarely re-decodes more than that (irl-subt-kdl.4).
+   */
+  private segmenter = new VadSegmenter({ minSilenceMs: 300, softMaxSpeechMs: 7000 });
   private utterances: Utterance[] = [];
   private windows: WindowResult[] = [];
   private clusterer: OnlineClusterer;
@@ -260,7 +268,7 @@ class LocalLiveRun implements LiveSpeechRun {
           if (ev.type === "start") {
             // Padding can reach before the run's first audio, which live STT would treat as already evicted.
             const start = Math.max(ev.sample, this.audioStart ?? ev.sample);
-            this.utterances.push({ id: newId("utt"), startSample: start, endSample: start, ended: false, transcribed: false, windowsQueued: 0, windowsDone: 0, lastInterimEnd: start, nextWindowStart: start, decodedTo: start });
+            this.utterances.push({ id: newId("utt"), startSample: start, endSample: start, ended: false, transcribed: false, windowsQueued: 0, windowsDone: 0, lastInterimEnd: start, lastInterimText: null, nextWindowStart: start, decodedTo: start });
             this.emit({ type: "speech", active: true, sample: start });
           } else {
             const u = this.utterances.find((x) => !x.ended);
@@ -384,6 +392,12 @@ class LocalLiveRun implements LiveSpeechRun {
       this.emitDegraded("Saving — processing later");
       return;
     }
+    if (job.final && u.lastInterimText !== null && range.endSample - u.lastInterimEnd <= PROMOTE_INTERIM_SAMPLES) {
+      // Nothing was said after the last interim (the rest is the pause that ended the utterance): it stands as the final.
+      u.transcribed = true;
+      this.emitTokens(u.lastInterimText, { startSample: range.startSample, endSample: Math.min(range.endSample, u.lastInterimEnd) }, true);
+      return;
+    }
     this.sttBusy = true;
     if (!job.final) u.lastInterimEnd = range.endSample;
     try {
@@ -400,14 +414,8 @@ class LocalLiveRun implements LiveSpeechRun {
       });
       u.decodedTo = Math.max(u.decodedTo, range.endSample);
       if (job.final) u.transcribed = true;
-      const text = out.text.trim();
-      const words = text ? interpolateWords(text, range.startSample, range.endSample) : [];
-      const entry = catalogEntry(this.config.sttModelId);
-      const tokens: TranscriptToken[] = words.map((w) => ({
-        id: newId("tok"), recordingId: this.config.recordingId, providerRunId: this.providerRunId, startSample: w.startSample, endSample: w.endSample, text: w.text,
-        final: job!.final, timing: entry?.timing ?? "segment-interpolated", ...(this.config.language !== "auto" ? { language: this.config.language } : {}),
-      }));
-      this.emit({ type: "tokens", tokens, replaceProvisional: true });
+      else u.lastInterimText = out.text.trim();
+      this.emitTokens(out.text.trim(), range, job.final);
     } catch (e) {
       if (job.final) u.transcribed = true;
       this.failure = true;
@@ -422,6 +430,15 @@ class LocalLiveRun implements LiveSpeechRun {
     } finally {
       this.sttBusy = false;
     }
+  }
+
+  private emitTokens(text: string, range: TimeRange, final: boolean): void {
+    const entry = catalogEntry(this.config.sttModelId);
+    const tokens: TranscriptToken[] = (text ? interpolateWords(text, range.startSample, range.endSample) : []).map((w) => ({
+      id: newId("tok"), recordingId: this.config.recordingId, providerRunId: this.providerRunId, startSample: w.startSample, endSample: w.endSample, text: w.text,
+      final, timing: entry?.timing ?? "segment-interpolated", ...(this.config.language !== "auto" ? { language: this.config.language } : {}),
+    }));
+    this.emit({ type: "tokens", tokens, replaceProvisional: true });
   }
 
   /**

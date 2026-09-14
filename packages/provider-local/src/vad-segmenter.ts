@@ -10,6 +10,12 @@ export interface VadParams {
   speechPadMs: number;
   /** Force a cut so live STT gets bounded utterances. */
   maxSpeechMs: number;
+  /**
+   * Past this much speech, the next pause of any length (two quiet windows, ~64 ms) ends the utterance instead of
+   * `minSilenceMs`, so long speech is cut at a breath rather than the hard cut and utterance re-decoding stays
+   * bounded (irl-subt-kdl.4). Off when unset.
+   */
+  softMaxSpeechMs?: number;
 }
 
 export const DEFAULT_VAD: VadParams = { windowSamples: 512, threshold: 0.5, negThreshold: 0.35, minSpeechMs: 250, minSilenceMs: 400, speechPadMs: 120, maxSpeechMs: 15_000 };
@@ -58,7 +64,8 @@ export class VadSegmenter {
     if (!this.inSpeech) return out;
     if (prob < this.p.negThreshold) {
       this.silenceStart ??= windowStart;
-      if (windowEnd - this.silenceStart >= ms(this.p.minSilenceMs)) {
+      const long = this.p.softMaxSpeechMs !== undefined && this.silenceStart - this.speechStart >= ms(this.p.softMaxSpeechMs);
+      if (windowEnd - this.silenceStart >= (long ? 2 * this.p.windowSamples : ms(this.p.minSilenceMs))) {
         const end = this.silenceStart + ms(this.p.speechPadMs);
         this.inSpeech = false;
         this.silenceStart = null;
