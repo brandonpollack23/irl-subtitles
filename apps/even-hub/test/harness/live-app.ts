@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
 import { IDBFactory } from "fake-indexeddb";
 import { RecordingAudio, WavFileSource } from "@irl/capture";
-import { activeAttributions, defaultSettings, G2_SPEAKER_NAME_MAX_BYTES, speakerLabel, type ModelSelection, type Person } from "@irl/domain";
+import { activeAttributions, defaultSettings, glassesSpeakerName, type ModelSelection, type Person } from "@irl/domain";
 import { EphemeralKeys, IdentityService, RecordingController, type LiveSnapshot } from "@irl/pipeline";
 import { defaultSelection, liveMetrics, LocalEngines, LocalToolkit, ModelWarmup, summarizeLiveMetrics, type LiveMetric, type LiveMetricsSummary } from "@irl/provider-local";
 import { KeyVault, MemoryBlobStore, Repository, SettingsStore, SqlTableStore } from "@irl/storage";
@@ -82,7 +82,7 @@ export async function createLiveApp(opts: LiveAppOptions = {}) {
   const names = async (recordingId: string, clusterId: string) => {
     const [clusters, attrs, people] = await Promise.all([repo.listClusters(recordingId), repo.listAttributions(recordingId), repo.listPeople()]);
     const clusterMap = new Map([...clusters, ...controller.current.clusters].map((c) => [c.clusterId, c]));
-    return speakerLabel(clusterId, clusterMap, activeAttributions(attrs), new Map<string, Person>(people.map((p) => [p.id, p])), { maxBytes: G2_SPEAKER_NAME_MAX_BYTES }).text;
+    return glassesSpeakerName(clusterId, clusterMap, activeAttributions(attrs), new Map<string, Person>(people.map((p) => [p.id, p])));
   };
 
   // GlassesController.init() minus the SDK: the same subscriptions, with a bridge that records what it's sent.

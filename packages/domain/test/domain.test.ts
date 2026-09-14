@@ -15,6 +15,7 @@ import {
   redact,
   resampleLinear,
   speakerLabel,
+  glassesSpeakerName,
   splitSpeakerSpans,
   truncateUtf8,
   utf8ByteLength,
@@ -71,6 +72,11 @@ describe("names", () => {
     const active = activeAttributions([base, { ...base, id: "a2", personId: null, revision: 2, undone: true }]);
     expect(speakerLabel("c1", clusters, active, people)).toMatchObject({ text: "Alice Liddell", kind: "confirmed" });
     expect(speakerLabel("c1", clusters, new Map(), people, { candidate: { personId: "p1" } }).text).toBe("Possibly Alice Liddell");
+    // irl-subt-kdl.17: the glasses name a live candidate, marked as unsure, instead of "Speaker 2".
+    const withCandidate = new Map([["c1", { ...clusters.get("c1")!, candidatePersonId: "p1" }]]);
+    expect(glassesSpeakerName("c1", withCandidate, new Map(), people)).toBe("Alice Liddell?");
+    expect(glassesSpeakerName("c1", withCandidate, active, people)).toBe("Alice Liddell");
+    expect(glassesSpeakerName("c1", clusters, new Map(), people)).toBe("Speaker 2");
   });
 });
 

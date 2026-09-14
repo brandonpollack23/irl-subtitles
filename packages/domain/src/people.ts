@@ -49,3 +49,19 @@ export function speakerLabel(
   if (cand) return { clusterId, personId: null, text: `Possibly ${displayName(cand, opts.maxBytes ? opts.maxBytes - 9 : undefined)}`, kind: "possible" };
   return { clusterId, personId: null, text: anon, kind: "anonymous" };
 }
+
+/**
+ * The speaker name on the G2 caption line: the attributed name, else a live candidate as "Name?" (the phone's
+ * "Possibly Name", in the glasses' tighter budget), else "Speaker N".
+ */
+export function glassesSpeakerName(
+  clusterId: ClusterId,
+  clusters: ReadonlyMap<ClusterId, SpeakerCluster>,
+  attributions: ReadonlyMap<ClusterId, SpeakerAttribution>,
+  people: ReadonlyMap<PersonId, Person>,
+): string {
+  const label = speakerLabel(clusterId, clusters, attributions, people, { maxBytes: G2_SPEAKER_NAME_MAX_BYTES });
+  const candidateId = clusters.get(clusterId)?.candidatePersonId;
+  const candidate = label.kind === "anonymous" && !attributions.has(clusterId) && candidateId ? people.get(candidateId) : undefined;
+  return candidate ? `${displayName(candidate, G2_SPEAKER_NAME_MAX_BYTES - 1)}?` : label.text;
+}

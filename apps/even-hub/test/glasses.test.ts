@@ -158,7 +158,7 @@ describe("glasses model loading notice", () => {
       }) as unknown as LiveSnapshot;
     const settings = { get: () => ({ showCaptionsOnGlasses: true, persistAudio: false }), changes: { on: () => () => undefined } };
     let current = snapshot();
-    const names = vi.fn(async () => (current.clusters[0]!.candidatePersonId ? "Possibly Alice" : "Speaker 1"));
+    const names = vi.fn(async () => (current.clusters[0]!.candidatePersonId ? "Alice?" : "Speaker 1"));
     const glasses = new GlassesController({ current } as unknown as RecordingController, settings as unknown as SettingsStore, names);
     const bridge = { rebuildPageContainer: vi.fn(async (_page: { textObject: { content: string }[] }) => true), textContainerUpgrade: vi.fn(async (_u: { containerID: number; content: string }) => true) };
     Object.assign(glasses, { bridge, created: Promise.resolve(true) });
@@ -168,7 +168,7 @@ describe("glasses model loading notice", () => {
     // Same labelsVersion: the identity change was already counted before the coordinator attached the candidate.
     current = snapshot("person_alice");
     await internals.refreshNames(current);
-    expect(internals.nameCache.get("rec:L1")).toBe("Possibly Alice");
+    expect(internals.nameCache.get("rec:L1")).toBe("Alice?");
   });
 
   it("says on the idle page when a model failed to load or isn't downloaded", async () => {

@@ -281,6 +281,30 @@ describe("recording pipeline", () => {
     }
   }, 30_000);
 
+  it("identifies a short utterance live, before the first identification tick (irl-subt-kdl.17)", async () => {
+    const env = await setup();
+    const id = await record(env, [["A", 12]]);
+    const speakerA = (await loadTranscript(env.repo, id)).segments[0]!.clusterId!;
+    const { personId } = await env.identity.assign({ recordingId: id, clusterId: speakerA, person: { fullName: "Alice Liddell" }, learnVoice: true });
+    await env.settings.update({ matchPolicies: { [SPACE]: { minEvidenceMs: 8_000, minScore: 0.62, minMargin: 0.1, minWindowAgreement: 0.6, candidateScore: 0.5 } } });
+
+    // The 10 s tick never fires: only the windows as they arrive can name the speaker.
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    try {
+      const source = new ManualSource();
+      const id2 = await env.controller.start({ source, persistAudio: false });
+      await sleep(200);
+      source.feed(4, "A"); // two 2 s windows: a candidate, short of the evidence to accept
+      await sleep(600);
+      const live = env.controller.current.clusters.find((c) => c.clusterId === "L1");
+      expect(live?.candidatePersonId).toBe(personId);
+      expect(await env.repo.listAttributions(id2)).toEqual([]);
+      await env.controller.stop();
+    } finally {
+      vi.useRealTimers();
+    }
+  }, 30_000);
+
   it("recovers an interrupted recording and never resumes capture", async () => {
     const env = await setup();
     const source = new ManualSource();
