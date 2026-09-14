@@ -4,6 +4,8 @@
     "irl-subt-2z2.4"
   ],
   "blocks": [],
+  "closed_at": "2026-09-14T02:58:20Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:48Z",
   "description": "Inspect starting/recording/finalizing sessions, verify checksums, reconstruct last valid cursor, show Recovered recording with Finish processing / Discard. Never silently resume mic capture. plan.md §9.",
   "id": "irl-subt-2z2.5",
@@ -12,8 +14,8 @@
   ],
   "parent": "irl-subt-2z2",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "Crash recovery on relaunch",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:48Z"
+  "updated_at": "2026-09-14T02:58:20Z"
 }
