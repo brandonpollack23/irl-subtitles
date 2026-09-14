@@ -2,6 +2,7 @@
   "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [],
+  "closed_at": "2026-09-14T07:22:43Z",
   "created": "2026-09-14T07:12:50Z",
   "description": "LocalLiveRun.finalizeTurns turns an ended utterance into a speaker turn without text when live STT isn't ready yet (ready.stt false), so everything said while Moonshine loads is never captioned. Reproduced with the Node live harness on jfk.wav with cold models: 'And so my fellow Americans, ask not' never reaches the glasses; first caption at 7.1s. In WebKitGTK Moonshine Base takes 34.6s to load, so short recordings get no captions at all. Keep ended utterances pending (audio is in the 90s ring) until STT is ready or clearly unavailable, then caption them oldest-first; only give up on audio that left the ring. Harness test must fail before the fix.",
   "id": "irl-subt-9ij.21",
@@ -14,7 +15,7 @@
     }
   ],
   "priority": 1,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Caption speech said while the live STT model is still loading",
   "type": "bug",
   "updated_at": "2026-09-14T07:22:43Z"
