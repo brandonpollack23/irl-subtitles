@@ -2,6 +2,8 @@
   "assignee": "",
   "blocked_by": [],
   "blocks": [],
+  "closed_at": "2026-09-14T02:58:22Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:50Z",
   "description": "Clearly state whether audio leaves the phone; provider switch applies to next recording. plan.md §10, §11.",
   "id": "irl-subt-ye7.5",
@@ -10,8 +12,8 @@
   ],
   "parent": "irl-subt-ye7",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "Network and privacy disclosure for provider selection",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:50Z"
+  "updated_at": "2026-09-14T02:58:22Z"
 }
