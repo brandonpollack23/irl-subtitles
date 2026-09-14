@@ -4,6 +4,8 @@
     "irl-subt-2z2.2"
   ],
   "blocks": [],
+  "closed_at": "2026-09-14T02:58:20Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:48Z",
   "description": "History list (date, duration, title, state), audio playback from chunks, independent delete of recording vs audio. plan.md §10.",
   "id": "irl-subt-2z2.8",
@@ -12,8 +14,8 @@
   ],
   "parent": "irl-subt-2z2",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "Phone companion: session history, playback, delete recording/audio",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:48Z"
+  "updated_at": "2026-09-14T02:58:20Z"
 }
