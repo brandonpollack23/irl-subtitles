@@ -4,6 +4,7 @@
     "irl-subt-kdl.9"
   ],
   "blocks": [],
+  "closed_at": "2026-09-14T11:05:42Z",
   "created": "2026-09-14T09:32:28Z",
   "description": "Start captioning with Moonshine Tiny Streaming (34M, fast load) as soon as a recording or launch begins, then hot-swap to the selected Small/Medium model once loaded, without losing or duplicating text at the switch (swap at a line boundary). Optional polish; measure whether B3 load time makes it unnecessary.",
   "id": "irl-subt-kdl.12",
@@ -16,7 +17,7 @@
     }
   ],
   "priority": 0,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Tiny-first live captions while the selected streaming model loads",
   "type": "task",
   "updated_at": "2026-09-14T11:05:42Z"
