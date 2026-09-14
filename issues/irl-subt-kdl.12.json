@@ -9,6 +9,12 @@
   "id": "irl-subt-kdl.12",
   "labels": [],
   "parent": "irl-subt-kdl",
+  "comments": [
+    {
+      "text": "Measured, decided not to build (the ticket's own criterion: 'measure whether B3 load time makes it unnecessary'). Added ?bench=live\u0026nowarm=1 (jj rev 'Dev bench: nowarm=1 records at launch'). Simulator, jfk, recording started immediately at launch with models downloaded, 2 runs each: Small first caption 1.88 / 1.85 s after Start (Small load 2044/2053 ms; speech during load is caught up from the ring), Tiny 1.00 / 1.10 s (load ~1.47 s). Warm Small: 1.40 s (kdl.11). A Tiny-first hot swap would save ~0.8 s once per app launch at the cost of a second 45 MB download, a second model in memory (bad for the iOS budget) and switching streams mid-line. Won't do; revisit only if device runs (kdl.13) show Small loading far slower on phones.",
+      "timestamp": "2026-09-14T11:05:42Z"
+    }
+  ],
   "priority": 0,
   "status": "in_progress",
   "title": "Tiny-first live captions while the selected streaming model loads",
