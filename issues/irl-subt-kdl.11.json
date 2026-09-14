@@ -7,6 +7,12 @@
   "id": "irl-subt-kdl.11",
   "labels": [],
   "parent": "irl-subt-kdl",
+  "comments": [
+    {
+      "text": "Landed (jj rev 'Live caption model stays hot between conversations'). The separate stream worker from kdl.9 already survives post-processing (toolkit.release frees asr/llm only); added iOS guard: LlmChatModel resets the stream worker before loading a summary LLM on platform ios (unit tests). Measuring back-to-back recordings in the simulator exposed a ~4 s first-caption regression on later runs; fixed: parallel VAD/embedding/STT boot, memoized isDownloaded (Cache Storage keys() is slow in WebKit; forgetDownloads() after cache deletion), per-method load cache (embed.load no longer evicts vad.load). Simulator jfk runs=3: first caption 1.45/1.40/1.40 s (before 2.86/5.35/5.14), model loads only in run 1, final lag p95 0.77/0.56/0.56 s. Memory budget on real iOS still to be checked on device (kdl.13).",
+      "timestamp": "2026-09-14T11:03:24Z"
+    }
+  ],
   "priority": 0,
   "status": "in_progress",
   "title": "Keep the live STT model loaded across post-processing",
