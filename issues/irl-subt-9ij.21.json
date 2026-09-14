@@ -7,9 +7,15 @@
   "id": "irl-subt-9ij.21",
   "labels": [],
   "parent": "irl-subt-9ij",
+  "comments": [
+    {
+      "text": "Fixed in jj revision oktyqwslolus. Live harness (real models, jfk.wav): recording at launch while warmup loads now captions 'And so my fellow Americans' (first caption 4.2s); with a 15s caption-model load all four phrases catch up within ~2.4s of ready. Unit tests in live-provider.test.ts fail on the old code.",
+      "timestamp": "2026-09-14T07:22:43Z"
+    }
+  ],
   "priority": 1,
   "status": "in_progress",
   "title": "Caption speech said while the live STT model is still loading",
   "type": "bug",
-  "updated_at": "2026-09-14T07:13:45Z"
+  "updated_at": "2026-09-14T07:22:43Z"
 }
