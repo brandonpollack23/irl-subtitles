@@ -1,6 +1,6 @@
 import { createSignal, For, onSettled, Show } from "solid-js";
 import { storageEstimate } from "@irl/storage";
-import { deleteModelFiles, CATALOG } from "@irl/provider-local";
+import { clearModelCache } from "@irl/provider-local";
 import { diagnosticsText, logEvents, logLines, type LogLine } from "../log";
 import { app, Button, bytes, download, toast, useData } from "./lib";
 
@@ -86,10 +86,7 @@ export function DiagnosticsView() {
             onClick={async () => {
               if (!confirm("Delete all downloaded models? They download again when needed.")) return;
               await app().engines.release(["audio", "asr", "llm"]);
-              for (const e of CATALOG) {
-                await deleteModelFiles(e);
-                app().engines.forgetDownloaded(e.id);
-              }
+              await clearModelCache();
               toast("Models deleted");
             }}
           />

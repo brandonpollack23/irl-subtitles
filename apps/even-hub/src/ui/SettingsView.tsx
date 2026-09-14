@@ -1,6 +1,6 @@
 import { createSignal, For, onSettled, Show } from "solid-js";
 import { errorMessage, LANGUAGES, parseWav, resampleLinear, tierForSelection, type ModelCatalogEntry, type ModelRole, type ModelSelection, type Settings } from "@irl/domain";
-import { availabilityOnDevice, catalogEntry, embeddingSpaceOf, entriesForRole, firstRunBenchmark, ROLE_KEYS, supportsLanguage, type LoadProgress } from "@irl/provider-local";
+import { availabilityOnDevice, catalogEntry, clearModelCache, embeddingSpaceOf, entriesForRole, firstRunBenchmark, ROLE_KEYS, supportsLanguage, type LoadProgress } from "@irl/provider-local";
 import { testSonioxKey } from "@irl/provider-soniox";
 import { app, bumpData, Button, bytes, toast, useData } from "./lib";
 
@@ -247,24 +247,22 @@ function ModelsSection(props: SectionProps) {
   const downloadSelected = async () => {
     const e = app().engines;
     const m = props.s.models;
-    const all: [string, () => Promise<unknown>][] = [
-      [m.vad, () => e.ensureVad(m.vad)],
-      [m.speakerEmbedding, () => e.ensureEmbedding(m.speakerEmbedding)],
-      ...(m.sttLive !== "off" ? [[m.sttLive, () => e.ensureAsr(m.sttLive)] as [string, () => Promise<unknown>]] : []),
-      ...(catalogEntry(m.sttFinal) ? [[m.sttFinal, async () => { await e.ensureAsr(m.sttFinal); }] as [string, () => Promise<unknown>]] : []),
-      ...(catalogEntry(m.summary) ? [[m.summary, () => e.ensureLlm(m.summary)] as [string, () => Promise<unknown>]] : []),
-    ];
-    const tasks = all.filter(([id], i) => all.findIndex(([other]) => other === id) === i);
-    const ids = tasks.map(([id]) => id);
+    // Download only: loading models here held several copies of each one's weights in memory at once.
+    const selectedIds = [...new Set([m.vad, m.speakerEmbedding, m.sttLive, m.sttFinal, m.summary])].filter((id) => catalogEntry(id));
+    const ids: string[] = [];
+    for (const id of selectedIds) if (!(await e.isDownloaded(id))) ids.push(id);
+    if (!ids.length) {
+      toast("Selected models are already downloaded");
+      return;
+    }
     setDownload({ ids, index: 0, percent: 0, current: null });
     const off = e.progress.on((p) => setDownload((d) => (d && p.modelId === d.ids[d.index] ? advance(d, p) : d)));
     const failures: string[] = [];
     try {
-      for (const [i, [id, run]] of tasks.entries()) {
+      for (const [i, id] of ids.entries()) {
         setDownload((d) => d && { ...d, index: i, current: null, percent: Math.max(d.percent, overallPercent(ids, i, 0)) });
         try {
-          await run();
-          await e.release(["asr", "llm"]);
+          await e.download(id);
         } catch (err) {
           failures.push(`${catalogEntry(id)?.displayName ?? id}: ${errorMessage(err)}`);
         }
@@ -275,6 +273,15 @@ function ModelsSection(props: SectionProps) {
     }
     setVersion((v) => v + 1);
     toast(failures.length ? `Some models failed: ${failures.join("; ")}` : "Models downloaded and verified");
+  };
+
+  const clearCache = async () => {
+    if (!confirm("Delete all downloaded models? They download again when you tap Download or record.")) return;
+    await app().engines.release(["audio", "asr", "llm"]);
+    await clearModelCache();
+    setProgress({});
+    setVersion((v) => v + 1);
+    toast("Model cache cleared");
   };
 
   const benchmark = async () => {
@@ -322,6 +329,7 @@ function ModelsSection(props: SectionProps) {
       <div class="row">
         <Button label="Download selected models" busyLabel="Downloading…" kind="primary" onClick={downloadSelected} />
         <Button label={props.s.firstRunBenchmarkAt ? "Measure again" : "Measure this phone"} busyLabel="Measuring…" onClick={benchmark} />
+        <Button label="Clear model cache" busyLabel="Clearing…" kind="danger" onClick={clearCache} />
       </div>
       <Show when={download()}>{(d) => <DownloadProgress run={d()} />}</Show>
       <Show when={benchNote()}>
@@ -341,9 +349,9 @@ function overallPercent(ids: string[], index: number, fraction: number): number 
   return Math.min(100, ((done + weight(ids[index]!) * fraction) / total) * 100);
 }
 
-/** Reported totals only cover files that have started (small configs finish first), so measure against the catalog size too. */
+/** Downloads report the pinned size of every file they cover; the catalog size is only a fallback. */
 function expectedBytes(p: LoadProgress): number {
-  return Math.max(p.total ?? 0, catalogEntry(p.modelId)?.downloadBytes ?? 0);
+  return p.total || (catalogEntry(p.modelId)?.downloadBytes ?? 0);
 }
 
 function advance(d: DownloadRun, p: LoadProgress): DownloadRun {

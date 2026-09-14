@@ -1,7 +1,7 @@
 import { Emitter, errorMessage, type BenchmarkResult, type ExecutionTarget, type ModelCatalogEntry, type PowerPolicy } from "@irl/domain";
 import { catalogEntry } from "./catalog";
 import { availabilityOnDevice, detectCapabilities, selectTarget, type DeviceCapabilities } from "./device";
-import { cachedFiles } from "./model-files";
+import { downloadModelFiles, filesForTargets, missingFiles } from "./model-files";
 import { isGpuFailure } from "./gpu-errors";
 import { RpcClient } from "./rpc";
 import type { AsrResult } from "./workers/asr.worker";
@@ -57,19 +57,45 @@ export class LocalEngines {
     return selectTarget(entry, await this.capabilities(), this.policy, this.benchmarks);
   }
 
-  /** A model counts as downloaded once it loaded successfully at its pinned revision and its files are still cached. */
+  /**
+   * Targets whose files a download covers: every target the model can run on here, so benchmarks and the
+   * WebGPU-to-WASM fallback don't need the network.
+   */
+  private async downloadTargets(entry: ModelCatalogEntry): Promise<ExecutionTarget[]> {
+    if (entry.manifest.params?.requiresWebGpu === true) return ["webgpu"];
+    return (await this.capabilities()).webgpu.available ? ["webgpu", "wasm"] : ["wasm"];
+  }
+
+  /** Downloaded means every file those targets read is cached; cache keys carry the pinned revision. */
   async isDownloaded(modelId: string): Promise<boolean> {
     const e = catalogEntry(modelId);
     if (!e) return false;
-    if (readyRegistry()[modelId] !== e.manifest.version) return false;
-    const c = await cachedFiles(e);
-    return c.cached >= Math.min(requiredFileCount(e), c.total);
+    const files = filesForTargets(e, await this.downloadTargets(e));
+    return files.length > 0 && (await missingFiles(e, files)).length === 0;
   }
 
-  forgetDownloaded(modelId: string): void {
-    const reg = readyRegistry();
-    delete reg[modelId];
-    writeReadyRegistry(reg);
+  /**
+   * Fetches and verifies a model's files into the browser cache without loading it; recordings and
+   * benchmarks load it when they need it.
+   */
+  async download(modelId: string): Promise<void> {
+    const entry = catalogEntry(modelId);
+    if (!entry) throw new Error(`unknown model ${modelId}`);
+    try {
+      const availability = availabilityOnDevice(entry, await this.capabilities());
+      if (availability.status === "unavailable") throw new Error(availability.reason);
+      let lastEmit = 0;
+      await downloadModelFiles(entry, filesForTargets(entry, await this.downloadTargets(entry)), (loaded, total) => {
+        const now = performance.now();
+        if (loaded < total && now - lastEmit < 100) return;
+        lastEmit = now;
+        this.progress.emit({ modelId, status: "downloading", loaded, total });
+      });
+      this.progress.emit({ modelId, status: "ready" });
+    } catch (e) {
+      this.progress.emit({ modelId, status: "failed", error: errorMessage(e) });
+      throw e;
+    }
   }
 
   private ensure(kind: EngineKind, method: string, modelId: string, payload: Record<string, unknown>): Promise<void> {
@@ -103,7 +129,6 @@ export class LocalEngines {
           this.progress.emit({ modelId, status: "downloading", loaded, total });
         },
       });
-      writeReadyRegistry({ ...readyRegistry(), [modelId]: entry.manifest.version });
       this.progress.emit({ modelId, status: "ready" });
     })().catch((e) => {
       cache.delete(key);
@@ -179,32 +204,4 @@ export class LocalEngines {
   async release(kinds: readonly EngineKind[] = ["asr", "llm"]): Promise<void> {
     for (const k of kinds) this.reset(k);
   }
-}
-
-const READY_KEY = "irl.models.ready.v1";
-
-function readyRegistry(): Record<string, string> {
-  try {
-    return JSON.parse(localStorage.getItem(READY_KEY) ?? "{}") as Record<string, string>;
-  } catch {
-    return {};
-  }
-}
-
-function writeReadyRegistry(r: Record<string, string>): void {
-  try {
-    localStorage.setItem(READY_KEY, JSON.stringify(r));
-  } catch {
-    /* storage unavailable: models simply re-verify from cache next time */
-  }
-}
-
-/** Files a model actually needs: optional per-dtype alternatives in the manifest count once. */
-export function requiredFileCount(entry: ModelCatalogEntry): number {
-  const files = entry.manifest.files.map((f) => f.path);
-  if (entry.manifest.adapter.startsWith("ort-")) return Math.min(1, files.length);
-  const onnx = files.filter((f) => f.endsWith(".onnx"));
-  // For transformers.js entries require configs plus at least one encoder/decoder (or model) graph.
-  const configs = files.filter((f) => !f.includes("onnx/")).length;
-  return configs + Math.min(onnx.length, entry.role === "speaker-embedding" ? 1 : 2);
 }

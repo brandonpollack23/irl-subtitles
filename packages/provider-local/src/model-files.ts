@@ -1,4 +1,4 @@
-import type { ModelCatalogEntry } from "@irl/domain";
+import type { ExecutionTarget, ModelCatalogEntry, ModelFile } from "@irl/domain";
 import { LOCK } from "./catalog";
 import { Sha256 } from "./sha256";
 
@@ -87,32 +87,81 @@ export async function loadModelFile(entry: ModelCatalogEntry, path: string, onPr
   return bytes;
 }
 
-/** Files of an entry that exist in either cache. */
-export async function cachedFiles(entry: ModelCatalogEntry): Promise<{ cached: number; total: number; bytes: number }> {
-  const src = entry.manifest.source;
-  if (src.type !== "hf" || !entry.manifest.files.length) return { cached: 0, total: 0, bytes: 0 };
-  const [ours, tjs] = await Promise.all([caches.open(MODEL_CACHE), caches.open(TJS_CACHE)]);
-  let cached = 0;
-  let bytes = 0;
-  const locked = LOCK.repos[src.repo];
-  const files = entry.manifest.files.filter((f) => !locked || locked.files.some((l) => l.path === f.path));
-  for (const f of files) {
-    const url = hfUrl(src.repo, src.revision, f.path);
-    if ((await ours.match(url)) || (await tjs.match(url))) {
-      cached++;
-      bytes += f.bytes ?? 0;
+/** transformers.js 4.2 graph file suffix per dtype (DEFAULT_DTYPE_SUFFIX_MAPPING). */
+const DTYPE_SUFFIX: Record<string, string> = { fp32: "", fp16: "_fp16", int8: "_int8", uint8: "_uint8", q8: "_quantized", q4: "_q4", q2: "_q2", q1: "_q1", q4f16: "_q4f16", q2f16: "_q2f16", q1f16: "_q1f16", bnb4: "_bnb4" };
+const GRAPH = /\.onnx(_data(_\d+)?)?$/;
+
+/**
+ * Pinned files the entry's adapter reads when running on any of `targets`. transformers.js picks each
+ * session's graph by dtype, so graphs for other dtypes are skipped; without a per-session dtype map every
+ * pinned file counts.
+ */
+export function filesForTargets(entry: ModelCatalogEntry, targets: readonly ExecutionTarget[]): ModelFile[] {
+  const files = entry.manifest.files;
+  if (!entry.manifest.adapter.startsWith("tjs-")) return files;
+  const dtypes = (entry.manifest.params?.dtype ?? {}) as Partial<Record<ExecutionTarget, string | Record<string, string>>>;
+  const stems = new Set<string>();
+  for (const t of targets) {
+    const d = dtypes[t];
+    if (!d || typeof d === "string") return files;
+    for (const [session, dtype] of Object.entries(d)) {
+      const suffix = DTYPE_SUFFIX[dtype];
+      if (suffix === undefined) return files;
+      stems.add(`onnx/${session}${suffix}`);
     }
   }
-  return { cached, total: files.length, bytes };
+  return files.filter((f) => !GRAPH.test(f.path) || stems.has(f.path.replace(GRAPH, "")));
 }
 
-export async function deleteModelFiles(entry: ModelCatalogEntry): Promise<void> {
+/** transformers.js adapters read Cache Storage through transformers.js; ORT-direct adapters use loadModelFile. */
+function cacheFor(entry: ModelCatalogEntry): Promise<Cache> {
+  return caches.open(entry.manifest.adapter.startsWith("tjs-") ? TJS_CACHE : MODEL_CACHE);
+}
+
+/** Files not yet in the cache the entry's adapter reads from. Uses keys(), so no cached body is opened. */
+export async function missingFiles(entry: ModelCatalogEntry, files: readonly ModelFile[]): Promise<ModelFile[]> {
   const src = entry.manifest.source;
-  if (src.type !== "hf") return;
-  const [ours, tjs] = await Promise.all([caches.open(MODEL_CACHE), caches.open(TJS_CACHE)]);
-  for (const f of entry.manifest.files) {
+  if (src.type !== "hf") return [...files];
+  const cached = new Set((await (await cacheFor(entry)).keys()).map((r) => r.url));
+  return files.filter((f) => !cached.has(hfUrl(src.repo, src.revision, f.path)));
+}
+
+/**
+ * Downloads files into the cache the adapter reads from, streaming each verified response straight into
+ * Cache Storage: no JS copy of the weights and no inference session. Loading a model just to download it
+ * held several copies of its weights at once (JS buffer, cache body, WASM heap, GPU), enough for WebKit to
+ * kill the process on the summary models. A file that fails its pinned hash errors the stream, so it is
+ * never stored.
+ */
+export async function downloadModelFiles(entry: ModelCatalogEntry, files: readonly ModelFile[], onProgress?: ProgressFn): Promise<void> {
+  const src = entry.manifest.source;
+  if (src.type !== "hf") throw new Error("only Hugging Face sources are supported");
+  const cache = await cacheFor(entry);
+  const missing = new Set(await missingFiles(entry, files));
+  const total = files.reduce((n, f) => n + (f.bytes ?? 0), 0);
+  let loaded = total - [...missing].reduce((n, f) => n + (f.bytes ?? 0), 0);
+  onProgress?.(loaded, total);
+  for (const f of missing) {
     const url = hfUrl(src.repo, src.revision, f.path);
-    await ours.delete(url);
-    await tjs.delete(url);
+    const res = await verifyingFetch()(url);
+    if (!res.ok || !res.body) throw new Error(`download failed (${res.status}) for ${f.path}`);
+    const counted = res.body.pipeThrough(
+      new TransformStream<Uint8Array, Uint8Array>({
+        transform(chunk, ctl) {
+          loaded += chunk.byteLength;
+          onProgress?.(loaded, total);
+          ctl.enqueue(chunk);
+        },
+      }),
+    );
+    // transformers.js sizes its read buffer from content-length; the pinned size is the decoded size.
+    const headers = new Headers({ "content-type": res.headers.get("content-type") ?? "application/octet-stream" });
+    if (f.bytes) headers.set("content-length", String(f.bytes));
+    await cache.put(url, new Response(counted, { headers }));
   }
+}
+
+/** Drops both model caches outright, including files transformers.js cached outside the pinned manifests. */
+export async function clearModelCache(): Promise<void> {
+  await Promise.all([caches.delete(MODEL_CACHE), caches.delete(TJS_CACHE)]);
 }

@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { l2normalize, SAMPLE_RATE } from "@irl/domain";
-import { defaultSelection, CATALOG, LOCK } from "../src/catalog";
+import { catalogEntry, defaultSelection, CATALOG, LOCK } from "../src/catalog";
+import { filesForTargets } from "../src/model-files";
 import { refineClusters, OnlineClusterer, windowGrid, clusterParams } from "../src/clustering";
 import { ComputeScheduler, interpolateWords } from "../src/scheduler";
 import { Sha256 } from "../src/sha256";
@@ -34,6 +35,30 @@ describe("catalog", () => {
     expect(sel).toEqual({ vad: "silero-vad-v6", sttLive: "moonshine-base-en", sttFinal: "whisper-large-v3-turbo-ts", speakerEmbedding: "campplus-voxceleb", summary: "gemma-4-e2b-qat-mobile" });
     expect(defaultSelection("ja").sttLive).toBe("moonshine-base-ja");
     expect(defaultSelection("auto").sttLive).toBe("whisper-small");
+  });
+});
+
+describe("download file selection", () => {
+  const graphs = (id: string, targets: ("webgpu" | "wasm")[]) => filesForTargets(catalogEntry(id)!, targets).map((f) => f.path).filter((p) => p.startsWith("onnx/"));
+
+  it("keeps only the graphs transformers.js loads for each target", () => {
+    expect(graphs("moonshine-base-en", ["webgpu", "wasm"])).toEqual(["onnx/encoder_model.onnx", "onnx/decoder_model_merged_q4.onnx"]);
+    expect(graphs("whisper-small", ["webgpu"])).toEqual(["onnx/encoder_model.onnx", "onnx/decoder_model_merged_q4.onnx"]);
+    expect(graphs("whisper-small", ["wasm"])).toEqual(["onnx/encoder_model_quantized.onnx", "onnx/decoder_model_merged_quantized.onnx"]);
+    expect(graphs("gemma-4-e2b-qat-mobile", ["webgpu"])).toHaveLength(4);
+  });
+
+  it("keeps configs and every file of ORT-direct entries", () => {
+    const whisper = filesForTargets(catalogEntry("whisper-base")!, ["wasm"]).map((f) => f.path);
+    expect(whisper).toContain("tokenizer.json");
+    expect(filesForTargets(catalogEntry("silero-vad-v6")!, ["wasm"])).toEqual(catalogEntry("silero-vad-v6")!.manifest.files);
+  });
+
+  it("selects at least one graph for every available transformers.js entry", () => {
+    for (const e of CATALOG.filter((x) => x.availability.status === "available" && x.manifest.adapter.startsWith("tjs-"))) {
+      const targets = e.manifest.params?.requiresWebGpu ? (["webgpu"] as const) : (["webgpu", "wasm"] as const);
+      expect(filesForTargets(e, targets).some((f) => f.path.endsWith(".onnx")), e.id).toBe(true);
+    }
   });
 });
 
