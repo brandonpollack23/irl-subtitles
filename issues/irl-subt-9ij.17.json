@@ -7,9 +7,15 @@
   "id": "irl-subt-9ij.17",
   "labels": [],
   "parent": "irl-subt-9ij",
+  "comments": [
+    {
+      "text": "Landed in jj revision nkprtuuv (workspace model-warmup, on ulxzskxq). ModelWarmup in provider-local; PostProcessor.idle/busy; glasses + LiveView loading lines. Known gaps: status stays 'ready' after Settings download/benchmark release until warm() is called; not run on sim/glasses yet.",
+      "timestamp": "2026-09-14T05:33:19Z"
+    }
+  ],
   "priority": 1,
   "status": "in_progress",
   "title": "Warm live models at app launch; show loading state on glasses",
   "type": "task",
-  "updated_at": "2026-09-14T05:24:08Z"
+  "updated_at": "2026-09-14T05:33:19Z"
 }
