@@ -2,14 +2,15 @@
   "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [],
+  "closed_at": "2026-09-14T14:27:01Z",
   "created": "2026-09-14T14:24:49Z",
   "description": "User report (2026-09-14): live glasses show 'Speaker 1' while the transcript nearly identifies them ('Possibly Brandon Pollack'); the glasses should show their name. Evidence: rec_346918ee (17 s) L1 had windows at 2.1/6.2/10.0 s; liveIdentify runs every 10 s only on clusters with \u003e=3 windows, so it never ran live (first eligible tick 20 s). Post-processing gave candidate 0.632. Fix: evaluate a new cluster as each of its first windows arrives, and on the glasses show a candidate as 'Name?' instead of 'Speaker N'.",
   "id": "irl-subt-kdl.17",
   "labels": [],
   "parent": "irl-subt-kdl",
   "priority": 1,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Glasses name the likely speaker live, not Speaker 1",
   "type": "bug",
-  "updated_at": "2026-09-14T14:24:52Z"
+  "updated_at": "2026-09-14T14:27:01Z"
 }
