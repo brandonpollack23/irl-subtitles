@@ -4,6 +4,8 @@
     "irl-subt-f9n.3"
   ],
   "blocks": [],
+  "closed_at": "2026-09-14T02:58:20Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:49Z",
   "description": "People list with full name, short name, profile quality, source samples; rename, manual merge, Forget voice (choose whether transcripts keep textual label). plan.md §10, §11.",
   "id": "irl-subt-f9n.1",
@@ -12,8 +14,8 @@
   ],
   "parent": "irl-subt-f9n",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "People management screen (rename, short name, manual merge, forget voice)",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:49Z"
+  "updated_at": "2026-09-14T02:58:20Z"
 }
