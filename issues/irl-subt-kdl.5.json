@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-kdl.1"
+  ],
   "blocks": [],
   "created": "2026-09-14T09:32:28Z",
   "description": "scheduler.ts drops interim captions at median RTF \u003e 0.8 and pauses live STT at \u003e 1.5, where RTF = decode time / utterance length (live-provider.ts). Autoregressive decode has fixed overhead, so short utterances ('yeah') report RTF near or above 1 and push the level up, making captions final-only or paused. Use compute per second of NEW audio over a rolling window, ignore utterances under ~1 s, and degrade on real backlog (sttBacklogS) rather than per-call RTF. Tests for short-utterance streams not escalating.",
