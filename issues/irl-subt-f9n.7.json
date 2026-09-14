@@ -4,6 +4,8 @@
     "irl-subt-f9n.5"
   ],
   "blocks": [],
+  "closed_at": "2026-09-14T02:58:20Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:49Z",
   "description": "Update in-view transcript and G2 speaker label with shortName/displayName when a match is accepted. plan.md §2.",
   "id": "irl-subt-f9n.7",
@@ -12,8 +14,8 @@
   ],
   "parent": "irl-subt-f9n",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "Live name updates in transcript view and on G2 once matched",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:49Z"
+  "updated_at": "2026-09-14T02:58:20Z"
 }
