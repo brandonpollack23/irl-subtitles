@@ -9,6 +9,12 @@
   "id": "irl-subt-kdl.4",
   "labels": [],
   "parent": "irl-subt-kdl",
+  "comments": [
+    {
+      "text": "Landed (jj rev 'Bound utterance re-decoding in the transformers.js live path'). Done: (3) long speech cut at the next pause after 7 s (softMaxSpeechMs; cutting at probability dips mid-speech was rejected because a cut emitted 'start' events that could be orphaned by the min-speech check), (4) interim promoted to final when the utterance grew \u003c= 0.3 s after it, (5) live minSilenceMs 400 -\u003e 300. Not done, deliberately: (1) LocalAgreement commit and (2) tail-only decoding. Both need to map committed words to audio positions, and this path has no word timestamps (live Moonshine Base / Whisper Small exports are segment-level; interpolated timing would cut words mid-audio). With utterances bounded at ~7 s the compute is capped anyway, and the default path is now Moonshine Streaming (kdl.9), which caches incrementally. Results: simulator two_cities Moonshine Base final lag p50/p95 1.26/3.22 -\u003e 1.12/2.53 s, compute 0.85 -\u003e 0.72, STT 947 -\u003e 821 ms/call (one legit level-1 excursion at load 1.10 during a long utterance); Node jfk 10 -\u003e 7 decodes, all text present. Unit tests for the pause cut and promotion; live tests 5/5.",
+      "timestamp": "2026-09-14T10:52:42Z"
+    }
+  ],
   "priority": 0,
   "status": "in_progress",
   "title": "Stop re-decoding whole utterances in live STT",
