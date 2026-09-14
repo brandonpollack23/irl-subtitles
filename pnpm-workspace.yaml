@@ -10,3 +10,5 @@ allowBuilds:
 overrides:
   # One ONNX Runtime Web build for transformers.js and our direct ORT sessions.
   onnxruntime-web: 1.29.0
+patchedDependencies:
+  '@huggingface/transformers@4.2.0': patches/@huggingface__transformers@4.2.0.patch

@@ -4,6 +4,7 @@ import { availabilityOnDevice, detectCapabilities, selectTarget, type DeviceCapa
 import { downloadModelFiles, filesForTargets, missingFiles } from "./model-files";
 import { isGpuFailure } from "./gpu-errors";
 import { liveMetrics } from "./live-metrics";
+import type { OrtFlavor } from "./ort-flavor";
 import { RpcClient } from "./rpc";
 import type { AsrResult } from "./workers/asr.worker";
 
@@ -28,8 +29,13 @@ export interface EngineEvent {
  * per execution target; a WebGPU failure disposes that worker's sessions and is reported so callers can
  * degrade to deferred processing without touching capture.
  */
+/** Default ORT build for a worker created without a load that needs a particular one. */
+const DEFAULT_FLAVOR: Record<EngineKind, OrtFlavor> = { audio: "wasm", asr: "wasm", llm: "webgpu" };
+
 export class LocalEngines {
-  private clients = new Map<EngineKind, RpcClient>();
+  private clients = new Map<EngineKind, { rpc: RpcClient; flavor: OrtFlavor }>();
+  /** The VAD loaded into the audio worker, reloaded when that worker is replaced by one with another ORT build. */
+  private vadModelId: string | null = null;
   private loaded = new Map<EngineKind, Map<string, Promise<void>>>();
   readonly progress = new Emitter<LoadProgress>();
   readonly events = new Emitter<EngineEvent>();
@@ -37,21 +43,37 @@ export class LocalEngines {
   benchmarks: BenchmarkResult[] = [];
   policy: PowerPolicy = "balanced";
 
-  constructor(private readonly workerFactory: Record<EngineKind, () => Worker>) {}
+  constructor(private readonly workerFactory: Record<EngineKind, (flavor: OrtFlavor) => Worker>) {}
 
   async capabilities(): Promise<DeviceCapabilities> {
     this.caps ??= await detectCapabilities();
     return this.caps;
   }
 
-  private client(kind: EngineKind): RpcClient {
+  /**
+   * The worker for `kind`, created on demand. A load that needs a different ORT build than the running worker
+   * has (WebGPU sessions need the asyncify build; CPU sessions are much faster without it) replaces the worker,
+   * and with it every model loaded there.
+   */
+  private client(kind: EngineKind, flavor?: OrtFlavor): RpcClient {
     let c = this.clients.get(kind);
-    if (!c || !c.alive) {
-      c = new RpcClient(this.workerFactory[kind](), kind);
+    if (c && c.rpc.alive && flavor && c.flavor !== flavor) {
+      this.reset(kind);
+      c = undefined;
+    }
+    if (!c || !c.rpc.alive) {
+      const f = flavor ?? DEFAULT_FLAVOR[kind];
+      c = { rpc: new RpcClient(this.workerFactory[kind](f), kind), flavor: f };
       this.clients.set(kind, c);
       this.loaded.set(kind, new Map());
     }
-    return c;
+    return c.rpc;
+  }
+
+  /** The ORT build the worker for `kind` runs, if one is running. */
+  flavorOf(kind: EngineKind): OrtFlavor | null {
+    const c = this.clients.get(kind);
+    return c?.rpc.alive ? c.flavor : null;
   }
 
   async targetFor(entry: ModelCatalogEntry): Promise<ExecutionTarget> {
@@ -99,10 +121,10 @@ export class LocalEngines {
     }
   }
 
-  private ensure(kind: EngineKind, method: string, modelId: string, payload: Record<string, unknown>): Promise<void> {
+  private ensure(kind: EngineKind, method: string, modelId: string, payload: Record<string, unknown>, flavor?: OrtFlavor): Promise<void> {
     const entry = catalogEntry(modelId);
     if (!entry) return Promise.reject(new Error(`unknown model ${modelId}`));
-    const client = this.client(kind);
+    const client = this.client(kind, flavor);
     const key = `${modelId}:${JSON.stringify(payload)}`;
     const cache = this.loaded.get(kind)!;
     const existing = cache.get(key);
@@ -144,13 +166,21 @@ export class LocalEngines {
   }
 
   async ensureVad(modelId: string): Promise<void> {
-    return this.ensure("audio", "vad.load", modelId, {});
+    // Silero always runs on the CPU, in whichever audio worker is running.
+    await this.ensure("audio", "vad.load", modelId, {});
+    this.vadModelId = modelId;
   }
 
+  /** Embeddings share the audio worker with the VAD; switching its ORT build reloads the VAD too. */
   async ensureEmbedding(modelId: string): Promise<void> {
     const target = await this.targetFor(catalogEntry(modelId)!);
-    return this.ensure("audio", "embed.load", `${modelId}`, { target }).catch(async (e) => {
-      if (target === "webgpu") return this.ensure("audio", "embed.load", modelId, { target: "wasm" });
+    const load = async (t: ExecutionTarget) => {
+      const replaced = this.flavorOf("audio") !== null && this.flavorOf("audio") !== t;
+      await this.ensure("audio", "embed.load", modelId, { target: t }, t);
+      if (replaced && this.vadModelId) await this.ensure("audio", "vad.load", this.vadModelId, {});
+    };
+    return load(target).catch(async (e) => {
+      if (target === "webgpu") return load("wasm");
       throw e;
     });
   }
@@ -159,11 +189,11 @@ export class LocalEngines {
     const entry = catalogEntry(modelId)!;
     const target = await this.targetFor(entry);
     try {
-      await this.ensure("asr", "asr.load", modelId, { target });
+      await this.ensure("asr", "asr.load", modelId, { target }, target);
       return target;
     } catch (e) {
       if (target === "webgpu" && entry.manifest.params?.requiresWebGpu !== true) {
-        await this.ensure("asr", "asr.load", modelId, { target: "wasm" });
+        await this.ensure("asr", "asr.load", modelId, { target: "wasm" }, "wasm");
         return "wasm";
       }
       throw e;
@@ -171,14 +201,14 @@ export class LocalEngines {
   }
 
   async ensureLlm(modelId: string): Promise<void> {
-    return this.ensure("llm", "llm.load", modelId, {});
+    return this.ensure("llm", "llm.load", modelId, {}, "webgpu");
   }
 
   async call<T>(kind: EngineKind, method: string, payload: unknown, opts: { transfer?: Transferable[]; progress?: (p: unknown) => void } = {}): Promise<T> {
     try {
       return await this.client(kind).call<T>(method, payload, opts);
     } catch (e) {
-      if (isGpuFailure(e) || !this.clients.get(kind)?.alive) {
+      if (isGpuFailure(e) || !this.clients.get(kind)?.rpc.alive) {
         this.events.emit({ type: isGpuFailure(e) ? "gpu-failure" : "worker-crash", engine: kind, message: errorMessage(e) });
         this.reset(kind);
       }
@@ -201,7 +231,7 @@ export class LocalEngines {
 
   /** Terminates a worker; its models reload on next use. */
   reset(kind: EngineKind): void {
-    this.clients.get(kind)?.terminate();
+    this.clients.get(kind)?.rpc.terminate();
     this.clients.delete(kind);
     this.loaded.delete(kind);
   }

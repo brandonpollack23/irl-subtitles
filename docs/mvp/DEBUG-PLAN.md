@@ -239,8 +239,9 @@ Chrome and iOS Safari. Microphone: Phone microphone.
       URL or sample rate; see `packages/capture/src/sources.ts` `PhoneMicSource`.
 - [ ] iOS: OPFS blob store works (Diagnostics → Audio files `opfs`), otherwise
       `indexeddb` with a reason.
-- [ ] ONNX Runtime on Safari: if sessions fail to create, try the non-asyncify WASM
-      build (transformers.js uses it on Safari by default; see `ort-env.ts`).
+- [ ] ONNX Runtime on Safari: CPU workers already run the plain (non-asyncify) build
+      (`irl-asr:wasm` / `irl-audio-ml:wasm` worker names); if WebGPU sessions fail to
+      create, the asyncify build is the suspect (see `ort-env.ts`).
 
 ## 5. Even app + G2
 

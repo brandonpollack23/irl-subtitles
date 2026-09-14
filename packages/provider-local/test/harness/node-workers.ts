@@ -1,5 +1,6 @@
 import { Worker as ThreadWorker } from "node:worker_threads";
 import type { EngineKind } from "../../src/engines";
+import { workerName, type OrtFlavor } from "../../src/ort-flavor";
 
 const entry = new URL("./worker-entry.mjs", import.meta.url);
 const modules: Record<EngineKind, URL> = {
@@ -14,8 +15,8 @@ class ThreadBackedWorker {
   onerror: ((e: { message: string }) => void) | null = null;
   private thread: ThreadWorker;
 
-  constructor(kind: EngineKind, cacheDir: string) {
-    this.thread = new ThreadWorker(entry, { workerData: { module: modules[kind].href, cacheDir } });
+  constructor(kind: EngineKind, cacheDir: string, flavor: OrtFlavor) {
+    this.thread = new ThreadWorker(entry, { workerData: { module: modules[kind].href, cacheDir, name: workerName(`irl-${kind}`, flavor) } });
     this.thread.on("message", (data) => this.onmessage?.({ data }));
     this.thread.on("error", (e: Error) => this.onerror?.({ message: e.message }));
   }
@@ -30,7 +31,7 @@ class ThreadBackedWorker {
 }
 
 /** Drop-in for toolkit's defaultWorkers(): the app's own worker modules, one thread each. */
-export function nodeWorkers(cacheDir: string): Record<EngineKind, () => Worker> {
-  const make = (kind: EngineKind) => () => new ThreadBackedWorker(kind, cacheDir) as unknown as Worker;
+export function nodeWorkers(cacheDir: string): Record<EngineKind, (flavor: OrtFlavor) => Worker> {
+  const make = (kind: EngineKind) => (flavor: OrtFlavor) => new ThreadBackedWorker(kind, cacheDir, flavor) as unknown as Worker;
   return { audio: make("audio"), asr: make("asr"), llm: make("llm") };
 }

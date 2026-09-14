@@ -1,12 +1,15 @@
 /// <reference lib="webworker" />
-import { pipeline, type AutomaticSpeechRecognitionPipeline } from "@huggingface/transformers";
+import type { AutomaticSpeechRecognitionPipeline } from "@huggingface/transformers";
 import type { ExecutionTarget } from "@irl/domain";
 import { catalogEntry } from "../catalog";
 import { setupRuntime } from "../ort-env";
 import { serveRpc } from "../rpc";
 
-/** Speech-to-text through transformers.js (Whisper and Moonshine), decode loops and KV cache on the GPU. */
-setupRuntime();
+/**
+ * Speech-to-text through transformers.js (Whisper and Moonshine). A `:webgpu` worker keeps decode loops and KV
+ * cache on the GPU; a `:wasm` worker runs the plain CPU build (ort-env.ts).
+ */
+const runtime = setupRuntime();
 
 let current: { id: string; target: ExecutionTarget; pipe: AutomaticSpeechRecognitionPipeline } | null = null;
 
@@ -17,9 +20,11 @@ async function load(modelId: string, target: ExecutionTarget, progress: (p: unkn
   const entry = catalogEntry(modelId);
   if (!entry || entry.manifest.adapter !== "tjs-asr" || entry.manifest.source.type !== "hf") throw new Error(`not an ASR model: ${modelId}`);
   const dtype = (entry.manifest.params?.dtype as Record<string, unknown> | undefined)?.[target];
-  const pipe = (await pipeline("automatic-speech-recognition", entry.manifest.source.repo, {
+  const { tjs, flavor } = await runtime;
+  if (target === "webgpu" && flavor !== "webgpu") throw new Error("this ASR worker runs the CPU build; WebGPU needs a :webgpu worker");
+  const pipe = (await tjs.pipeline("automatic-speech-recognition", entry.manifest.source.repo, {
     revision: entry.manifest.source.revision,
-    device: target,
+    ...(flavor === "webgpu" ? { device: target } : {}),
     ...(dtype ? { dtype } : {}),
     progress_callback: progress,
   } as never)) as AutomaticSpeechRecognitionPipeline;
@@ -56,4 +61,4 @@ serveRpc({
     await current?.pipe.dispose().catch(() => undefined);
     current = null;
   },
-});
+}, runtime);

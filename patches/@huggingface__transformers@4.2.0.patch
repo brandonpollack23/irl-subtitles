@@ -1,0 +1,45 @@
+diff --git a/dist/transformers.js b/dist/transformers.js
+index 3274d9cfc2453aeb6b1ee64e61c85f6984aaad88..85b40efd8f931617233f05fd12ae629b61a6406e 100644
+--- a/dist/transformers.js
++++ b/dist/transformers.js
+@@ -12318,6 +12318,10 @@ var ONNX;
+ var ORT_SYMBOL = /* @__PURE__ */ Symbol.for("onnxruntime");
+ if (ORT_SYMBOL in globalThis) {
+   ONNX = globalThis[ORT_SYMBOL];
++  // irl-subtitles patch: an injected ONNX Runtime Web build still runs on these devices.
++  if (ONNX?.env?.webgpu && apis.IS_WEBGPU_AVAILABLE) supportedDevices.push("webgpu");
++  supportedDevices.push("wasm", "cpu");
++  defaultDevices = ["wasm"];
+ } else if (apis.IS_NODE_ENV) {
+   ONNX = onnxruntime_node_exports;
+   switch (process.platform) {
+diff --git a/dist/transformers.web.js b/dist/transformers.web.js
+index bb7b32717a42475a5f66411a33d5e5964dfda3e2..428a276ddb7c841c05d2f028353ddf76bb79c804 100644
+--- a/dist/transformers.web.js
++++ b/dist/transformers.web.js
+@@ -7655,6 +7655,10 @@ var ONNX;
+ var ORT_SYMBOL = /* @__PURE__ */ Symbol.for("onnxruntime");
+ if (ORT_SYMBOL in globalThis) {
+   ONNX = globalThis[ORT_SYMBOL];
++  // irl-subtitles patch: an injected ONNX Runtime Web build still runs on these devices.
++  if (ONNX?.env?.webgpu && apis.IS_WEBGPU_AVAILABLE) supportedDevices.push("webgpu");
++  supportedDevices.push("wasm", "cpu");
++  defaultDevices = ["wasm"];
+ } else if (apis.IS_NODE_ENV) {
+   ONNX = onnxruntime_node_exports;
+   switch (process.platform) {
+diff --git a/src/backends/onnx.js b/src/backends/onnx.js
+index 13b1a748272d03aa062950ff585c1a2277ba96c9..4427e7f5fcff0d7ee09c244e85f3771fb2c10cdf 100644
+--- a/src/backends/onnx.js
++++ b/src/backends/onnx.js
+@@ -105,6 +105,10 @@ const ORT_SYMBOL = Symbol.for('onnxruntime');
+ if (ORT_SYMBOL in globalThis) {
+     // If the JS runtime exposes their own ONNX runtime, use it
+     ONNX = globalThis[ORT_SYMBOL];
++    // irl-subtitles patch: an injected ONNX Runtime Web build still runs on these devices.
++    if (ONNX?.env?.webgpu && apis.IS_WEBGPU_AVAILABLE) supportedDevices.push('webgpu');
++    supportedDevices.push('wasm', 'cpu');
++    defaultDevices = ['wasm'];
+ } else if (apis.IS_NODE_ENV) {
+     ONNX = ONNX_NODE;
+ 

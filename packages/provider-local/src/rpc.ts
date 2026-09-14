@@ -9,7 +9,11 @@ export type RpcReply = { id: number; ok: true; result: unknown } | { id: number;
 
 export type RpcHandler = (payload: never, ctx: { progress(p: unknown): void; transfer(t: Transferable[]): void }) => Promise<unknown>;
 
-export function serveRpc(handlers: Record<string, RpcHandler>): void {
+/**
+ * Installs the handlers synchronously (a module worker can drop messages that arrive while its top-level awaits
+ * run); each request waits for `ready`, e.g. the worker's runtime setup.
+ */
+export function serveRpc(handlers: Record<string, RpcHandler>, ready: Promise<unknown> = Promise.resolve()): void {
   const scope = self as unknown as DedicatedWorkerGlobalScope;
   scope.onmessage = async (e: MessageEvent<RpcRequest>) => {
     const { id, method, payload } = e.data;
@@ -18,6 +22,7 @@ export function serveRpc(handlers: Record<string, RpcHandler>): void {
     const ctx = { progress: (p: unknown) => scope.postMessage({ id, progress: p } satisfies RpcReply), transfer: (t: Transferable[]) => (transfer = t) };
     try {
       if (!handler) throw new Error(`unknown method ${method}`);
+      await ready;
       const result = await handler(payload as never, ctx);
       scope.postMessage({ id, ok: true, result } satisfies RpcReply, transfer);
     } catch (err) {

@@ -1,11 +1,11 @@
 /// <reference lib="webworker" />
-import { AutoModelForCausalLM, AutoTokenizer, TextStreamer, type PreTrainedModel, type PreTrainedTokenizer, type Tensor } from "@huggingface/transformers";
+import type { PreTrainedModel, PreTrainedTokenizer, Tensor } from "@huggingface/transformers";
 import { catalogEntry } from "../catalog";
 import { setupRuntime } from "../ort-env";
 import { serveRpc } from "../rpc";
 
 /** Summary LLMs (Gemma 4, Qwen3.5) on WebGPU; runs only after capture ends (plan.md §6.1). */
-setupRuntime();
+const runtime = setupRuntime("webgpu");
 
 let current: { id: string; model: PreTrainedModel; tokenizer: PreTrainedTokenizer } | null = null;
 let stopRequested = false;
@@ -18,6 +18,7 @@ async function load(modelId: string, progress: (p: unknown) => void) {
   if (!entry || entry.manifest.adapter !== "tjs-llm" || entry.manifest.source.type !== "hf") throw new Error(`not a summary model: ${modelId}`);
   const { repo, revision } = entry.manifest.source;
   const dtype = (entry.manifest.params?.dtype as Record<string, unknown> | undefined)?.webgpu;
+  const { AutoModelForCausalLM, AutoTokenizer } = (await runtime).tjs;
   const [tokenizer, model] = await Promise.all([
     AutoTokenizer.from_pretrained(repo, { revision } as never),
     AutoModelForCausalLM.from_pretrained(repo, { revision, device: "webgpu", ...(dtype ? { dtype } : {}), progress_callback: progress } as never),
@@ -40,7 +41,7 @@ serveRpc({
     const inputs = tokenizer.apply_chat_template(p.messages as never, { add_generation_prompt: true, return_dict: true, enable_thinking: p.disableThinking ? false : undefined } as never) as unknown as { input_ids: Tensor };
     let tokens = 0;
     const t0 = performance.now();
-    const streamer = new TextStreamer(tokenizer, {
+    const streamer = new (await runtime).tjs.TextStreamer(tokenizer, {
       skip_prompt: true,
       skip_special_tokens: true,
       callback_function: () => {
@@ -71,4 +72,4 @@ serveRpc({
     await current?.model.dispose().catch(() => undefined);
     current = null;
   },
-});
+}, runtime);

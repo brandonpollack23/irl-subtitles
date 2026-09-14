@@ -41,7 +41,12 @@ app on :5174 (cross-origin isolated). `pnpm pin-models` refreshes
 - **Runtimes.** Whisper, Moonshine, WeSpeaker, Gemma, Qwen run through
   transformers.js 4.2 (its decode loops keep KV caches on the GPU). Silero, CAM++
   (WeSpeaker export, using transformers.js's Kaldi fbank), and ReDimNet run on ORT
-  Web directly. One ORT build (1.29.0 asyncify) is shared via a pnpm override.
+  Web directly. ORT is 1.29.0 everywhere (pnpm override). Each worker runs one build, chosen
+  when it's created: the plain SIMD build for CPU sessions and the asyncify build only for
+  WebGPU sessions (`ort-flavor.ts`, `ort-env.ts`). transformers.js is handed the CPU build
+  through its `Symbol.for("onnxruntime")` hook, with a small pnpm patch so an injected
+  runtime still accepts `wasm`/`cpu` devices. On JavaScriptCore the asyncify build made
+  model loads ~10x slower (irl-subt-kdl.2).
 - **Integrity.** Every catalog repo is pinned to a commit; downloads are verified
   against SHA-256 while streaming (`verifyingFetch`), for our cache and
   transformers.js's.

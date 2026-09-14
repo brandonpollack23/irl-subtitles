@@ -1,11 +1,11 @@
 /// <reference lib="webworker" />
-import { AutoFeatureExtractor, AutoModel, Tensor as TjsTensor, WeSpeakerFeatureExtractor } from "@huggingface/transformers";
+import type { Tensor as TjsTensor, WeSpeakerFeatureExtractor } from "@huggingface/transformers";
 import type { ExecutionTarget } from "@irl/domain";
 import type * as Ort from "onnxruntime-web/webgpu";
 import { catalogEntry } from "../catalog";
 import { windowQuality } from "../clustering";
 import { loadModelFile } from "../model-files";
-import { setupRuntime } from "../ort-env";
+import { setupRuntime, type Runtime } from "../ort-env";
 import { serveRpc } from "../rpc";
 import { regionsFromProbabilities, VadStream } from "../vad-segmenter";
 
@@ -13,7 +13,14 @@ import { regionsFromProbabilities, VadStream } from "../vad-segmenter";
  * Small, latency-sensitive graphs: Silero VAD and the speaker-embedding model. Both default to WASM, where
  * per-dispatch GPU overhead would dominate (irl-subt-0i6.3.9), but embeddings may target WebGPU.
  */
-const ort = setupRuntime();
+let ort!: Runtime["ort"];
+let tjs!: Runtime["tjs"];
+let fbank!: WeSpeakerFeatureExtractor;
+const runtime = setupRuntime().then((r) => {
+  ({ ort, tjs } = r);
+  fbank = new tjs.WeSpeakerFeatureExtractor({ feature_extractor_type: "WeSpeakerFeatureExtractor", sampling_rate: 16000, num_mel_bins: 80, min_num_frames: 9, fbank_centering_span: null } as never);
+  return r;
+});
 
 const WINDOW = 512;
 const CONTEXT = 64;
@@ -76,13 +83,13 @@ interface EmbedModel {
 }
 
 let embedder: EmbedModel | null = null;
-const fbank = new WeSpeakerFeatureExtractor({ feature_extractor_type: "WeSpeakerFeatureExtractor", sampling_rate: 16000, num_mel_bins: 80, min_num_frames: 9, fbank_centering_span: null } as never);
 
 async function loadEmbedder(modelId: string, target: ExecutionTarget, progress: (p: unknown) => void): Promise<void> {
   if (embedder?.id === modelId && embedder.target === target) return;
   embedder = null;
   const entry = catalogEntry(modelId);
   if (!entry || entry.role !== "speaker-embedding") throw new Error(`not an embedding model: ${modelId}`);
+  if (target === "webgpu" && (await runtime).flavor !== "webgpu") throw new Error("this audio worker runs the CPU build; WebGPU needs a :webgpu worker");
   const eps = target === "webgpu" ? [{ name: "webgpu" }, "wasm"] : ["wasm"];
   const adapter = entry.manifest.adapter;
   if (adapter === "ort-fbank-embedding") {
@@ -119,8 +126,8 @@ async function loadEmbedder(modelId: string, target: ExecutionTarget, progress: 
     const src = entry.manifest.source;
     if (src.type !== "hf") throw new Error("unsupported source");
     const dtype = (entry.manifest.params?.dtype as Record<string, string> | undefined)?.[target] ?? "fp32";
-    const opts = { revision: src.revision, device: target, dtype, progress_callback: progress } as never;
-    const [model, extractor] = await Promise.all([AutoModel.from_pretrained(src.repo, opts), AutoFeatureExtractor.from_pretrained(src.repo, { revision: src.revision } as never)]);
+    const opts = { revision: src.revision, ...((await runtime).flavor === "webgpu" ? { device: target } : {}), dtype, progress_callback: progress } as never;
+    const [model, extractor] = await Promise.all([tjs.AutoModel.from_pretrained(src.repo, opts), tjs.AutoFeatureExtractor.from_pretrained(src.repo, { revision: src.revision } as never)]);
     embedder = {
       id: modelId, target,
       run: async (samples) => {
@@ -176,4 +183,4 @@ serveRpc({
     vadId = null;
     embedder = null;
   },
-});
+}, runtime);

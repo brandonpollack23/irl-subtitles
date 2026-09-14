@@ -7,6 +7,8 @@ import { importAsWeb, installWebEnv } from "./web-env.mjs";
 register(new URL("./loader.mjs", import.meta.url));
 installWebEnv(workerData.cacheDir);
 globalThis.location = { href: workerData.module };
+// A web Worker's name carries its ONNX Runtime build (ort-flavor.ts).
+globalThis.name = workerData.name;
 globalThis.postMessage = (data, transfer) => parentPort.postMessage(data, transfer ?? []);
 // A web Worker queues messages until its script has run; the RPC server only installs onmessage at the end.
 const early = [];

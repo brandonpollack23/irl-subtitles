@@ -5,13 +5,14 @@ import { CATALOG, catalogEntry, embeddingSpaceOf } from "./catalog";
 import { clusterParams, refineClusters, windowGrid } from "./clustering";
 import type { EngineKind, LocalEngines } from "./engines";
 import { LocalLiveSpeechProvider } from "./live-provider";
+import { workerName, type OrtFlavor } from "./ort-flavor";
 import { interpolateWords } from "./scheduler";
 
-export function defaultWorkers(): Record<EngineKind, () => Worker> {
+export function defaultWorkers(): Record<EngineKind, (flavor: OrtFlavor) => Worker> {
   return {
-    audio: () => new Worker(new URL("./workers/audio.worker.ts", import.meta.url), { type: "module", name: "irl-audio-ml" }),
-    asr: () => new Worker(new URL("./workers/asr.worker.ts", import.meta.url), { type: "module", name: "irl-asr" }),
-    llm: () => new Worker(new URL("./workers/llm.worker.ts", import.meta.url), { type: "module", name: "irl-llm" }),
+    audio: (f) => new Worker(new URL("./workers/audio.worker.ts", import.meta.url), { type: "module", name: workerName("irl-audio-ml", f) }),
+    asr: (f) => new Worker(new URL("./workers/asr.worker.ts", import.meta.url), { type: "module", name: workerName("irl-asr", f) }),
+    llm: (f) => new Worker(new URL("./workers/llm.worker.ts", import.meta.url), { type: "module", name: workerName("irl-llm", f) }),
   };
 }
 
