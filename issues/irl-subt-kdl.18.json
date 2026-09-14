@@ -2,14 +2,15 @@
   "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [],
+  "closed_at": "2026-09-14T23:01:05Z",
   "created": "2026-09-14T22:56:01Z",
   "description": "Live identity doesn't recognize the user talking normally; match policy (minScore 0.62, margin 0.10, 8 s evidence, candidate 0.5) is an untuned guess for CAM++ while calibration measured same-speaker utterance centroids down to 0.44 and different-speaker max ~0.41. Add a dev-gated panel: sliders for minScore, candidateScore, minEvidenceMs, minMargin (and window agreement) per embedding space, persisted in settings.matchPolicies, plus a live readout per cluster of best/second score, evidence, agreement and the rejection reason so tuning uses real scores. Adaptive thresholds rejected: confirmations only sample same-speaker scores.",
   "id": "irl-subt-kdl.18",
   "labels": [],
   "parent": "irl-subt-kdl",
   "priority": 2,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Dev match tuning: policy sliders and live match readout",
   "type": "task",
-  "updated_at": "2026-09-14T22:56:05Z"
+  "updated_at": "2026-09-14T23:01:05Z"
 }
