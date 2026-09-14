@@ -6,6 +6,8 @@
   "blocks": [
     "irl-subt-9ij"
   ],
+  "closed_at": "2026-09-14T02:58:10Z",
+  "close_reason": "all children implemented",
   "created": "2026-09-13T11:20:49Z",
   "description": "People, full/short names, speaker sheet, enrollment, conservative identification, correction and undo, evaluation harness. plan.md §7, §13 Phase 3.",
   "id": "irl-subt-f9n",
@@ -13,8 +15,8 @@
     "mvp"
   ],
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "MVP Phase 3: People and persistent voice identity",
   "type": "epic",
-  "updated_at": "2026-09-13T11:20:51Z"
+  "updated_at": "2026-09-14T02:58:10Z"
 }
