@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-kdl.1"
+  ],
   "blocks": [],
   "created": "2026-09-14T09:32:28Z",
   "description": "live-provider.ts runStt re-decodes the entire open utterance every INTERIM_EVERY_SAMPLES (1.2 s) and again when it ends; utterances can reach maxSpeechMs 15 s. Change to: (1) LocalAgreement-2 style commit (text agreeing across two consecutive decodes is committed and emitted final); (2) decode only the uncommitted tail plus small overlap; (3) cut segments at VAD probability dips about every 6-8 s rather than a hard 15 s cut; (4) if no new audio since the last interim, promote it to the final instead of decoding again; (5) consider lowering live minSilenceMs (final pass corrects errors). Keep token timing segment-interpolated semantics and replaceProvisional behaviour. Unit tests + live harness latency assertion from A0. Largely superseded for Moonshine Streaming by B3 but still applies to the Whisper live path (auto language).",

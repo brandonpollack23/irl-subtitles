@@ -2,7 +2,8 @@
   "assignee": "",
   "blocked_by": [],
   "blocks": [
-    "irl-subt-kdl.2"
+    "irl-subt-kdl.2",
+    "irl-subt-kdl.4"
   ],
   "created": "2026-09-14T09:32:28Z",
   "description": "Measure before changing anything. Log per stage: model load phases (cache read, session create per graph, first inference), VAD RTF, speech-start -\u003e first interim on glasses, speech-end -\u003e final on glasses, STT compute per second of new audio, scheduler level changes. Surface in Diagnostics. Add a latency assertion to pnpm test:live (apps/even-hub/test/glasses-captions.live.test.ts). Record a baseline in the Even simulator (WebKitGTK) with the current code so Phase A gains are measurable. Jsc-shell microbenchmark method: load ort.wasm.min.mjs / ort.webgpu.min.mjs in /usr/lib/webkit2gtk-4.1/jsc -m with shims (URL, TextEncoder/Decoder, performance.timeOrigin, setTimeout) and ort.env.wasm.wasmBinary set.",
