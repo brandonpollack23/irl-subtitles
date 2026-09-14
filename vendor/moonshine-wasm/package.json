@@ -1,0 +1,14 @@
+{
+  "name": "@irl/moonshine-wasm",
+  "private": true,
+  "version": "0.1.5-st.1",
+  "description": "Speech-to-text subset of @moonshine-ai/moonshine-wasm 0.1.5, built SIMD-only (no pthreads) so it runs without cross-origin isolation. Rebuild with scripts/build-moonshine-wasm.sh.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": { "types": "./dist/transcriber.d.ts", "import": "./dist/transcriber.js" },
+    "./module": { "types": "./dist/module.d.ts", "import": "./dist/module.js" },
+    "./enums": { "types": "./dist/enums.d.ts", "import": "./dist/enums.js" },
+    "./types": { "types": "./dist/types.d.ts", "import": "./dist/types.js" }
+  }
+}

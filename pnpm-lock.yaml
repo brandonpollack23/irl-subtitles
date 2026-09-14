@@ -44,6 +44,9 @@ importers:
       '@irl/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@irl/moonshine-wasm':
+        specifier: workspace:*
+        version: link:../../vendor/moonshine-wasm
       '@irl/pipeline':
         specifier: workspace:*
         version: link:../../packages/pipeline
@@ -113,6 +116,9 @@ importers:
       '@irl/domain':
         specifier: workspace:*
         version: link:../domain
+      '@irl/moonshine-wasm':
+        specifier: workspace:*
+        version: link:../../vendor/moonshine-wasm
       '@irl/pipeline':
         specifier: workspace:*
         version: link:../pipeline
@@ -162,6 +168,8 @@ importers:
       tsx:
         specifier: ^4.21.0
         version: 4.23.13
+
+  vendor/moonshine-wasm: {}
 
 packages:
 

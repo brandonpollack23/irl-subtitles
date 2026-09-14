@@ -1,5 +1,7 @@
 node_modules/
 dist/
+# The vendored Moonshine WASM runtime ships its build output (vendor/moonshine-wasm/README.md).
+!vendor/moonshine-wasm/dist/
 *.ehpk
 # Phase 0 probe: large downloaded models and device-uploaded recordings
 spikes/phase0-probe/models/

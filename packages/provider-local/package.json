@@ -7,6 +7,7 @@
   "dependencies": {
     "@huggingface/transformers": "4.2.0",
     "@irl/domain": "workspace:*",
+    "@irl/moonshine-wasm": "workspace:*",
     "@irl/pipeline": "workspace:*",
     "@irl/provider-summary": "workspace:*",
     "onnxruntime-web": "1.29.0"
