@@ -1,11 +1,14 @@
 import { createMemo, createSignal, For, Show } from "solid-js";
 import { activeAttributions, formatClock, speakerLabel, type ClusterId, type Person, type SpeakerAttribution } from "@irl/domain";
 import { app, Button, go, speakerColor, SpeakerName, useData } from "./lib";
-import { liveSnapshot } from "./model";
+import { liveSnapshot, warmupStatus } from "./model";
 import { SpeakerSheet } from "./SpeakerSheet";
 
 export function LiveView() {
   const live = liveSnapshot();
+  const warmup = warmupStatus();
+  // Soniox captions don't wait on local models.
+  const modelsLoading = () => warmup().loading.length > 0 && live().provider !== "soniox";
   const [sheet, setSheet] = createSignal<ClusterId | null>(null);
   const idle = () => live().state === "idle";
   const settings = () => app().settings.get();
@@ -37,6 +40,11 @@ export function LiveView() {
               {settings().provider === "soniox" ? "Soniox transcribes in the cloud: audio is sent to Soniox while recording." : "Everything is processed on this phone."}{" "}
               {settings().persistAudio ? "Audio will be saved." : "Audio won't be saved after processing."}
             </p>
+            <Show when={modelsLoading()}>
+              <p class="small muted" role="status">
+                Loading {warmup().loading.join(", ")}. You can start now; captions follow once they're ready.
+              </p>
+            </Show>
             <Button label="Start recording" busyLabel="Starting…" kind="record" onClick={() => app().controller.start()} />
             <Show when={live().error}>
               <p class="error">{live().error}</p>
@@ -60,6 +68,11 @@ export function LiveView() {
           </div>
           <Show when={app().sourceNote}>
             <p class="small warn">{app().sourceNote}</p>
+          </Show>
+          <Show when={modelsLoading()}>
+            <p class="small muted" role="status">
+              Captions loading, they'll start shortly.
+            </p>
           </Show>
           <Show when={live().degraded}>
             <p class="warn" role="status">

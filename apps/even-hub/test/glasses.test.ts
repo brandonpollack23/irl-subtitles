@@ -84,3 +84,44 @@ describe("glasses gestures (Conversate model)", () => {
     expect(gestureOf(menuOpened)).toBeNull();
   });
 });
+
+describe("glasses model loading notice", () => {
+  function page(state: LiveSnapshot["state"]) {
+    const snapshot = { state, provider: "local", persistAudio: false, capturedSamples: 0, segments: [], provisionalText: "", recordingId: null, currentClusterId: null, labelsVersion: 0 } as unknown as LiveSnapshot;
+    const settings = { get: () => ({ showCaptionsOnGlasses: true, persistAudio: false }), changes: { on: () => () => undefined } };
+    const glasses = new GlassesController({ current: snapshot } as unknown as RecordingController, settings as unknown as SettingsStore, async () => "Speaker");
+    const bridge = {
+      rebuildPageContainer: vi.fn(async (_page: { textObject: { content: string }[] }) => true),
+      textContainerUpgrade: vi.fn(async (_update: { containerID: number; content: string }) => true),
+    };
+    Object.assign(glasses, { bridge, created: Promise.resolve(true) });
+    const internals = glasses as unknown as { onSnapshot(s: LiveSnapshot): void; renderTail: Promise<void> };
+    internals.onSnapshot(snapshot);
+    const body = async () => {
+      await internals.renderTail;
+      const upgrades = bridge.textContainerUpgrade.mock.calls.filter(([u]) => u.containerID === 2);
+      return upgrades.length ? upgrades.at(-1)![0].content : bridge.rebuildPageContainer.mock.calls.at(-1)![0].textObject[1]!.content;
+    };
+    return { glasses, bridge, body };
+  }
+
+  it("tells the idle page models are loading while keeping the gestures, then clears it", async () => {
+    const { glasses, body } = page("idle");
+    expect(await body()).toBe("Ready. Audio won't be saved.\nTap to start. Double tap to exit.");
+    glasses.setModelsLoading(true);
+    expect(await body()).toBe("Audio won't be saved.\nCaption models are loading. You can start now; captions follow once they're ready.\nTap to start. Double tap to exit.");
+    glasses.showNotice("Ready on your phone.");
+    expect(await body()).toContain("Ready on your phone.\nCaption models are loading.");
+    glasses.showNotice(null);
+    glasses.setModelsLoading(false);
+    expect(await body()).toBe("Ready. Audio won't be saved.\nTap to start. Double tap to exit.");
+  });
+
+  it("adds a short line while recording and removes it once ready", async () => {
+    const { glasses, body } = page("recording");
+    glasses.setModelsLoading(true);
+    expect(await body()).toBe("Captions loading, they'll start shortly.\n(audio not saved)");
+    glasses.setModelsLoading(false);
+    expect(await body()).toBe("(audio not saved)");
+  });
+});

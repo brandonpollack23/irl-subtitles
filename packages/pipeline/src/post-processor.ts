@@ -75,6 +75,8 @@ export async function loadTranscript(repo: Repository, recordingId: string) {
  */
 export class PostProcessor {
   readonly events = new Emitter<StageEvent>();
+  /** The queue drained and the workers were released, whether jobs succeeded or not. */
+  readonly idle = new Emitter<void>();
   private queue: { recordingId: string; stages: readonly PostStage[] }[] = [];
   private running: Promise<void> | null = null;
   private abort: AbortController | null = null;
@@ -86,7 +88,14 @@ export class PostProcessor {
     const existing = this.queue.find((q) => q.recordingId === recordingId);
     if (existing) existing.stages = [...new Set([...existing.stages, ...stages])];
     else this.queue.push({ recordingId, stages });
-    this.running ??= this.drain().finally(() => (this.running = null));
+    this.running ??= this.drain().finally(() => {
+      this.running = null;
+      this.idle.emit();
+    });
+  }
+
+  get busy(): boolean {
+    return this.running !== null;
   }
 
   cancelCurrent(): void {

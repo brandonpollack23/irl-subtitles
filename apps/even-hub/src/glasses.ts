@@ -11,6 +11,8 @@ const MENU = { start: 1, stop: 2, pause: 3, resume: 4, marker: 5, toggleAudio: 6
 const STATUS = { id: 1, name: "status" };
 const BODY = { id: 2, name: "body" };
 const TEXT_LIMIT = 900;
+const LOADING_IDLE = "Caption models are loading. You can start now; captions follow once they're ready.";
+const LOADING_LIVE = "Captions loading, they'll start shortly.";
 /**
  * A single tap waits this long before acting, so the second tap of a double tap (or the OS's
  * tap-then-hold menu gesture) can cancel it instead of starting or pausing first.
@@ -43,6 +45,7 @@ export class GlassesController {
   private created: Promise<boolean> | null = null;
   private mode: Mode | null = null;
   private notice: string | null = null;
+  private modelsLoading = false;
   private lastSnapshot: LiveSnapshot | null = null;
   private nameCache = new Map<string, string>();
   private nameVersion = -1;
@@ -88,6 +91,13 @@ export class GlassesController {
     if (this.lastSnapshot) void this.render(this.lastSnapshot, false);
   }
 
+  /** Live models still warming up: say so, but never hold back Start. */
+  setModelsLoading(loading: boolean): void {
+    if (loading === this.modelsLoading) return;
+    this.modelsLoading = loading;
+    if (this.lastSnapshot) void this.render(this.lastSnapshot, false);
+  }
+
   private menu(mode: Mode): { itemName: string; itemID: number }[] {
     const persist = this.settings.get().persistAudio;
     switch (mode) {
@@ -128,9 +138,12 @@ export class GlassesController {
   private texts(mode: Mode, s: LiveSnapshot): { status: string; body: string } {
     const provider = s.provider === "soniox" ? "Soniox" : "Local";
     const audio = s.persistAudio ? "saving audio" : "audio not saved";
+    // Soniox captions don't wait on local models.
+    const loading = this.modelsLoading && s.provider !== "soniox";
     if (mode === "idle") {
-      const ready = `Ready. ${s.persistAudio ? "Audio will be saved." : "Audio won't be saved."}`;
-      return { status: `IRL Subtitles  ${provider}`, body: truncateUtf8(`${this.notice ?? ready}\nTap to start. Double tap to exit.`, TEXT_LIMIT) };
+      const saving = s.persistAudio ? "Audio will be saved." : "Audio won't be saved.";
+      const lines = [this.notice ?? (loading ? saving : `Ready. ${saving}`), loading ? LOADING_IDLE : "", "Tap to start. Double tap to exit."];
+      return { status: `IRL Subtitles  ${provider}`, body: truncateUtf8(lines.filter(Boolean).join("\n"), TEXT_LIMIT) };
     }
     if (mode === "finalizing") return { status: "Stopped", body: "Saved. Processing on your phone…" };
     // The recording indicator is always the first thing on the status line (plan.md §11: never covert).
@@ -147,7 +160,8 @@ export class GlassesController {
       const caption = [...last, s.provisionalText].filter(Boolean).join("\n");
       const tail = caption.length > 220 ? `…${caption.slice(-220)}` : caption;
       const hint = mode === "paused" ? "Tap to resume. Double tap to end." : "";
-      body = [this.settings.get().showCaptionsOnGlasses ? tail : "", s.degraded ?? "", hint, `(${audio})`].filter(Boolean).join("\n");
+      const captions = this.settings.get().showCaptionsOnGlasses;
+      body = [captions ? tail : "", captions && loading ? LOADING_LIVE : "", s.degraded ?? "", hint, `(${audio})`].filter(Boolean).join("\n");
     }
     return { status: truncateUtf8(status, 120), body: truncateUtf8(body || " ", TEXT_LIMIT) };
   }

@@ -8,3 +8,4 @@ export * from "./model-files";
 export * from "./scheduler";
 export * from "./toolkit";
 export * from "./vad-segmenter";
+export * from "./warmup";

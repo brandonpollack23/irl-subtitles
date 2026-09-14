@@ -14,6 +14,7 @@ import {
 import { loadTranscript } from "@irl/pipeline";
 import { createSignal } from "solid-js";
 import type { LiveSnapshot } from "@irl/pipeline";
+import type { WarmupStatus } from "@irl/provider-local";
 import { app } from "./lib";
 
 export interface RecordingModel {
@@ -108,4 +109,17 @@ export function liveSnapshot(): () => LiveSnapshot {
     });
   }
   return liveSignal[0];
+}
+
+let warmupSignal: ReturnType<typeof createSignal<WarmupStatus>> | null = null;
+
+/** Whether the selected live models are still loading in the background. */
+export function warmupStatus(): () => WarmupStatus {
+  if (!warmupSignal) {
+    const { warmup } = app();
+    warmupSignal = createSignal<WarmupStatus>(warmup.current, { ownedWrite: true });
+    const [, set] = warmupSignal;
+    warmup.status.on((s) => set(() => s));
+  }
+  return warmupSignal[0];
 }

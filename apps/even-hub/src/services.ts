@@ -26,6 +26,7 @@ import {
   entriesForRole,
   LocalEngines,
   LocalToolkit,
+  ModelWarmup,
   ROLE_KEYS,
   supportsLanguage,
   type DeviceCapabilities,
@@ -49,6 +50,8 @@ export interface AppServices {
   controller: RecordingController;
   post: PostProcessor;
   glasses: GlassesController;
+  /** Background loading of the selected live models; call warm() after anything that evicts them. */
+  warmup: ModelWarmup;
   ephemeral: EphemeralKeys;
   caps: DeviceCapabilities;
   inEvenApp: boolean;
@@ -182,6 +185,15 @@ export async function boot(onStep: (step: string) => void = () => undefined): Pr
   };
   const glasses = new GlassesController(controller, settings, names);
   glassesRef.current = glasses;
+
+  // Live models load at launch rather than when a recording starts; Start never waits on them.
+  const warmup = new ModelWarmup(engines, { settings: () => settings.get(), recording: () => controller.activeRecordingId !== null, processing: () => post.busy });
+  warmup.status.on((s) => glasses.setModelsLoading(s.loading.length > 0));
+  settings.changes.on(() => void warmup.selectionChanged());
+  // Post-processing loads the final STT model over the live one, so the next conversation would start cold.
+  post.idle.on(() => void warmup.warm());
+  void warmup.warm();
+
   // After Stop the idle glasses page says what the phone is doing with the last conversation.
   post.events.on((e) => {
     if (e.stage === "finalStt" && e.status === "running" && e.progress === undefined && !e.note) glasses.showNotice("Processing your last conversation on the phone…");
@@ -201,7 +213,7 @@ export async function boot(onStep: (step: string) => void = () => undefined): Pr
   if (recovered.length) log.warn("recovered recordings", recovered.map((r) => ({ id: r.recording.id, chunks: r.readableChunks, lost: r.audioLost })));
 
   Object.assign(services, {
-    storage, settings, engines, toolkit, audio, identity, controller, post, glasses, ephemeral, caps, inEvenApp, recovered, dataChanged,
+    storage, settings, engines, toolkit, audio, identity, controller, post, glasses, warmup, ephemeral, caps, inEvenApp, recovered, dataChanged,
     devWav: null, sourceNote: null,
     setDevWav(file: { name: string; bytes: Uint8Array } | null) {
       services.devWav = file;
