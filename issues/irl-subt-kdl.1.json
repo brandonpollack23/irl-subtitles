@@ -12,9 +12,15 @@
   "id": "irl-subt-kdl.1",
   "labels": [],
   "parent": "irl-subt-kdl",
+  "comments": [
+    {
+      "text": "Landed in jj revision (workspace kdl, ../irl-subtitles-kdl) 'Live latency metrics…'. Baselines: Node warm jfk: STT 537 ms/call, interim lag p95 0.72 s, final lag p95 1.43 s, first caption 2.33 s. Node two_cities (with a parallel test file competing): 2.0 s/call, final p95 6.9 s, level 1. Even simulator (WebKitGTK 2.52.6, headless mutter, no WebGPU/SAB), two_cities_16k: Moonshine Base load 43.2 s, CAM++ 3.1 s, VAD RTF 0.32 (not 2.1: earlier figure predates the 9ij.16 fix), STT 2.0 s/call, final lag p50 2.5 / p95 9.0 s, first caption 5.5 s then nothing until 18 s, level 1. Budget in glasses-captions.live.test.ts: first caption \u003c 3.5 s, final p95 \u003c 2.5 s, no degradation.",
+      "timestamp": "2026-09-14T09:48:07Z"
+    }
+  ],
   "priority": 0,
   "status": "in_progress",
   "title": "Live caption latency instrumentation, harness assertion, simulator baseline",
   "type": "task",
-  "updated_at": "2026-09-14T09:35:46Z"
+  "updated_at": "2026-09-14T09:48:07Z"
 }
