@@ -11,9 +11,15 @@
     "mvp"
   ],
   "parent": "irl-subt-9ij",
+  "comments": [
+    {
+      "text": "Checklist in docs/mvp/DEBUG-PLAN.md §5 and §7 (kill/relaunch, lock, 60 min, low storage).",
+      "timestamp": "2026-09-14T02:58:30Z"
+    }
+  ],
   "priority": 1,
   "status": "open",
   "title": "Android and iOS kill/relaunch, extended battery and storage test suite",
   "type": "task",
-  "updated_at": "2026-09-13T12:52:30Z"
+  "updated_at": "2026-09-14T02:58:30Z"
 }
