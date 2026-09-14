@@ -4,6 +4,7 @@
     "irl-subt-kdl.7"
   ],
   "blocks": [],
+  "closed_at": "2026-09-14T11:05:43Z",
   "created": "2026-09-14T09:32:28Z",
   "description": "Only if B1 shows the moonshine-wasm single-thread build is unusable (build, bundling, memory, or speed). Port the streaming inference loop from moonshine core (frontend -\u003e sliding-window encoder -\u003e adapter -\u003e cross_kv -\u003e decoder_kv with cached state) to TypeScript on our onnxruntime-web (plain WASM build from A1), loading the same .ort models. Supersedes the original irl-subt-0i6.3.7 plan for community ONNX exports. Close as won't-do if B1 passes.",
   "id": "irl-subt-kdl.10",
@@ -16,8 +17,8 @@
     }
   ],
   "priority": 0,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Fallback: TypeScript Moonshine streaming loop on onnxruntime-web",
   "type": "task",
-  "updated_at": "2026-09-14T11:05:42Z"
+  "updated_at": "2026-09-14T11:05:43Z"
 }
