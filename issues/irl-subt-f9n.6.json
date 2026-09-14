@@ -4,6 +4,8 @@
     "irl-subt-f9n.4"
   ],
   "blocks": [],
+  "closed_at": "2026-09-14T02:58:20Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:49Z",
   "description": "Undo removes the attribution and any profile samples added by that operation. plan.md §7.2.",
   "id": "irl-subt-f9n.6",
@@ -12,8 +14,8 @@
   ],
   "parent": "irl-subt-f9n",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "Undo for attribution and enrollment operations",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:49Z"
+  "updated_at": "2026-09-14T02:58:20Z"
 }
