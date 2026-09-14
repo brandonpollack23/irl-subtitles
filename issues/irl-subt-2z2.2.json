@@ -8,6 +8,8 @@
     "irl-subt-2z2.4",
     "irl-subt-2z2.8"
   ],
+  "closed_at": "2026-09-14T02:58:20Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:47Z",
   "description": "Persist ordered PCM chunks every 5–10 s, checksum, advance recovery cursor after verification. Never block capture on processing/network/UI. plan.md §8, §9.",
   "id": "irl-subt-2z2.2",
@@ -16,8 +18,8 @@
   ],
   "parent": "irl-subt-2z2",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "ChunkRecorder: recoverable chunks, session journal, checksums, recovery cursor",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:48Z"
+  "updated_at": "2026-09-14T02:58:20Z"
 }
