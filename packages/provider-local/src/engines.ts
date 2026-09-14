@@ -139,7 +139,7 @@ export class LocalEngines {
       // transformers.js reports each file separately (plus its own running totals); sum per file so
       // the model's progress doesn't jump back to 0% when the next file starts.
       const files = new Map<string, { loaded: number; total: number }>();
-      await client.call(method, { modelId, ...payload }, {
+      const loaded = await client.call<{ warmupMs?: number } | null | undefined>(method, { modelId, ...payload }, {
         progress: (raw) => {
           const r = raw as { status?: string; file?: string; loaded?: number; total?: number };
           if (r.loaded === undefined || r.status === "progress_total") return;
@@ -154,6 +154,7 @@ export class LocalEngines {
         },
       });
       liveMetrics.emit({ kind: "load", modelId, engine: kind, ms: performance.now() - t0, ok: true });
+      if (loaded?.warmupMs !== undefined) liveMetrics.emit({ kind: "warmup-inference", modelId, ms: loaded.warmupMs });
       this.progress.emit({ modelId, status: "ready" });
     })().catch((e) => {
       liveMetrics.emit({ kind: "load", modelId, engine: kind, ms: 0, ok: false });

@@ -29,6 +29,20 @@ async function load(modelId: string, target: ExecutionTarget, progress: (p: unkn
     progress_callback: progress,
   } as never)) as AutomaticSpeechRecognitionPipeline;
   current = { id: modelId, target, pipe };
+  return { warmupMs: await warmUp() };
+}
+
+/**
+ * One short decode right after loading, so session initialization, JIT tier-up and (on WebGPU) shader compilation
+ * happen now rather than on the first thing someone says (irl-subt-kdl.3). Quiet noise, not zeros: silence can
+ * take shortcuts through the graph that real audio doesn't.
+ */
+async function warmUp(): Promise<number> {
+  const t0 = performance.now();
+  const audio = new Float32Array(16000);
+  for (let i = 0; i < audio.length; i++) audio[i] = (Math.random() - 0.5) * 1e-3;
+  await current!.pipe(audio, (current!.id.startsWith("whisper") ? { task: "transcribe", language: "en" } : { max_new_tokens: 4 }) as never);
+  return performance.now() - t0;
 }
 
 export interface AsrResult {

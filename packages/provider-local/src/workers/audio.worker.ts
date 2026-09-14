@@ -50,7 +50,7 @@ const stream = new VadStream(() => {
   vadContext.fill(0);
 }, WINDOW);
 
-async function loadVad(modelId: string, progress: (p: unknown) => void): Promise<void> {
+async function loadVad(modelId: string, progress: (p: unknown) => void): Promise<{ warmupMs: number } | void> {
   if (vad && vadId === modelId) return;
   const entry = catalogEntry(modelId);
   if (!entry || entry.manifest.adapter !== "ort-silero") throw new Error(`not a VAD model: ${modelId}`);
@@ -58,6 +58,12 @@ async function loadVad(modelId: string, progress: (p: unknown) => void): Promise
   const session = await ort.InferenceSession.create(bytes, { executionProviders: ["wasm"], graphOptimizationLevel: "all" });
   vad = { session, sr: new ort.Tensor("int64", BigInt64Array.from([16000n]), []) };
   vadId = modelId;
+  // Warm-up windows on scratch state, so the live stream's recurrent state is untouched (irl-subt-kdl.3).
+  const t0 = performance.now();
+  const state = new Float32Array(2 * 128);
+  const context = new Float32Array(CONTEXT);
+  for (let i = 0; i < 8; i++) await vadWindow(state, context, new Float32Array(WINDOW));
+  return { warmupMs: performance.now() - t0 };
 }
 
 async function vadWindow(state: Float32Array, context: Float32Array, window: Float32Array): Promise<number> {
@@ -84,8 +90,17 @@ interface EmbedModel {
 
 let embedder: EmbedModel | null = null;
 
-async function loadEmbedder(modelId: string, target: ExecutionTarget, progress: (p: unknown) => void): Promise<void> {
+async function loadEmbedder(modelId: string, target: ExecutionTarget, progress: (p: unknown) => void): Promise<{ warmupMs: number } | void> {
   if (embedder?.id === modelId && embedder.target === target) return;
+  await createEmbedder(modelId, target, progress);
+  const t0 = performance.now();
+  const audio = new Float32Array(32000);
+  for (let i = 0; i < audio.length; i++) audio[i] = (Math.random() - 0.5) * 1e-3;
+  await embedder!.run(audio);
+  return { warmupMs: performance.now() - t0 };
+}
+
+async function createEmbedder(modelId: string, target: ExecutionTarget, progress: (p: unknown) => void): Promise<void> {
   embedder = null;
   const entry = catalogEntry(modelId);
   if (!entry || entry.role !== "speaker-embedding") throw new Error(`not an embedding model: ${modelId}`);
