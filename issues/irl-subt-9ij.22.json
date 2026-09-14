@@ -7,9 +7,15 @@
   "id": "irl-subt-9ij.22",
   "labels": [],
   "parent": "irl-subt-9ij",
+  "comments": [
+    {
+      "text": "Done in jj revision xlqmkkqqutvt (stack: xttmqlzt -\u003e lnuwmlyo 9ij.16 -\u003e nkprtuuv 9ij.17 -\u003e vynvuqzk 9ij.20 harness -\u003e oktyqwsl 9ij.21 -\u003e xlqmkkqqutvt). pnpm check 66 tests; pnpm test:live 4 tests (real models): loading line precedes first caption, 'Captions ready.' follows.",
+      "timestamp": "2026-09-14T07:27:36Z"
+    }
+  ],
   "priority": 1,
   "status": "in_progress",
   "title": "Glasses announce when caption models finish loading; integrate warmup, VAD fix and harness",
   "type": "task",
-  "updated_at": "2026-09-14T07:13:45Z"
+  "updated_at": "2026-09-14T07:27:36Z"
 }
