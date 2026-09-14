@@ -4,6 +4,7 @@
     "irl-subt-kdl.2"
   ],
   "blocks": [],
+  "closed_at": "2026-09-14T10:01:55Z",
   "created": "2026-09-14T09:32:28Z",
   "description": "After ensureVad/ensureEmbedding/ensureAsr load (ModelWarmup and live-run loads), run ~1 s of silence through each model (encoder + a few decoder steps for ASR) so JIT tier-up, shader compilation and allocator growth happen at launch instead of on the first utterance. Only report the model ready after warm-up. Scheduler already ignores the first 2 STT runs; revisit once warm-up exists.",
   "id": "irl-subt-kdl.3",
@@ -16,7 +17,7 @@
     }
   ],
   "priority": 0,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Warm-up inference after model load",
   "type": "task",
   "updated_at": "2026-09-14T10:01:55Z"
