@@ -63,8 +63,8 @@ export async function createLiveApp(opts: LiveAppOptions = {}) {
   const settings = await SettingsStore.open(repo, { ...defaultSettings(models), captureSource: "wav-file", powerPolicy: "fast" });
   const engines = new LocalEngines(nodeWorkers(cacheDir));
   if (opts.asrLoadDelayMs) {
-    const ensureAsr = engines.ensureAsr.bind(engines);
-    engines.ensureAsr = async (id) => (await new Promise((ok) => setTimeout(ok, opts.asrLoadDelayMs)), ensureAsr(id));
+    const ensureLiveStt = engines.ensureLiveStt.bind(engines);
+    engines.ensureLiveStt = async (id) => (await new Promise((ok) => setTimeout(ok, opts.asrLoadDelayMs)), ensureLiveStt(id));
   }
   const toolkit = new LocalToolkit(engines, () => settings.get());
   const audio = new RecordingAudio(repo, blobs, (kind, id) => (kind === "durable" ? durable : ephemeral.get(id)));

@@ -15,8 +15,8 @@ export type LiveMetric =
       /** Audio this call covered that no earlier call for the utterance had. */
       newAudioS: number;
       computeMs: number;
-      /** Audio received after the end of the transcribed range by the time its text was emitted. */
-      lagS: number;
+      /** Audio received after the end of the transcribed range by the time its text was emitted (none when no text). */
+      lagS?: number;
     }
   | { kind: "vad"; runId: string; audioS: number; computeMs: number }
   | { kind: "embed"; runId: string; windows: number; computeMs: number }
@@ -73,8 +73,8 @@ export function summarizeLiveMetrics(events: readonly LiveMetric[]): LiveMetrics
     sttCalls: stt.length,
     interimCalls: stt.filter((e) => !e.final).length,
     finalCalls: stt.filter((e) => e.final).length,
-    interimLagS: stats(stt.filter((e) => !e.final).map((e) => e.lagS)),
-    finalLagS: stats(stt.filter((e) => e.final).map((e) => e.lagS)),
+    interimLagS: stats(stt.flatMap((e) => (!e.final && e.lagS !== undefined ? [e.lagS] : []))),
+    finalLagS: stats(stt.flatMap((e) => (e.final && e.lagS !== undefined ? [e.lagS] : []))),
     sttComputePerNewAudio: newAudio > 0 ? round(sum(stt, (e) => e.computeMs) / 1000 / newAudio) : null,
     sttMsPerCall: stt.length ? Math.round(sum(stt, (e) => e.computeMs) / stt.length) : null,
     vadRtf: vadAudio > 0 ? round(sum(vad, (e) => e.computeMs) / 1000 / vadAudio) : null,

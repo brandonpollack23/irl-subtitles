@@ -26,7 +26,7 @@ function engines(webgpu: boolean) {
     made.push(w);
     return w as unknown as Worker;
   };
-  const e = new LocalEngines({ audio: factory("audio"), asr: factory("asr"), llm: factory("llm") });
+  const e = new LocalEngines({ audio: factory("audio"), asr: factory("asr"), llm: factory("llm"), stream: factory("stream") });
   e.caps = { platform: "desktop", webgpu: { available: webgpu, shaderF16: true } } as DeviceCapabilities;
   return { e, made };
 }

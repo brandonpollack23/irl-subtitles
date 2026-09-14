@@ -1,5 +1,5 @@
 import { Emitter, errorMessage, type BenchmarkResult, type ExecutionTarget, type ModelCatalogEntry, type PowerPolicy } from "@irl/domain";
-import { catalogEntry } from "./catalog";
+import { catalogEntry, isStreamingStt } from "./catalog";
 import { availabilityOnDevice, detectCapabilities, selectTarget, type DeviceCapabilities } from "./device";
 import { downloadModelFiles, filesForTargets, missingFiles } from "./model-files";
 import { isGpuFailure } from "./gpu-errors";
@@ -7,8 +7,9 @@ import { liveMetrics } from "./live-metrics";
 import type { OrtFlavor } from "./ort-flavor";
 import { RpcClient } from "./rpc";
 import type { AsrResult } from "./workers/asr.worker";
+import type { StreamLine, StreamPushResult } from "./workers/moonshine.worker";
 
-export type EngineKind = "audio" | "asr" | "llm";
+export type EngineKind = "audio" | "asr" | "llm" | "stream";
 
 export interface LoadProgress {
   modelId: string;
@@ -30,7 +31,7 @@ export interface EngineEvent {
  * degrade to deferred processing without touching capture.
  */
 /** Default ORT build for a worker created without a load that needs a particular one. */
-const DEFAULT_FLAVOR: Record<EngineKind, OrtFlavor> = { audio: "wasm", asr: "wasm", llm: "webgpu" };
+const DEFAULT_FLAVOR: Record<EngineKind, OrtFlavor> = { audio: "wasm", asr: "wasm", llm: "webgpu", stream: "wasm" };
 
 export class LocalEngines {
   private clients = new Map<EngineKind, { rpc: RpcClient; flavor: OrtFlavor }>();
@@ -201,6 +202,12 @@ export class LocalEngines {
     }
   }
 
+  /** Loads a live STT model on the worker its adapter runs on: Moonshine Streaming or transformers.js. */
+  async ensureLiveStt(modelId: string): Promise<void> {
+    if (isStreamingStt(modelId)) return this.ensure("stream", "ms.load", modelId, {}, "wasm");
+    await this.ensureAsr(modelId);
+  }
+
   async ensureLlm(modelId: string): Promise<void> {
     return this.ensure("llm", "llm.load", modelId, {}, "webgpu");
   }
@@ -224,6 +231,24 @@ export class LocalEngines {
 
   transcribe(samples: Float32Array, language: string, wordTimestamps: boolean) {
     return this.call<AsrResult>("asr", "asr.run", { samples, language, wordTimestamps }, { transfer: [samples.buffer] });
+  }
+
+  /** Starts a fresh Moonshine stream; its line times count from the first sample pushed after this. */
+  streamStart(): Promise<void> {
+    return this.call<void>("stream", "ms.start", {});
+  }
+
+  streamPush(samples: Float32Array): Promise<StreamPushResult> {
+    return this.call<StreamPushResult>("stream", "ms.push", { samples }, { transfer: [samples.buffer] });
+  }
+
+  streamStop(): Promise<StreamPushResult> {
+    return this.call<StreamPushResult>("stream", "ms.stop", {});
+  }
+
+  /** Whole-buffer transcription with a loaded Moonshine Streaming model. */
+  streamTranscribe(samples: Float32Array): Promise<{ text: string; lines: StreamLine[] }> {
+    return this.call("stream", "ms.transcribe", { samples }, { transfer: [samples.buffer] });
   }
 
   embed(windows: { samples: Float32Array; startSample: number; endSample: number }[]) {

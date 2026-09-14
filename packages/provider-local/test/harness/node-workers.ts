@@ -7,6 +7,7 @@ const modules: Record<EngineKind, URL> = {
   audio: new URL("../../src/workers/audio.worker.ts", import.meta.url),
   asr: new URL("../../src/workers/asr.worker.ts", import.meta.url),
   llm: new URL("../../src/workers/llm.worker.ts", import.meta.url),
+  stream: new URL("../../src/workers/moonshine.worker.ts", import.meta.url),
 };
 
 /** The subset of the web Worker API that RpcClient uses, backed by a worker thread. */
@@ -33,5 +34,5 @@ class ThreadBackedWorker {
 /** Drop-in for toolkit's defaultWorkers(): the app's own worker modules, one thread each. */
 export function nodeWorkers(cacheDir: string): Record<EngineKind, (flavor: OrtFlavor) => Worker> {
   const make = (kind: EngineKind) => (flavor: OrtFlavor) => new ThreadBackedWorker(kind, cacheDir, flavor) as unknown as Worker;
-  return { audio: make("audio"), asr: make("asr"), llm: make("llm") };
+  return { audio: make("audio"), asr: make("asr"), llm: make("llm"), stream: make("stream") };
 }

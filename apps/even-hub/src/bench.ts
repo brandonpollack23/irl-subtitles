@@ -65,24 +65,3 @@ export async function runBench(services: AppServices, params: URLSearchParams): 
   }
 }
 
-/**
- * Dev-only spike (irl-subt-kdl.7): `?bench=moonshine[&archs=2,4,5][&wav=…]` runs each Moonshine Streaming size over the WAV
- * in a worker from files under /fixtures/dev/moonshine/ (gitignored copies of the CDN models) and logs `[bench-moonshine]`.
- */
-export async function runMoonshineSpike(params: URLSearchParams): Promise<void> {
-  const names: Record<number, string> = { 2: "tiny-streaming-en", 4: "small-streaming-en", 5: "medium-streaming-en" };
-  const files = ["adapter.ort", "cross_kv.ort", "decoder_kv.ort", "encoder.ort", "frontend.model.ort", "frontend.weights.ort", "streaming_config.json", "tokenizer.bin"];
-  const wav = new Uint8Array(await (await fetch(params.get("wav") ?? "/fixtures/dev/two_cities_16k.wav")).arrayBuffer());
-  const pcm = new Int16Array(wav.buffer, 44, (wav.length - 44) >> 1);
-  for (const arch of (params.get("archs") ?? "2,4,5").split(",").map(Number)) {
-    const worker = new Worker(new URL("./bench-moonshine.worker.ts", import.meta.url), { type: "module" });
-    const result = await new Promise((ok) => {
-      worker.onmessage = (e) => ok(e.data);
-      worker.onerror = (e) => ok({ arch, error: e.message });
-      worker.postMessage({ arch, dir: `/fixtures/dev/moonshine/${names[arch]}`, files, audio: Float32Array.from(pcm, (v) => v / 32768) });
-    });
-    worker.terminate();
-    console.info(`[bench-moonshine] ${JSON.stringify({ ...(result as object), userAgent: navigator.userAgent, crossOriginIsolated })}`);
-  }
-  console.info("[bench] {\"stage\":\"done\"}");
-}

@@ -30,9 +30,12 @@ app on :5174 (cross-origin isolated). `pnpm pin-models` refreshes
 - **Model defaults.** Several §6.1 defaults have no working web adapter yet, so they
   are in the catalog as unavailable with the reason, and defaults fall to the
   first available entry (plan.md's own selection rules):
-  - Live STT: Moonshine Streaming → **Moonshine Base (per language)**, captioning
-    each VAD utterance and re-decoding it while it grows. Whisper Small for
-    `auto`.
+  - Live STT: **Moonshine Streaming Small** (en, ja, es, de; Tiny for zh, ar, vi)
+    instead of Medium, through Moonshine Voice's own WASM runtime built single-thread
+    (`vendor/moonshine-wasm`), fed the audio continuously; Medium is selectable but used
+    0.88x of one core in the Even simulator. Korean and Ukrainian keep Moonshine Base
+    (no streaming checkpoint), which captions each VAD utterance and re-decodes it while
+    it grows; Whisper Small for `auto` (irl-subt-kdl.9).
   - Final STT: Qwen3-ASR + ForcedAligner → **Whisper Large-v3-Turbo (timestamped,
     word timing)**. Parakeet TDT also unavailable.
   - Summary: Gemma 4 E2B mobile QAT stays default but needs `shader-f16`; on GPUs

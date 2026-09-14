@@ -1,5 +1,5 @@
 import { cosine, errorMessage, SAMPLE_RATE, type BenchmarkResult, type ExecutionTarget, type ModelCatalogEntry, type ModelRole, type ModelSelection } from "@irl/domain";
-import { catalogEntry, entriesForRole, ROLE_KEYS, supportsLanguage } from "./catalog";
+import { catalogEntry, entriesForRole, isStreamingStt, ROLE_KEYS, supportsLanguage } from "./catalog";
 import { availabilityOnDevice } from "./device";
 import type { LocalEngines } from "./engines";
 
@@ -32,6 +32,17 @@ export async function benchmarkModel(engines: LocalEngines, modelId: string, cli
       }
       case "stt-live":
       case "stt-final": {
+        if (isStreamingStt(modelId)) {
+          // Moonshine Streaming runs on the CPU only; RTF is a whole-clip pass, an upper bound on streaming cost.
+          await engines.ensureLiveStt(modelId);
+          const loadMs = performance.now() - t0;
+          const t1 = performance.now();
+          const out = await engines.streamTranscribe(clip.slice());
+          const ms = performance.now() - t1;
+          const english = supportsLanguage(entry, "en");
+          const known = english ? KNOWN_ANSWER_PHRASE.test(out.text.replace(/[^\w\s]/g, "")) : true;
+          return result(entry, "wasm", { ok: known, loadMs, realTimeFactor: ms / 1000 / seconds, knownAnswer: { ok: known, detail: english ? out.text.trim().slice(0, 120) : "non-English model: latency only" } });
+        }
         engines.benchmarks = engines.benchmarks.filter((b) => !(b.modelId === modelId && b.target !== target));
         const actual = await engines.ensureAsr(modelId);
         const loadMs = performance.now() - t0;
@@ -99,7 +110,8 @@ export async function firstRunBenchmark(engines: LocalEngines, clip: Float32Arra
     for (const entry of entriesForRole(role)) {
       if (availabilityOnDevice(entry, caps).status !== "available" || !supportsLanguage(entry, language)) continue;
       if (!(await engines.isDownloaded(entry.id))) continue;
-      const targets: ExecutionTarget[] = role === "summary" ? ["webgpu"] : role === "vad" ? ["wasm"] : caps.webgpu.available ? ["webgpu", "wasm"] : ["wasm"];
+      const cpuOnly = role === "vad" || entry.manifest.adapter === "moonshine-wasm";
+      const targets: ExecutionTarget[] = role === "summary" ? ["webgpu"] : cpuOnly ? ["wasm"] : caps.webgpu.available ? ["webgpu", "wasm"] : ["wasm"];
       for (const t of targets) {
         onProgress(`${entry.displayName} on ${t}`);
         const r = await benchmarkModel(engines, entry.id, clip, t);
@@ -108,7 +120,7 @@ export async function firstRunBenchmark(engines: LocalEngines, clip: Float32Arra
       }
       const key = ROLE_KEYS[role];
       if (!(key in selection) && results.some((r) => r.modelId === entry.id && r.ok && BUDGET[role](r))) (selection as Record<string, string>)[key] = entry.id;
-      await engines.release(["asr", "llm"]);
+      await engines.release(["asr", "llm", "stream"]);
     }
   }
   return { results, selection };

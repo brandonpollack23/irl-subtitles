@@ -1,5 +1,5 @@
 import { errorMessage, Emitter, type Settings } from "@irl/domain";
-import { catalogEntry } from "./catalog";
+import { catalogEntry, isStreamingStt } from "./catalog";
 import type { EngineKind, LocalEngines } from "./engines";
 
 export interface WarmupStatus {
@@ -16,7 +16,7 @@ type ModelState = "loading" | "ready" | "failed" | "missing" | "cold";
 
 interface WarmTarget {
   id: string;
-  engine: Extract<EngineKind, "audio" | "asr">;
+  engine: Extract<EngineKind, "audio" | "asr" | "stream">;
   load: () => Promise<unknown>;
 }
 
@@ -44,10 +44,10 @@ export class ModelWarmup {
   private generation = 0;
   private key: string | null = null;
   // Passes queue per worker: two loads racing inside one worker could leave the wrong model loaded.
-  private lanes: Record<WarmTarget["engine"], Promise<void>> = { audio: Promise.resolve(), asr: Promise.resolve() };
+  private lanes: Record<WarmTarget["engine"], Promise<void>> = { audio: Promise.resolve(), asr: Promise.resolve(), stream: Promise.resolve() };
 
   constructor(
-    private readonly engines: Pick<LocalEngines, "isDownloaded" | "ensureVad" | "ensureEmbedding" | "ensureAsr"> & Partial<Pick<LocalEngines, "progress">>,
+    private readonly engines: Pick<LocalEngines, "isDownloaded" | "ensureVad" | "ensureEmbedding" | "ensureLiveStt"> & Partial<Pick<LocalEngines, "progress">>,
     private readonly deps: WarmupDeps,
   ) {
     // A recording that starts while warmup is idle (e.g. right after post-processing evicted the caption model)
@@ -81,7 +81,7 @@ export class ModelWarmup {
       { id: m.vad, engine: "audio", load: () => this.engines.ensureVad(m.vad) },
       { id: m.speakerEmbedding, engine: "audio", load: () => this.engines.ensureEmbedding(m.speakerEmbedding) },
     ];
-    if (s.provider === "local" && m.sttLive !== "off") targets.push({ id: m.sttLive, engine: "asr", load: () => this.engines.ensureAsr(m.sttLive) });
+    if (s.provider === "local" && m.sttLive !== "off") targets.push({ id: m.sttLive, engine: isStreamingStt(m.sttLive) ? "stream" : "asr", load: () => this.engines.ensureLiveStt(m.sttLive) });
 
     const downloaded = await Promise.all(targets.map((t) => this.engines.isDownloaded(t.id).catch(() => false)));
     if (gen !== this.generation) return;
@@ -105,7 +105,7 @@ export class ModelWarmup {
       if (gen === this.generation) this.publish();
     };
     await Promise.all(
-      (["audio", "asr"] as const).map((engine) => {
+      (["audio", "asr", "stream"] as const).map((engine) => {
         const tail = targets.filter((t) => t.engine === engine).reduce((prev, t) => prev.then(step(t)), this.lanes[engine]);
         this.lanes[engine] = tail;
         return tail;

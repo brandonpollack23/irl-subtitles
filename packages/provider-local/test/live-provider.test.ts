@@ -18,7 +18,7 @@ function fakeEngines(asrLoadMs = 0) {
     isDownloaded: async () => true,
     ensureVad: async () => undefined,
     ensureEmbedding: async () => undefined,
-    ensureAsr: () => new Promise((ok) => setTimeout(() => ok("wasm"), asrLoadMs)),
+    ensureLiveStt: () => new Promise((ok) => setTimeout(() => ok(undefined), asrLoadMs)),
     call: async () => undefined,
     vadPush: (samples: Float32Array, startSample: number) => vad.push(samples, startSample, async (w) => (loudShare(w) > 0.5 ? 0.9 : 0.05)),
     transcribe: async (samples: Float32Array) => {
@@ -138,5 +138,47 @@ describe("local live provider", () => {
     const finished = run.finish();
     await vi.advanceTimersByTimeAsync(1000);
     await finished;
+  });
+});
+
+describe("local live provider with streaming STT", () => {
+  it("streams audio from where captions start, open lines provisional and completed lines final on the recording clock", async () => {
+    vi.useFakeTimers();
+    const { engines } = fakeEngines();
+    const pushed: number[] = [];
+    let origin = -1;
+    const fake = engines as unknown as Record<string, unknown>;
+    fake.streamStart = async () => undefined;
+    // A stream that completes "hello there" once 2 s have arrived and keeps an open line after that.
+    fake.streamPush = async (samples: Float32Array) => {
+      pushed.push(samples.length);
+      const heard = pushed.reduce((a, b) => a + b, 0) / SAMPLE_RATE;
+      if (origin < 0) origin = heard;
+      const lines = heard >= 2 ? [{ id: "1", text: "hello there", startTime: 0.5, duration: 1, isComplete: true }, { id: "2", text: "and", startTime: 1.8, duration: heard - 1.8, isComplete: false }] : [{ id: "1", text: "hello", startTime: 0.5, duration: heard - 0.5, isComplete: false }];
+      return { lines, computeMs: 5 };
+    };
+    fake.streamStop = async () => ({ lines: [{ id: "2", text: "and goodbye", startTime: 1.8, duration: 0.7, isComplete: true }], computeMs: 5 });
+    const run = await new LocalLiveSpeechProvider(engines).start({ ...config, modelId: "moonshine-streaming-small-en", sttModelId: "moonshine-streaming-small-en" });
+    await vi.advanceTimersByTimeAsync(0);
+    const events: SpeechEvent[] = [];
+    void (async () => {
+      for await (const ev of run.events) events.push(ev);
+    })();
+    // The recording started 1 s before the run attached.
+    const first = SAMPLE_RATE;
+    await play(run, first, first + 3 * SAMPLE_RATE, []);
+    const finished = run.finish();
+    await vi.advanceTimersByTimeAsync(1000);
+    await finished;
+
+    const tokens = events.flatMap((e) => (e.type === "tokens" ? e.tokens : []));
+    const finals = tokens.filter((t) => t.final);
+    expect(finals.map((t) => t.text.trim())).toEqual(["hello", "there", "and", "goodbye"]);
+    // Line times count from the first streamed sample, the run's first audio.
+    expect(finals[0]!.startSample).toBe(first + SAMPLE_RATE / 2);
+    expect(finals.at(-1)!.endSample).toBeLessThanOrEqual(first + 3 * SAMPLE_RATE);
+    expect(tokens.some((t) => !t.final && t.text.trim() === "hello")).toBe(true);
+    // Every received sample was streamed once.
+    expect(pushed.reduce((a, b) => a + b, 0)).toBe(3 * SAMPLE_RATE);
   });
 });

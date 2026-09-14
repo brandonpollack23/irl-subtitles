@@ -48,6 +48,20 @@ class DiskCache {
 
 export function installWebEnv(cacheDir) {
   globalThis.self ??= globalThis;
+  // In the WebView, runtimes fetch their own script and WASM files over HTTP; here those are file: URLs, which Node's
+  // fetch doesn't serve. ONNX Runtime's are left unserved: transformers.js would turn a fetched factory into a blob:
+  // URL, which Node can't import, and falls back to importing the file directly when the fetch fails.
+  if (!globalThis.fetch.servesFiles) {
+    const base = globalThis.fetch.bind(globalThis);
+    const fetchWithFiles = async (input, init) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+      if (!url.startsWith("file:") || url.includes("/onnxruntime-web/")) return base(input, init);
+      const type = url.endsWith(".wasm") ? "application/wasm" : url.endsWith("js") ? "text/javascript" : "application/octet-stream";
+      return new Response(fs.readFileSync(new URL(url)), { status: 200, headers: { "content-type": type } });
+    };
+    fetchWithFiles.servesFiles = true;
+    globalThis.fetch = fetchWithFiles;
+  }
   globalThis.caches = {
     open: async (name) => new DiskCache(path.join(cacheDir, name)),
     keys: async () => (fs.existsSync(cacheDir) ? fs.readdirSync(cacheDir) : []),

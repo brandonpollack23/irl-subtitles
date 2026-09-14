@@ -19,7 +19,6 @@ boot((step) => {
     render(() => <App />, root);
     const params = new URLSearchParams(location.search);
     if (import.meta.env.DEV && params.get("bench") === "live") void import("./bench").then((m) => m.runBench(services, params));
-    if (import.meta.env.DEV && params.get("bench") === "moonshine") void import("./bench").then((m) => m.runMoonshineSpike(params));
   },
   (e) => {
     console.error(e);

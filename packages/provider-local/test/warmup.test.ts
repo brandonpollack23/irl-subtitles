@@ -12,7 +12,7 @@ function deferred() {
 }
 
 function setup(opts: { missing?: string[] } = {}) {
-  // A transformers.js live model, so live STT loads through ensureAsr.
+  // A transformers.js live model, so live STT loads on the asr lane.
   let settings: Settings = defaultSettings({ ...defaultSelection("en"), sttLive: "moonshine-base-en" });
   const loads = new Map<string, ReturnType<typeof deferred>>();
   const load = (id: string) => {
@@ -24,7 +24,7 @@ function setup(opts: { missing?: string[] } = {}) {
     isDownloaded: vi.fn(async (id: string) => !opts.missing?.includes(id)),
     ensureVad: vi.fn(load),
     ensureEmbedding: vi.fn(load),
-    ensureAsr: vi.fn(async (id: string) => (await load(id), "wasm" as const)),
+    ensureLiveStt: vi.fn(load),
     progress: new Emitter<LoadProgress>(),
   };
   const busy = { recording: false, processing: false };
@@ -42,7 +42,7 @@ describe("model warmup", () => {
     await t.flush();
     expect(t.warmup.current).toEqual({ loading: ["Silero VAD v6", "CAM++ (WeSpeaker, VoxCeleb)", "Moonshine Base (en)"], failed: [], missing: [], ready: false });
     expect(t.engines.ensureVad).toHaveBeenCalledWith("silero-vad-v6");
-    expect(t.engines.ensureAsr).toHaveBeenCalledWith("moonshine-base-en");
+    expect(t.engines.ensureLiveStt).toHaveBeenCalledWith("moonshine-base-en");
     expect(t.engines.ensureEmbedding).not.toHaveBeenCalled();
 
     t.loads.get("silero-vad-v6")!.resolve();
@@ -113,7 +113,7 @@ describe("model warmup", () => {
     await t.flush();
     t.loads.get("moonshine-tiny-en")!.resolve();
     await Promise.all([done, soniox]);
-    expect(t.engines.ensureAsr).toHaveBeenCalledTimes(2);
+    expect(t.engines.ensureLiveStt).toHaveBeenCalledTimes(2);
     expect(t.warmup.current).toEqual({ loading: [], failed: [], missing: [], ready: true });
   });
 

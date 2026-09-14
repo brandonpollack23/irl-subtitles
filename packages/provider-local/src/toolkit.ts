@@ -1,7 +1,7 @@
 import { SAMPLE_RATE, type LiveSpeechProvider, type ModelCatalogEntry, type Settings, type SummaryProvider, type TimeRange, type VoiceEmbedding } from "@irl/domain";
 import type { ClusterAssignment, FinalWord, ProcessingToolkit } from "@irl/pipeline";
 import { ChunkedSummaryProvider, CloudSummaryProvider, type ChatModel } from "@irl/provider-summary";
-import { CATALOG, catalogEntry, embeddingSpaceOf } from "./catalog";
+import { CATALOG, catalogEntry, embeddingSpaceOf, isStreamingStt } from "./catalog";
 import { clusterParams, refineClusters, windowGrid } from "./clustering";
 import type { EngineKind, LocalEngines } from "./engines";
 import { LocalLiveSpeechProvider } from "./live-provider";
@@ -13,6 +13,7 @@ export function defaultWorkers(): Record<EngineKind, (flavor: OrtFlavor) => Work
     audio: (f) => new Worker(new URL("./workers/audio.worker.ts", import.meta.url), { type: "module", name: workerName("irl-audio-ml", f) }),
     asr: (f) => new Worker(new URL("./workers/asr.worker.ts", import.meta.url), { type: "module", name: workerName("irl-asr", f) }),
     llm: (f) => new Worker(new URL("./workers/llm.worker.ts", import.meta.url), { type: "module", name: workerName("irl-llm", f) }),
+    stream: (f) => new Worker(new URL("./workers/moonshine.worker.ts", import.meta.url), { type: "module", name: workerName("irl-moonshine", f) }),
   };
 }
 
@@ -38,6 +39,13 @@ export class LocalToolkit implements ProcessingToolkit {
   }
 
   async transcribe(modelId: string, samples: Float32Array, startSample: number, language: string, opts: { wordTimestamps: boolean }) {
+    if (isStreamingStt(modelId)) {
+      await this.engines.ensureLiveStt(modelId);
+      const out = await this.engines.streamTranscribe(samples.slice());
+      const at = (s: number) => startSample + Math.round(s * SAMPLE_RATE);
+      const words = out.lines.flatMap((l) => interpolateWords(l.text, at(l.startTime), Math.min(startSample + samples.length, at(l.startTime + l.duration))));
+      return { words, timing: "segment-interpolated" as const, ...(language !== "auto" ? { language } : {}) };
+    }
     await this.engines.ensureAsr(modelId);
     const entry = catalogEntry(modelId);
     const wantWords = opts.wordTimestamps && entry?.timing === "word";

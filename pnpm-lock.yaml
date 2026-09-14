@@ -44,9 +44,6 @@ importers:
       '@irl/domain':
         specifier: workspace:*
         version: link:../../packages/domain
-      '@irl/moonshine-wasm':
-        specifier: workspace:*
-        version: link:../../vendor/moonshine-wasm
       '@irl/pipeline':
         specifier: workspace:*
         version: link:../../packages/pipeline

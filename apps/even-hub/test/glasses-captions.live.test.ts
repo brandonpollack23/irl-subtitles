@@ -36,6 +36,8 @@ const words = (r: RecordingReport) => r.captionLines.join(" ");
  * (`?bench=live`, see apps/even-hub/src/bench.ts).
  */
 const LATENCY_BUDGET = { firstCaptionS: 3.5, finalLagP95S: 2.5 };
+/** Moonshine Streaming updates every 0.5 s of audio and only pays for new audio (irl-subt-kdl.9). */
+const STREAMING_BUDGET = { firstCaptionS: 2.5, finalLagP95S: 1.5 };
 
 /** The glasses said captions were loading, then that they're ready, and the loading line came before any caption. */
 function announcedLoading(r: RecordingReport) {
@@ -56,6 +58,20 @@ it("captions speech on the next recording once models are loaded", async () => {
   if (!custom) {
     expect(r.firstCaptionAt!.t, "first caption on the glasses (s)").toBeLessThan(LATENCY_BUDGET.firstCaptionS);
     expect(r.metrics.finalLagS!.p95, "speech end to final text, p95 (s)").toBeLessThan(LATENCY_BUDGET.finalLagP95S);
+    expect(r.metrics.maxDegradedLevel, "captions never degraded").toBe(0);
+  }
+});
+
+it("captions speech live with Moonshine Streaming", async () => {
+  const a = await app({ models: { sttLive: "moonshine-streaming-small-en" } });
+  await a.warmup.warm();
+  const r = (reports["streaming small"] = await a.record(wav));
+  expect(words(r).split(/\s+/).length).toBeGreaterThan(3);
+  if (!custom) {
+    expect(words(r)).toMatch(/fellow Americans/i);
+    expect(words(r)).toMatch(/your country/i);
+    expect(r.firstCaptionAt!.t, "first caption on the glasses (s)").toBeLessThan(STREAMING_BUDGET.firstCaptionS);
+    expect(r.metrics.finalLagS!.p95, "line end to final text, p95 (s)").toBeLessThan(STREAMING_BUDGET.finalLagP95S);
     expect(r.metrics.maxDegradedLevel, "captions never degraded").toBe(0);
   }
 });

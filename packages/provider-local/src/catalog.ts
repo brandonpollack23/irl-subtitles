@@ -252,6 +252,11 @@ export function catalogEntry(id: string): ModelCatalogEntry | undefined {
   return CATALOG.find((e) => e.id === id);
 }
 
+/** Live STT models that stream through the Moonshine worker rather than re-decoding utterances. */
+export function isStreamingStt(modelId: string): boolean {
+  return catalogEntry(modelId)?.manifest.adapter === "moonshine-wasm";
+}
+
 export function entriesForRole(role: ModelRole): ModelCatalogEntry[] {
   return CATALOG.filter((e) => e.role === role);
 }

@@ -16,9 +16,10 @@ import {
   type TranscriptToken,
   type TranscriptionConfig,
 } from "@irl/domain";
-import { catalogEntry, embeddingSpaceOf } from "./catalog";
+import { catalogEntry, embeddingSpaceOf, isStreamingStt } from "./catalog";
 import { clusterParams, DEFAULT_WINDOWS, OnlineClusterer } from "./clustering";
 import type { LocalEngines } from "./engines";
+import type { StreamLine } from "./workers/moonshine.worker";
 import { liveMetrics } from "./live-metrics";
 import { ComputeScheduler, interpolateWords, type SchedulerDecision } from "./scheduler";
 import { VadSegmenter } from "./vad-segmenter";
@@ -85,9 +86,11 @@ export interface LocalLiveConfig extends TranscriptionConfig {
 }
 
 /**
- * Default local provider (plan.md §6.1): Silero VAD splits speech, the live STT model captions each
- * utterance (interim re-decodes while it grows, final when it ends), CAM++ windows feed online clustering,
- * and utterances become speaker turns once their windows are embedded. Model downloads never block:
+ * Default local provider (plan.md §6.1): Silero VAD splits speech, CAM++ windows feed online clustering, and
+ * utterances become speaker turns once their windows are embedded. Captions come from one of two live STT paths:
+ * a Moonshine Streaming model is fed the audio continuously and reports lines as they grow and complete
+ * (irl-subt-kdl.9); a transformers.js model captions each VAD utterance (interim re-decodes while it grows, final
+ * when it ends). Model downloads never block:
  * a model that isn't downloaded or fails puts the run into capture-now/process-later.
  */
 export class LocalLiveSpeechProvider implements LiveSpeechProvider {
@@ -123,6 +126,13 @@ class LocalLiveRun implements LiveSpeechRun {
   /** Where the caption model became ready: speech held before this is catch-up, not a sign of falling behind. */
   private sttReadyAt = 0;
   private sttBusy = false;
+  /** Streaming STT: audio goes to the Moonshine worker continuously instead of per utterance. */
+  private readonly streaming: boolean;
+  /** Next sample to send to the stream, and the sample its line times count from. */
+  private streamFed = 0;
+  private streamOrigin = 0;
+  /** Stream lines already emitted as final (the worker reports each once; this keeps a retry from doubling text). */
+  private finalLines = new Set<string>();
   private embedBusy = false;
   private vadBusy = false;
   private lastRtf: number | null = null;
@@ -138,6 +148,7 @@ class LocalLiveRun implements LiveSpeechRun {
     this.space = embeddingSpaceOf(config.embeddingModelId);
     this.clusterer = new OnlineClusterer(clusterParams(this.space));
     this.stt = config.sttModelId === "off" ? "unavailable" : "loading";
+    this.streaming = config.sttModelId !== "off" && isStreamingStt(config.sttModelId);
   }
 
   async boot(): Promise<void> {
@@ -162,12 +173,27 @@ class LocalLiveRun implements LiveSpeechRun {
       loadIfDownloaded(this.config.embeddingModelId, "Speaker", () => this.engines.ensureEmbedding(this.config.embeddingModelId)).then((ok) => (this.ready.embed = ok)),
       this.config.sttModelId === "off"
         ? null
-        : loadIfDownloaded(this.config.sttModelId, "Captions", () => this.engines.ensureAsr(this.config.sttModelId)).then((ok) => (ok ? this.sttBecameReady() : (this.stt = "unavailable"))),
+        : loadIfDownloaded(this.config.sttModelId, "Captions", () => this.engines.ensureLiveStt(this.config.sttModelId)).then((ok) => (ok ? this.sttBecameReady() : (this.stt = "unavailable"))),
     ]);
     if (this.ready.vad && this.ready.embed && (this.stt === "ready" || this.config.sttModelId === "off")) this.emitDegraded(null);
   }
 
   private sttBecameReady(): void {
+    if (this.streaming) {
+      // Speech held while the model loaded is streamed from where catch-up starts; the stream restarts there.
+      const from = Math.max(this.ring.start, this.audioStart ?? 0, this.ring.end - CATCH_UP_SAMPLES);
+      this.stt = "loading";
+      void this.engines.streamStart().then(
+        () => {
+          this.streamFed = this.streamOrigin = this.lastStreamPass = from;
+          this.finalLines.clear();
+          this.sttReadyAt = this.ring.end;
+          this.stt = "ready";
+        },
+        (e) => this.sttFailed(e),
+      );
+      return;
+    }
     this.stt = "ready";
     this.sttReadyAt = this.ring.end;
     for (const u of this.utterances) if (u.ended && !u.transcribed && u.endSample < this.ring.end - CATCH_UP_SAMPLES) u.transcribed = true;
@@ -195,7 +221,7 @@ class LocalLiveRun implements LiveSpeechRun {
     if (this.ready.vad && !this.vadBusy) void this.feedVad();
     const sample = {
       // The oldest ended utterance is the one being (or about to be) transcribed; only what waits behind it is backlog.
-      sttBacklogS: this.utterances.filter((u) => u.ended && !u.transcribed && u.endSample > this.sttReadyAt && this.stt === "ready").slice(1).reduce((n, u) => n + (u.endSample - u.startSample), 0) / SAMPLE_RATE,
+      sttBacklogS: this.streaming ? (this.stt === "ready" ? Math.max(0, this.ring.end - this.streamFed) / SAMPLE_RATE : 0) : this.utterances.filter((u) => u.ended && !u.transcribed && u.endSample > this.sttReadyAt && this.stt === "ready").slice(1).reduce((n, u) => n + (u.endSample - u.startSample), 0) / SAMPLE_RATE,
       embedBacklogS: this.utterances.reduce((n, u) => n + (u.windowsQueued - u.windowsDone) * 2, 0),
       sttRtf: this.lastRtf,
       failure: this.failure,
@@ -207,7 +233,7 @@ class LocalLiveRun implements LiveSpeechRun {
     this.failure = false;
     // Model problems are reported where they happen; with every model healthy the scheduler owns the message.
     if (this.ready.vad && this.ready.embed && (this.stt === "ready" || this.config.sttModelId === "off")) this.emitDegraded(this.decision.reason);
-    if (!this.sttBusy) void this.runStt();
+    if (!this.sttBusy) void (this.streaming ? this.runStream() : this.runStt());
     if (!this.embedBusy) void this.runEmbeddings();
     this.finalizeTurns();
   }
@@ -381,13 +407,90 @@ class LocalLiveRun implements LiveSpeechRun {
       this.stt = "loading";
       this.emitDegraded("Captions paused — processing later");
       // Try to recover the model (e.g. after a WebGPU device loss) without stopping capture.
-      void this.engines.ensureAsr(this.config.sttModelId).then(
+      void this.engines.ensureLiveStt(this.config.sttModelId).then(
         () => this.sttBecameReady(),
         () => (this.stt = "unavailable"),
       );
     } finally {
       this.sttBusy = false;
     }
+  }
+
+  /**
+   * Streaming STT: sends the audio received since the last push; the stream decides when it has enough for a pass
+   * (0.5 s, stretched while passes take longer). Open lines replace the provisional text, completed lines are final.
+   */
+  private async runStream(flush = false): Promise<void> {
+    if (this.stt !== "ready" || (!this.decision.liveStt && !flush)) return;
+    if (this.streamFed < this.ring.start) {
+      // Fell behind the ring: what was skipped is left for the final pass, and line times restart from here.
+      this.emitDegraded("Saving — processing later");
+      this.stt = "loading";
+      this.sttBecameReady();
+      return;
+    }
+    const from = this.streamFed;
+    const to = this.ring.end;
+    if (to - from < SAMPLE_RATE / 10 && !flush) return;
+    this.sttBusy = true;
+    try {
+      this.streamFed = to;
+      const samples = this.ring.slice({ startSample: from, endSample: to });
+      const out = samples.length ? await this.engines.streamPush(samples) : { lines: [], computeMs: 0 };
+      const stopped = flush ? await this.engines.streamStop() : null;
+      const lines = [...out.lines, ...(stopped?.lines ?? [])];
+      const computeMs = out.computeMs + (stopped?.computeMs ?? 0);
+      if (computeMs > 0 || lines.length) this.emitStreamLines(lines, computeMs, stopped !== null);
+    } catch (e) {
+      this.sttFailed(e);
+    } finally {
+      this.sttBusy = false;
+    }
+  }
+
+  private emitStreamLines(lines: readonly StreamLine[], computeMs: number, flushed: boolean): void {
+    const at = (s: number) => this.streamOrigin + Math.round(s * SAMPLE_RATE);
+    const byId = new Map<string, StreamLine>();
+    for (const l of lines) byId.set(l.id, l);
+    const tokens: TranscriptToken[] = [];
+    const entry = catalogEntry(this.config.sttModelId);
+    let lastEnd: number | null = null;
+    let finalEnd: number | null = null;
+    for (const l of byId.values()) {
+      if (this.finalLines.has(l.id)) continue;
+      const final = l.isComplete || flushed;
+      if (final) this.finalLines.add(l.id);
+      if (!final && !this.decision.interimCaptions) continue;
+      const start = at(l.startTime);
+      const end = Math.max(start + 1, Math.min(this.ring.end, at(l.startTime + l.duration)));
+      lastEnd = Math.max(lastEnd ?? 0, end);
+      if (final) finalEnd = Math.max(finalEnd ?? 0, end);
+      for (const w of interpolateWords(l.text.trim(), start, end)) {
+        tokens.push({
+          id: newId("tok"), recordingId: this.config.recordingId, providerRunId: this.providerRunId, startSample: w.startSample, endSample: w.endSample, text: w.text,
+          final, timing: entry?.timing ?? "segment-interpolated", ...(this.config.language !== "auto" ? { language: this.config.language } : {}),
+        });
+      }
+    }
+    const newAudioS = computeMs > 0 ? Math.max(0, this.streamFed - this.lastStreamPass) / SAMPLE_RATE : 0;
+    if (computeMs > 0) this.lastStreamPass = this.streamFed;
+    this.lastRtf = newAudioS > 0 ? computeMs / 1000 / newAudioS : this.lastRtf;
+    liveMetrics.emit({ kind: "stt", runId: this.providerRunId, final: finalEnd !== null, audioS: newAudioS, newAudioS, computeMs, ...(lastEnd !== null ? { lagS: (this.ring.end - (finalEnd ?? lastEnd)) / SAMPLE_RATE } : {}) });
+    this.emit({ type: "tokens", tokens, replaceProvisional: true });
+  }
+
+  /** Where the stream's last pass ended, for compute per second of new audio. */
+  private lastStreamPass = 0;
+
+  private sttFailed(e: unknown): void {
+    this.failure = true;
+    this.emit({ type: "error", message: `live transcription failed: ${errorMessage(e)}`, fatal: false });
+    this.stt = "loading";
+    this.emitDegraded("Captions paused — processing later");
+    void this.engines.ensureLiveStt(this.config.sttModelId).then(
+      () => this.sttBecameReady(),
+      () => (this.stt = "unavailable"),
+    );
   }
 
   /** Utterances become turns once ended and embedded (or when embeddings aren't running). */
@@ -397,7 +500,7 @@ class LocalLiveRun implements LiveSpeechRun {
       if (!u.ended) continue;
       const embeddingsSettled = !this.ready.embed || !this.decision.embeddings || u.windowsDone >= u.windowsQueued;
       // Wait for text while the caption model is loading too, unless the audio has already left the ring.
-      const awaitingText = !u.transcribed && this.decision.liveStt && (this.stt === "ready" || (this.stt === "loading" && u.startSample >= this.ring.start));
+      const awaitingText = !this.streaming && !u.transcribed && this.decision.liveStt && (this.stt === "ready" || (this.stt === "loading" && u.startSample >= this.ring.start));
       if (!force && (!embeddingsSettled || awaitingText)) continue;
       done.push(u);
     }
@@ -447,13 +550,19 @@ class LocalLiveRun implements LiveSpeechRun {
     }
     for (const u of this.utterances) u.ended = true;
     this.scheduleWindows();
+    if (this.streaming) {
+      const deadline = performance.now() + 45_000;
+      // The final push waits for in-flight work, then flushes the stream's last line.
+      while (this.sttBusy && performance.now() < deadline) await new Promise((ok) => setTimeout(ok, 20));
+      if (this.stt === "ready") await this.runStream(true);
+    }
     const deadline = performance.now() + 45_000;
     while (performance.now() < deadline) {
-      const pending = this.pendingWindows.length > 0 || this.embedBusy || this.sttBusy || (this.stt === "ready" && this.decision.liveStt && this.utterances.some((u) => !u.transcribed));
+      const pending = this.pendingWindows.length > 0 || this.embedBusy || this.sttBusy || (!this.streaming && this.stt === "ready" && this.decision.liveStt && this.utterances.some((u) => !u.transcribed));
       if (!pending) break;
       await new Promise((ok) => setTimeout(ok, 50));
       if (!this.embedBusy) await this.runEmbeddings();
-      if (!this.sttBusy) await this.runStt();
+      if (!this.sttBusy && !this.streaming) await this.runStt();
     }
     this.finalizeTurns(true);
     if (this.timer) clearInterval(this.timer);
