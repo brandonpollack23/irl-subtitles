@@ -105,23 +105,60 @@ describe("glasses model loading notice", () => {
     return { glasses, bridge, body };
   }
 
-  it("tells the idle page models are loading while keeping the gestures, then clears it", async () => {
+  const loading = { loading: ["Moonshine Base (en)"], failed: [], missing: [] };
+  const done = { loading: [], failed: [], missing: [] };
+
+  it("says models are loading on the idle page, then that captions are ready, then clears it", async () => {
+    vi.useFakeTimers();
     const { glasses, body } = page("idle");
     expect(await body()).toBe("Ready. Audio won't be saved.\nTap to start. Double tap to exit.");
-    glasses.setModelsLoading(true);
+    glasses.setModelStatus(loading);
+    await vi.advanceTimersByTimeAsync(500);
     expect(await body()).toBe("Audio won't be saved.\nCaption models are loading. You can start now; captions follow once they're ready.\nTap to start. Double tap to exit.");
     glasses.showNotice("Ready on your phone.");
     expect(await body()).toContain("Ready on your phone.\nCaption models are loading.");
     glasses.showNotice(null);
-    glasses.setModelsLoading(false);
+    glasses.setModelStatus(done);
+    expect(await body()).toBe("Ready. Audio won't be saved.\nCaptions ready.\nTap to start. Double tap to exit.");
+    await vi.advanceTimersByTimeAsync(4000);
     expect(await body()).toBe("Ready. Audio won't be saved.\nTap to start. Double tap to exit.");
+    vi.useRealTimers();
   });
 
-  it("adds a short line while recording and removes it once ready", async () => {
+  it("doesn't flash a loading line for models that were already in memory", async () => {
+    vi.useFakeTimers();
+    const { glasses, bridge, body } = page("idle");
+    glasses.setModelStatus(loading);
+    await vi.advanceTimersByTimeAsync(50);
+    glasses.setModelStatus(done);
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(bridge.textContainerUpgrade.mock.calls.some(([u]) => /loading|ready/i.test(u.content))).toBe(false);
+    expect(await body()).toBe("Ready. Audio won't be saved.\nTap to start. Double tap to exit.");
+    vi.useRealTimers();
+  });
+
+  it("adds a short line while recording, then 'Captions ready.' briefly", async () => {
+    vi.useFakeTimers();
     const { glasses, body } = page("recording");
-    glasses.setModelsLoading(true);
+    glasses.setModelStatus(loading);
+    await vi.advanceTimersByTimeAsync(500);
     expect(await body()).toBe("Captions loading, they'll start shortly.\n(audio not saved)");
-    glasses.setModelsLoading(false);
+    glasses.setModelStatus(done);
+    expect(await body()).toBe("Captions ready.\n(audio not saved)");
+    await vi.advanceTimersByTimeAsync(4000);
     expect(await body()).toBe("(audio not saved)");
+    vi.useRealTimers();
+  });
+
+  it("says on the idle page when a model failed to load or isn't downloaded", async () => {
+    vi.useFakeTimers();
+    const { glasses, body } = page("idle");
+    glasses.setModelStatus(loading);
+    await vi.advanceTimersByTimeAsync(500);
+    glasses.setModelStatus({ loading: [], failed: ["Moonshine Base (en)"], missing: ["CAM++ (WeSpeaker, VoxCeleb)"] });
+    expect(await body()).toBe(
+      "Ready. Audio won't be saved.\nCaptions unavailable: Moonshine Base (en) didn't load. Recording still works.\nNot downloaded: CAM++ (WeSpeaker, VoxCeleb). Download on your phone for live captions.\nTap to start. Double tap to exit.",
+    );
+    vi.useRealTimers();
   });
 });

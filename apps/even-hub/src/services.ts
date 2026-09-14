@@ -188,7 +188,7 @@ export async function boot(onStep: (step: string) => void = () => undefined): Pr
 
   // Live models load at launch rather than when a recording starts; Start never waits on them.
   const warmup = new ModelWarmup(engines, { settings: () => settings.get(), recording: () => controller.activeRecordingId !== null, processing: () => post.busy });
-  warmup.status.on((s) => glasses.setModelsLoading(s.loading.length > 0));
+  warmup.status.on((s) => glasses.setModelStatus(s));
   settings.changes.on(() => void warmup.selectionChanged());
   // Post-processing loads the final STT model over the live one, so the next conversation would start cold.
   post.idle.on(() => void warmup.warm());

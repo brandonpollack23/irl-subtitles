@@ -13,6 +13,17 @@ const BODY = { id: 2, name: "body" };
 const TEXT_LIMIT = 900;
 const LOADING_IDLE = "Caption models are loading. You can start now; captions follow once they're ready.";
 const LOADING_LIVE = "Captions loading, they'll start shortly.";
+const READY = "Captions ready.";
+/** Loads shorter than this (a model that was already in memory) don't flash a loading line. */
+const LOADING_SHOW_AFTER_MS = 400;
+const READY_NOTICE_MS = 4000;
+
+/** What the app knows about the selected live models (ModelWarmup's status, by display name). */
+export interface ModelStatus {
+  loading: string[];
+  failed: string[];
+  missing: string[];
+}
 /**
  * A single tap waits this long before acting, so the second tap of a double tap (or the OS's
  * tap-then-hold menu gesture) can cancel it instead of starting or pausing first.
@@ -45,7 +56,10 @@ export class GlassesController {
   private created: Promise<boolean> | null = null;
   private mode: Mode | null = null;
   private notice: string | null = null;
-  private modelsLoading = false;
+  private models: ModelStatus = { loading: [], failed: [], missing: [] };
+  /** The loading line is on screen (after LOADING_SHOW_AFTER_MS), then "Captions ready." for READY_NOTICE_MS. */
+  private modelsLine: "loading" | "ready" | null = null;
+  private modelsTimer: ReturnType<typeof setTimeout> | null = null;
   private lastSnapshot: LiveSnapshot | null = null;
   private nameCache = new Map<string, string>();
   private nameVersion = -1;
@@ -91,10 +105,24 @@ export class GlassesController {
     if (this.lastSnapshot) void this.render(this.lastSnapshot, false);
   }
 
-  /** Live models still warming up: say so, but never hold back Start. */
-  setModelsLoading(loading: boolean): void {
-    if (loading === this.modelsLoading) return;
-    this.modelsLoading = loading;
+  /** Live models loading, done, or unable to load: say so, but never hold back Start. */
+  setModelStatus(status: ModelStatus): void {
+    const wasLoading = this.models.loading.length > 0;
+    this.models = status;
+    const loading = status.loading.length > 0;
+    if (loading === wasLoading) return this.rerender();
+    if (this.modelsTimer) clearTimeout(this.modelsTimer);
+    this.modelsTimer = null;
+    if (loading) {
+      this.modelsTimer = setTimeout(() => ((this.modelsLine = "loading"), this.rerender()), LOADING_SHOW_AFTER_MS);
+    } else if (this.modelsLine === "loading" && !status.failed.length) {
+      this.modelsLine = "ready";
+      this.modelsTimer = setTimeout(() => ((this.modelsLine = null), this.rerender()), READY_NOTICE_MS);
+    } else this.modelsLine = null;
+    this.rerender();
+  }
+
+  private rerender(): void {
     if (this.lastSnapshot) void this.render(this.lastSnapshot, false);
   }
 
@@ -139,10 +167,17 @@ export class GlassesController {
     const provider = s.provider === "soniox" ? "Soniox" : "Local";
     const audio = s.persistAudio ? "saving audio" : "audio not saved";
     // Soniox captions don't wait on local models.
-    const loading = this.modelsLoading && s.provider !== "soniox";
+    const line = s.provider === "soniox" ? null : this.modelsLine;
     if (mode === "idle") {
       const saving = s.persistAudio ? "Audio will be saved." : "Audio won't be saved.";
-      const lines = [this.notice ?? (loading ? saving : `Ready. ${saving}`), loading ? LOADING_IDLE : "", "Tap to start. Double tap to exit."];
+      const { failed, missing } = s.provider === "soniox" ? { failed: [], missing: [] } : this.models;
+      const lines = [
+        this.notice ?? (line === "loading" ? saving : `Ready. ${saving}`),
+        line === "loading" ? LOADING_IDLE : line === "ready" ? READY : "",
+        failed.length ? `Captions unavailable: ${failed.join(", ")} didn't load. Recording still works.` : "",
+        missing.length ? `Not downloaded: ${missing.join(", ")}. Download on your phone for live captions.` : "",
+        "Tap to start. Double tap to exit.",
+      ];
       return { status: `IRL Subtitles  ${provider}`, body: truncateUtf8(lines.filter(Boolean).join("\n"), TEXT_LIMIT) };
     }
     if (mode === "finalizing") return { status: "Stopped", body: "Saved. Processing on your phone…" };
@@ -161,7 +196,8 @@ export class GlassesController {
       const tail = caption.length > 220 ? `…${caption.slice(-220)}` : caption;
       const hint = mode === "paused" ? "Tap to resume. Double tap to end." : "";
       const captions = this.settings.get().showCaptionsOnGlasses;
-      body = [captions ? tail : "", captions && loading ? LOADING_LIVE : "", s.degraded ?? "", hint, `(${audio})`].filter(Boolean).join("\n");
+      const modelsLine = !captions ? "" : line === "loading" ? LOADING_LIVE : line === "ready" ? READY : "";
+      body = [captions ? tail : "", modelsLine, s.degraded ?? "", hint, `(${audio})`].filter(Boolean).join("\n");
     }
     return { status: truncateUtf8(status, 120), body: truncateUtf8(body || " ", TEXT_LIMIT) };
   }

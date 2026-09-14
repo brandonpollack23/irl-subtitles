@@ -32,7 +32,7 @@ export interface RecordingReport {
 }
 
 /** Lines the glasses body adds around captions; everything else in the body is caption text. */
-const NON_CAPTION = [/^\((audio not saved|saving audio)\)$/, /^Tap to resume/, /processing later/i, /loading/i, /^Restarting/, /slowed/i, /^Soniox/];
+const NON_CAPTION = [/^\((audio not saved|saving audio)\)$/, /^Tap to resume/, /processing later/i, /loading/i, /^Captions ready\.$/, /^Restarting/, /slowed/i, /^Soniox/];
 
 /**
  * The app's live path as services.ts wires it, in Node with real models: RecordingController →
@@ -107,7 +107,7 @@ export async function createLiveApp(opts: LiveAppOptions = {}) {
 
   // services.ts: live models load at launch, and the glasses say so while they do.
   const warmup = new ModelWarmup(engines, { settings: () => settings.get(), recording: () => controller.activeRecordingId !== null, processing: () => false });
-  warmup.status.on((s) => glasses.setModelsLoading(s.loading.length > 0));
+  warmup.status.on((s) => glasses.setModelStatus(s));
 
   async function download(ids = [models.vad, models.sttLive, models.speakerEmbedding]) {
     for (const id of ids) if (id !== "off" && !(await engines.isDownloaded(id))) await engines.download(id);

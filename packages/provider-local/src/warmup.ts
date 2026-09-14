@@ -3,9 +3,11 @@ import { catalogEntry } from "./catalog";
 import type { EngineKind, LocalEngines } from "./engines";
 
 export interface WarmupStatus {
-  /** Display names of selected live models that are downloaded and still loading. */
+  /** Display names of selected live models that are downloaded and still loading, by warmup or by a recording. */
   loading: string[];
   failed: string[];
+  /** Selected live models that aren't downloaded, so won't load until they are. */
+  missing: string[];
   /** Every selected live model is loaded. */
   ready: boolean;
 }
@@ -35,16 +37,29 @@ export interface WarmupDeps {
  */
 export class ModelWarmup {
   readonly status = new Emitter<WarmupStatus>();
-  private state: WarmupStatus = { loading: [], failed: [], ready: false };
+  private state: WarmupStatus = { loading: [], failed: [], missing: [], ready: false };
+  private passStates = new Map<string, ModelState>();
+  /** Selected live models some other caller (a recording's live run) is loading right now. */
+  private external = new Set<string>();
   private generation = 0;
   private key: string | null = null;
   // Passes queue per worker: two loads racing inside one worker could leave the wrong model loaded.
   private lanes: Record<WarmTarget["engine"], Promise<void>> = { audio: Promise.resolve(), asr: Promise.resolve() };
 
   constructor(
-    private readonly engines: Pick<LocalEngines, "isDownloaded" | "ensureVad" | "ensureEmbedding" | "ensureAsr">,
+    private readonly engines: Pick<LocalEngines, "isDownloaded" | "ensureVad" | "ensureEmbedding" | "ensureAsr"> & Partial<Pick<LocalEngines, "progress">>,
     private readonly deps: WarmupDeps,
-  ) {}
+  ) {
+    // A recording that starts while warmup is idle (e.g. right after post-processing evicted the caption model)
+    // loads the models itself; the glasses should still say so.
+    engines.progress?.on((p) => {
+      if (!liveIds(this.deps.settings()).includes(p.modelId) || p.status === "downloading") return;
+      const had = this.external.has(p.modelId);
+      if (p.status === "loading") this.external.add(p.modelId);
+      else this.external.delete(p.modelId);
+      if (had !== this.external.has(p.modelId)) this.publish();
+    });
+  }
 
   get current(): WarmupStatus {
     return this.state;
@@ -71,7 +86,8 @@ export class ModelWarmup {
     const downloaded = await Promise.all(targets.map((t) => this.engines.isDownloaded(t.id).catch(() => false)));
     if (gen !== this.generation) return;
     const states = new Map<string, ModelState>(targets.map((t, i) => [t.id, downloaded[i] ? "loading" : "missing"]));
-    this.publish(states);
+    this.passStates = states;
+    this.publish();
 
     const step = (t: WarmTarget) => async () => {
       // A newer pass owns the status; this one just stops starting loads.
@@ -86,7 +102,7 @@ export class ModelWarmup {
           states.set(t.id, "failed");
         }
       }
-      if (gen === this.generation) this.publish(states);
+      if (gen === this.generation) this.publish();
     };
     await Promise.all(
       (["audio", "asr"] as const).map((engine) => {
@@ -97,11 +113,19 @@ export class ModelWarmup {
     );
   }
 
-  private publish(states: Map<string, ModelState>): void {
-    const names = (want: ModelState) => [...states].filter(([, st]) => st === want).map(([id]) => catalogEntry(id)?.displayName ?? id);
-    this.state = { loading: names("loading"), failed: names("failed"), ready: [...states.values()].every((st) => st === "ready") };
+  private publish(): void {
+    const name = (id: string) => catalogEntry(id)?.displayName ?? id;
+    const ids = (want: ModelState) => [...this.passStates].filter(([, st]) => st === want).map(([id]) => id);
+    const loading = [...new Set([...ids("loading"), ...this.external])];
+    const ready = [...this.passStates.values()].every((st) => st === "ready") && this.external.size === 0;
+    this.state = { loading: loading.map(name), failed: ids("failed").map(name), missing: ids("missing").map(name), ready };
     this.status.emit(this.state);
   }
+}
+
+function liveIds(s: Pick<Settings, "provider" | "models">): string[] {
+  const m = s.models;
+  return [m.vad, m.speakerEmbedding, ...(s.provider === "local" && m.sttLive !== "off" ? [m.sttLive] : [])];
 }
 
 function keyOf(s: Pick<Settings, "provider" | "models" | "powerPolicy">): string {

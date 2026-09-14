@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { defaultSettings, type Settings } from "@irl/domain";
+import { defaultSettings, Emitter, type Settings } from "@irl/domain";
+import type { LoadProgress } from "../src/engines";
 import { defaultSelection } from "../src/catalog";
 import { ModelWarmup, type WarmupStatus } from "../src/warmup";
 
@@ -23,6 +24,7 @@ function setup(opts: { missing?: string[] } = {}) {
     ensureVad: vi.fn(load),
     ensureEmbedding: vi.fn(load),
     ensureAsr: vi.fn(async (id: string) => (await load(id), "wasm" as const)),
+    progress: new Emitter<LoadProgress>(),
   };
   const busy = { recording: false, processing: false };
   const warmup = new ModelWarmup(engines, { settings: () => settings, recording: () => busy.recording, processing: () => busy.processing });
@@ -37,7 +39,7 @@ describe("model warmup", () => {
     const t = setup();
     const done = t.warmup.warm();
     await t.flush();
-    expect(t.warmup.current).toEqual({ loading: ["Silero VAD v6", "CAM++ (WeSpeaker, VoxCeleb)", "Moonshine Base (en)"], failed: [], ready: false });
+    expect(t.warmup.current).toEqual({ loading: ["Silero VAD v6", "CAM++ (WeSpeaker, VoxCeleb)", "Moonshine Base (en)"], failed: [], missing: [], ready: false });
     expect(t.engines.ensureVad).toHaveBeenCalledWith("silero-vad-v6");
     expect(t.engines.ensureAsr).toHaveBeenCalledWith("moonshine-base-en");
     expect(t.engines.ensureEmbedding).not.toHaveBeenCalled();
@@ -50,7 +52,7 @@ describe("model warmup", () => {
     t.loads.get("campplus-voxceleb")!.resolve();
     t.loads.get("moonshine-base-en")!.resolve();
     await done;
-    expect(t.warmup.current).toEqual({ loading: [], failed: [], ready: true });
+    expect(t.warmup.current).toEqual({ loading: [], failed: [], missing: [], ready: true });
   });
 
   it("never loads a model that isn't downloaded, and a failed load stops counting as loading", async () => {
@@ -62,7 +64,7 @@ describe("model warmup", () => {
     t.loads.get("moonshine-base-en")!.reject(new Error("out of memory"));
     await done;
     expect(t.engines.ensureEmbedding).not.toHaveBeenCalled();
-    expect(t.warmup.current).toEqual({ loading: [], failed: ["Moonshine Base (en)"], ready: false });
+    expect(t.warmup.current).toEqual({ loading: [], failed: ["Moonshine Base (en)"], missing: ["CAM++ (WeSpeaker, VoxCeleb)"], ready: false });
   });
 
   it("warms nothing new during a recording or post-processing", async () => {
@@ -85,7 +87,7 @@ describe("model warmup", () => {
     t.loads.get("moonshine-base-en")!.resolve();
     await done;
     expect(t.engines.ensureEmbedding).not.toHaveBeenCalled();
-    expect(t.warmup.current).toEqual({ loading: [], failed: [], ready: false });
+    expect(t.warmup.current).toEqual({ loading: [], failed: [], missing: [], ready: false });
   });
 
   it("re-warms on a selection change, skipping live STT for Soniox and ignoring unrelated settings", async () => {
@@ -111,6 +113,17 @@ describe("model warmup", () => {
     t.loads.get("moonshine-tiny-en")!.resolve();
     await Promise.all([done, soniox]);
     expect(t.engines.ensureAsr).toHaveBeenCalledTimes(2);
-    expect(t.warmup.current).toEqual({ loading: [], failed: [], ready: true });
+    expect(t.warmup.current).toEqual({ loading: [], failed: [], missing: [], ready: true });
+  });
+
+  it("reports loads a recording starts on its own, for the selected live models only", async () => {
+    const t = setup();
+    t.engines.progress.emit({ modelId: "moonshine-base-en", status: "loading" });
+    expect(t.warmup.current.loading).toEqual(["Moonshine Base (en)"]);
+    t.engines.progress.emit({ modelId: "whisper-small-ts", status: "loading" });
+    t.engines.progress.emit({ modelId: "moonshine-base-en", status: "downloading", loaded: 1, total: 2 });
+    expect(t.warmup.current.loading).toEqual(["Moonshine Base (en)"]);
+    t.engines.progress.emit({ modelId: "moonshine-base-en", status: "ready" });
+    expect(t.warmup.current.loading).toEqual([]);
   });
 });
