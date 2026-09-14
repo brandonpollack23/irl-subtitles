@@ -2,6 +2,7 @@
   "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [],
+  "closed_at": "2026-09-14T05:34:43Z",
   "created": "2026-09-14T05:24:03Z",
   "description": "LocalLiveRun.boot() calls vad.reset with ring.start before any frame reaches the ring when models are already warm; ring.start is 0 then, but the first frame's startSample is the number of samples captured before the provider attached. Every utterance range is shifted earlier by that offset: live STT transcribes the silence before each utterance, clips its end, and utterances starting before 2x offset are dropped as 'fell too far behind' (degraded flickers). Anchor the VAD stream to the sample of the first audio actually fed.",
   "id": "irl-subt-9ij.16",
@@ -14,7 +15,7 @@
     }
   ],
   "priority": 1,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Fix live VAD sample-clock offset",
   "type": "bug",
   "updated_at": "2026-09-14T05:34:43Z"
