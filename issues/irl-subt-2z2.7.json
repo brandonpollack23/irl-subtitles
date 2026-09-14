@@ -4,6 +4,8 @@
     "irl-subt-2z2.4"
   ],
   "blocks": [],
+  "closed_at": "2026-09-14T02:58:20Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:48Z",
   "description": "Minimal G2 surface: Start recording, provider label, elapsed time, persistent recording indicator, degraded-state text, Add marker, Stop and summarize. Use textContainerUpgrade to avoid flicker; short menu labels. plan.md §10.",
   "id": "irl-subt-2z2.7",
@@ -12,8 +14,8 @@
   ],
   "parent": "irl-subt-2z2",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "GlassesController: idle/recording UI, marker, pause/resume, stop, recording indicator",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:48Z"
+  "updated_at": "2026-09-14T02:58:20Z"
 }
