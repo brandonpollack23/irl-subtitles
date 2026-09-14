@@ -8,6 +8,8 @@
     "irl-subt-f9n.7",
     "irl-subt-ye7.4"
   ],
+  "closed_at": "2026-09-14T02:58:20Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:49Z",
   "description": "Aggregate windows; require min evidence (5–10 s), absolute score, runner-up margin, window agreement, no overlap/noise. Below threshold show Unknown/Possibly X. Never compare across embedding spaces. plan.md §7.3.",
   "id": "irl-subt-f9n.5",
@@ -16,8 +18,8 @@
   ],
   "parent": "irl-subt-f9n",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "Identification and matching policy (evidence, score, margin, agreement)",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:50Z"
+  "updated_at": "2026-09-14T02:58:20Z"
 }
