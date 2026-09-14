@@ -464,6 +464,8 @@ class LocalLiveRun implements LiveSpeechRun {
       const samples = this.ring.slice({ startSample: from, endSample: to });
       const out = samples.length ? await this.engines.streamPush(samples) : { lines: [], computeMs: 0 };
       const stopped = flush ? await this.engines.streamStop() : null;
+      // The stream is closed; ticks until the timer stops must not push into it.
+      if (flush) this.stt = "unavailable";
       const lines = [...out.lines, ...(stopped?.lines ?? [])];
       const computeMs = out.computeMs + (stopped?.computeMs ?? 0);
       if (computeMs > 0 || lines.length) this.emitStreamLines(lines, computeMs, stopped !== null);

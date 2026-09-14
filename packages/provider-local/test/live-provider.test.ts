@@ -172,14 +172,16 @@ describe("local live provider with streaming STT", () => {
     const fake = engines as unknown as Record<string, unknown>;
     fake.streamStart = async () => undefined;
     // A stream that completes "hello there" once 2 s have arrived and keeps an open line after that.
+    let closed = false;
     fake.streamPush = async (samples: Float32Array) => {
+      if (closed) throw new Error("no Moonshine stream");
       pushed.push(samples.length);
       const heard = pushed.reduce((a, b) => a + b, 0) / SAMPLE_RATE;
       if (origin < 0) origin = heard;
       const lines = heard >= 2 ? [{ id: "1", text: "hello there", startTime: 0.5, duration: 1, isComplete: true }, { id: "2", text: "and", startTime: 1.8, duration: heard - 1.8, isComplete: false }] : [{ id: "1", text: "hello", startTime: 0.5, duration: heard - 0.5, isComplete: false }];
       return { lines, computeMs: 5 };
     };
-    fake.streamStop = async () => ({ lines: [{ id: "2", text: "and goodbye", startTime: 1.8, duration: 0.7, isComplete: true }], computeMs: 5 });
+    fake.streamStop = async () => (closed = true) && ({ lines: [{ id: "2", text: "and goodbye", startTime: 1.8, duration: 0.7, isComplete: true }], computeMs: 5 });
     const run = await new LocalLiveSpeechProvider(engines).start({ ...config, modelId: "moonshine-streaming-small-en", sttModelId: "moonshine-streaming-small-en" });
     await vi.advanceTimersByTimeAsync(0);
     const events: SpeechEvent[] = [];
@@ -202,5 +204,8 @@ describe("local live provider with streaming STT", () => {
     expect(tokens.some((t) => !t.final && t.text.trim() === "hello")).toBe(true);
     // Every received sample was streamed once.
     expect(pushed.reduce((a, b) => a + b, 0)).toBe(3 * SAMPLE_RATE);
+    // Nothing touched the closed stream afterwards.
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(events.some((e) => e.type === "error")).toBe(false);
   });
 });
