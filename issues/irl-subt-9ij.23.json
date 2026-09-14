@@ -7,9 +7,15 @@
   "id": "irl-subt-9ij.23",
   "labels": [],
   "parent": "irl-subt-9ij",
+  "comments": [
+    {
+      "text": "Measured in WebKitGTK 2.52.6 (simulator engine), Silero VAD v6, 250 x 512-sample session.run calls in a dedicated worker, jfk.wav:\n- asyncify (app's build) threads=1: median 0.40-0.48 ms/call (RTF 0.013-0.015); threads=4 (what ort-env picks since crossOriginIsolated is true without SAB): 0.56 ms; with a CAM++ session in the same WASM instance: 0.64 ms\n- plain ort-wasm-simd-threaded: 0.32 ms (RTF 0.012)\n- jsep: 0.60 ms; jspi: unsupported in JSC ('WebAssembly JSPI is not supported')\n- App path (LocalEngines -\u003e audio.worker vad.push, 4 s audio): 0.23 s VAD-only, 0.16 s after CAM++ load (RTF ~0.05).\nConclusion: the asyncify build is not a VAD bottleneck; the plain build saves ~0.1 ms/call, not worth a second runtime. The earlier 8.6 s / 4 s reading did not reproduce (machine load avg 4-8 during runs). What is slow in WebKitGTK is session creation: Moonshine Base 34.6 s, CAM++ 3.8-21.7 s (varies with load). Recommendation: keep one ORT build; address load latency (warm at launch 9ij.17, caption speech said while loading 9ij.21) and consider looking at session-creation cost (graph optimization level, fp32 encoder) separately.",
+      "timestamp": "2026-09-14T07:17:52Z"
+    }
+  ],
   "priority": 1,
   "status": "in_progress",
   "title": "Measure ORT non-asyncify WASM build for the audio worker in WebKitGTK",
   "type": "task",
-  "updated_at": "2026-09-14T07:13:45Z"
+  "updated_at": "2026-09-14T07:17:52Z"
 }
