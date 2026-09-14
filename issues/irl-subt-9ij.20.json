@@ -16,11 +16,15 @@
     {
       "text": "Landed as vynvuqzk: pnpm test:live runs apps/even-hub/test/glasses-captions.live.test.ts and packages/provider-local/test/engines.live.test.ts with real models (cached in ~/.cache/irl-subtitles-models or IRL_MODEL_CACHE). Limits: Node's V8 WASM is much faster than WebKitGTK/JSC, so use asrLoadDelayMs to model slow loads; worker transport, Cache Storage and bridge are shimmed.",
       "timestamp": "2026-09-14T07:27:36Z"
+    },
+    {
+      "text": "Follow-up: JSC-shell benchmark shows the asyncify ORT build is the big load/first-inference cost in WebKit (irl-subt-kdl, kdl.2); the remaining web-process slowdown is kdl.6.",
+      "timestamp": "2026-09-14T09:32:38Z"
     }
   ],
   "priority": 1,
   "status": "closed",
   "title": "Node live-pipeline harness: real app code and models on a WAV",
   "type": "task",
-  "updated_at": "2026-09-14T07:27:36Z"
+  "updated_at": "2026-09-14T09:32:38Z"
 }
