@@ -448,11 +448,18 @@ function PrivacySection(props: SectionProps) {
     <section class="panel">
       <h2>Privacy and storage</h2>
       <label class="check">
-        <input type="checkbox" checked={props.s.deleteAudioAfterProcessing} onChange={(e) => void props.update({ deleteAudioAfterProcessing: e.currentTarget.checked })} />
+        <input
+          type="checkbox"
+          checked={!props.s.persistAudio || props.s.deleteAudioAfterProcessing}
+          disabled={!props.s.persistAudio}
+          onChange={(e) => void props.update({ deleteAudioAfterProcessing: e.currentTarget.checked })}
+        />
         <span>
-          Delete saved audio after processing
+          Delete audio after processing
           <span class="small muted" style={{ display: "block" }}>
-            Keeps transcripts, summaries, names, and voice profiles.
+            {props.s.persistAudio
+              ? "Keeps transcripts, summaries, names, and voice profiles."
+              : "Always on while Save audio is off. Keeps transcripts, summaries, names, and voice profiles."}
           </span>
         </span>
       </label>

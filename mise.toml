@@ -2,3 +2,6 @@
 "go:github.com/jallum/beadwork/cmd/bw" = "latest"
 # Locally trusted HTTPS for phone Chrome/Safari (WebGPU needs a secure context)
 mkcert = "latest"
+
+[env]
+WEBKIT_DISABLE_DMABUF_RENDERER = "1"
