@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-kdl.1"
+  ],
   "blocks": [],
   "created": "2026-09-14T09:32:28Z",
   "description": "The audio worker (Silero, CAM++, ReDimNet) always runs WASM but loads onnxruntime-web/webgpu asyncify (packages/provider-local/src/ort-env.ts). Switch it to onnxruntime-web (ort-wasm-simd-threaded.wasm). For the asr worker, transformers.js 4.2 imports onnxruntime-web/webgpu statically (src/backends/onnx.js), so build a second asr worker entry with a Vite alias to the plain wasm bundle and pick the worker by selected target (LocalEngines workerFactory / ensureAsr WebGPU-\u003eWASM fallback must switch worker). WebGPU sessions keep asyncify. Evidence (jsc shell, 1 thread): q4 decoder create 0.6 s vs 5.1 s, first 2 s encoder run 0.17 s vs 8.0 s, steady RTF 0.07 vs 0.12. Verify in simulator against the A0 baseline; keep catalog/lock integrity unchanged.",
