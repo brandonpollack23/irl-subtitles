@@ -59,6 +59,9 @@ pnpm --filter @irl/even-hub ehpk # packaged build
 Where to look first, always: **Settings → Diagnostics** (device table, redacted
 log, "Download diagnostics"). On Android, `chrome://inspect`; on iOS, Safari's
 Develop menu. The simulator's automation API serves `GET /api/console`.
+In dev builds a **DEV badge** (top right) names the host (Even simulator / Even app /
+browser) and the database; tap it for what's available and why a backend fell back.
+The same report is logged at boot (`platform` scope, plus a `console.table` in dev).
 
 | Symptom area | Start reading |
 | --- | --- |
@@ -171,6 +174,11 @@ Settings → Microphone → Audio file (testing); pick `fixtures/dev/conversatio
 audio from your laptop mic (choose with `--aid`) and supports the context menu.
 Automation: `curl -XPOST localhost:9898/api/input -d '{"action":"context_menu"}'`,
 `curl localhost:9898/api/screenshot/glasses > g.png`.
+
+The simulator is WebKitGTK: cross-origin isolated, but no SharedArrayBuffer and no
+OPFS (off by default in WebKitGTK; even when enabled, sync access handles are
+unsupported). Turso can't run there, so the DEV badge should read "Even simulator ·
+DB IndexedDB" and storage should open with no Turso timeout.
 
 - [ ] On launch the glasses show "IRL Subtitles  Local" and "Ready… Tap to start. Double tap to exit."
       *Blank:* `createStartUpPageContainer` result in the console (`glasses` log scope).

@@ -6,7 +6,7 @@ import { Repository } from "./repository";
 import { VaultSecretStore } from "./secrets";
 import { SqlTableStore } from "./sql-store";
 import type { TableStore } from "./table-store";
-import { openTursoDriver } from "./turso-driver";
+import { openTursoDriver, tursoUnsupportedReason } from "./turso-driver";
 
 export interface StorageHandles {
   repo: Repository;
@@ -41,20 +41,9 @@ function withTimeout<T>(p: Promise<T>, ms: number, what: string): Promise<T> {
 export async function openStorage(opts: OpenStorageOptions & { onStep?: (step: string) => void }): Promise<StorageHandles> {
   const reasons: string[] = [];
   const dbName = opts.dbName ?? "irl-subtitles";
-  let table: TableStore | null = null;
-  if (opts.preferTurso) {
-    opts.onStep?.("Opening database");
-    try {
-      table = await withTimeout(openTursoDriver(`${dbName}.db`).then((d) => SqlTableStore.open(d)), 10_000, "Turso open");
-    } catch (e) {
-      reasons.push(`turso: ${errorMessage(e)}`);
-    }
-  } else {
-    reasons.push("turso: disabled by setting");
-  }
-  if (!table) opts.onStep?.("Opening IndexedDB");
-  table ??= await IdbTableStore.open(dbName);
 
+  // Audio storage opens first: its probe writes through an OPFS sync access handle in a worker, which is
+  // exactly what Turso needs, so a failed probe rules Turso out without waiting on Turso's own timeout.
   let blobs: BlobStore;
   opts.onStep?.("Opening audio storage");
   try {
@@ -63,6 +52,21 @@ export async function openStorage(opts: OpenStorageOptions & { onStep?: (step: s
     reasons.push(`opfs: ${errorMessage(e)}`);
     blobs = await IdbBlobStore.open();
   }
+
+  let table: TableStore | null = null;
+  const skipTurso = !opts.preferTurso ? "disabled by setting" : (tursoUnsupportedReason() ?? (blobs.kind === "opfs" ? null : "OPFS sync access handles don't work here"));
+  if (skipTurso) {
+    reasons.push(`turso: ${skipTurso}`);
+  } else {
+    opts.onStep?.("Opening database");
+    try {
+      table = await withTimeout(openTursoDriver(`${dbName}.db`).then((d) => SqlTableStore.open(d)), 10_000, "Turso open");
+    } catch (e) {
+      reasons.push(`turso: ${errorMessage(e)}`);
+    }
+  }
+  if (!table) opts.onStep?.("Opening IndexedDB");
+  table ??= await IdbTableStore.open(dbName);
 
   opts.onStep?.("Opening keys");
   const vault = await KeyVault.open();

@@ -7,4 +7,5 @@ export * from "./schema";
 export * from "./secrets";
 export * from "./settings-store";
 export * from "./sql-store";
+export { tursoUnsupportedReason } from "./turso-driver";
 export type * from "./table-store";

@@ -1,6 +1,7 @@
 import { createSignal, For, Match, Show, Switch } from "solid-js";
 import { formatClock, nowIso } from "@irl/domain";
 import { deleteRecording } from "@irl/pipeline";
+import { DevPlatformMarker } from "./DevPlatformMarker";
 import { DiagnosticsView } from "./DiagnosticsView";
 import { EvaluationView } from "./EvaluationView";
 import { HistoryView } from "./HistoryView";
@@ -160,6 +161,9 @@ export function App() {
       <Nav />
       <ToastHost />
       <ConsentNotice />
+      <Show when={import.meta.env.DEV}>
+        <DevPlatformMarker />
+      </Show>
     </div>
   );
 }

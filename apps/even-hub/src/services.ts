@@ -35,6 +35,7 @@ import { openStorage, SettingsStore, type StorageHandles } from "@irl/storage";
 import workletUrl from "@irl/capture/worklet?worker&url";
 import { GlassesController } from "./glasses";
 import { installConsoleCapture, logger, setLogContent } from "./log";
+import { platformReport } from "./platform";
 
 const log = logger("boot");
 
@@ -78,6 +79,12 @@ export async function boot(onStep: (step: string) => void = () => undefined): Pr
   engines.benchmarks = (await storage.repo.getSetting<BenchmarkResult[]>(BENCH_KEY)) ?? [];
   const caps = await engines.capabilities();
   log.info("capabilities", caps);
+  const platform = platformReport(caps, storage.diagnostics, inEvenApp);
+  log.info("platform", platform);
+  if (import.meta.env.DEV) {
+    console.info(`[dev] ${platform.host} (${platform.engine}) · database ${platform.database} · audio ${platform.audio}`);
+    console.table(Object.fromEntries(platform.features.map((f) => [f.name, { available: f.ok, detail: f.detail ?? "" }])));
+  }
   engines.events.on((e) => log.warn("engine", e));
 
   // Selections that can't run on this device (e.g. a model needing shader-f16) fall back to the most

@@ -135,3 +135,13 @@ table.kv th { text-align: left; font-weight: 600; color: var(--muted); padding: 
 table.kv td { word-break: break-word; }
 .skip-link { position: absolute; left: -999px; }
 .skip-link:focus { left: 16px; top: 8px; z-index: 50; }
+
+/* Dev builds only (DevPlatformMarker): host, storage backends, and feature availability. */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.dev-marker { position: fixed; top: calc(env(safe-area-inset-top) + 6px); right: 6px; z-index: 30; max-width: min(380px, calc(100vw - 12px)); font-size: 0.75rem; }
+.dev-marker summary { list-style: none; cursor: pointer; margin-left: auto; width: fit-content; padding: 2px 10px; border-radius: 999px; border: 1px dashed var(--warn); background: var(--surface); color: var(--warn); font-weight: 700; white-space: nowrap; }
+.dev-marker summary::-webkit-details-marker { display: none; }
+.dev-marker-body { margin-top: 4px; padding: 10px 12px; background: var(--surface); border: 1px dashed var(--warn); border-radius: var(--radius); max-height: 70dvh; overflow: auto; display: flex; flex-direction: column; gap: 8px; }
+.dev-features { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.dev-features .ok > span:first-child { color: var(--ok); }
+.dev-features .missing > span:first-child { color: var(--rec); }
