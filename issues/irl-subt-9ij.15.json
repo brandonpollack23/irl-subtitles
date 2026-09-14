@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-14T05:20:29Z",
+  "description": "\"Download selected models\" loaded every model (transformers.js reads each file fully into JS, copies it into Cache Storage, ORT copies into the WASM heap and GPU). A Gemma summary model peaks at several times its size and WebKitGTK in the Even Hub simulator kills the process (19.5 GB \u003e 16 GB threshold). Stream verified files straight into the adapter's cache instead; load only when a recording or benchmark needs the model. Also: isDownloaded checks the exact files each target needs via cache.keys(), not a load registry.",
+  "id": "irl-subt-9ij.15",
+  "labels": [],
+  "parent": "irl-subt-9ij",
+  "priority": 2,
+  "status": "open",
+  "title": "Download models without loading them",
+  "type": "task",
+  "updated_at": "2026-09-14T05:20:29Z"
+}
