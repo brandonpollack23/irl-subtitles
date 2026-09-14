@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-14T13:30:20Z",
+  "description": "A single speaker in the Even simulator came out as 6 live clusters and '4 speakers from 16 windows' after refinement (rec_2e939b4aa05a474ab5fb, 2026-09-14). clustering.ts PARAMS are uncalibrated defaults (assign 0.55, merge 0.7, minWindowsToConfirm 2, minWindowsToKeep 2). Measure same- vs different-speaker cosine distributions for campplus-voxceleb windows (live window grid) on the multi-speaker fixtures (apps/even-hub/public/fixtures/dev, LibriSpeech speakers A/B/C), pick per-space assign/merge values with margin, and add a regression test that the fixtures resolve to the right speaker count both online and after refinement.",
+  "id": "irl-subt-kdl.15",
+  "labels": [],
+  "parent": "irl-subt-kdl",
+  "priority": 1,
+  "status": "open",
+  "title": "Calibrate CAM++ clustering thresholds: one voice split into several speakers",
+  "type": "bug",
+  "updated_at": "2026-09-14T13:30:20Z"
+}
