@@ -25,6 +25,11 @@ import { VadSegmenter } from "./vad-segmenter";
 const RING_SECONDS = 90;
 const TICK_MS = 100;
 const INTERIM_EVERY_SAMPLES = Math.round(1.2 * SAMPLE_RATE);
+/**
+ * Speech held while the caption model loads is captioned once it's ready, newest 15 s only: older lines would
+ * scroll off the glasses before they appeared, and the final pass transcribes everything anyway.
+ */
+const CATCH_UP_SAMPLES = 15 * SAMPLE_RATE;
 
 /** Recent audio for live jobs; older audio is only on disk. */
 class RingBuffer {
@@ -109,7 +114,11 @@ class LocalLiveRun implements LiveSpeechRun {
   private confirmedLabels = new Map<number, ClusterId>();
   private scheduler = new ComputeScheduler();
   private decision: SchedulerDecision = { level: 0, reason: null, interimCaptions: true, liveStt: true, embeddings: true };
-  private ready = { vad: false, stt: false, embed: false };
+  private ready = { vad: false, embed: false };
+  /** "loading" holds ended utterances for captions; "unavailable" lets them become turns without text (the final pass covers them). */
+  private stt: "loading" | "ready" | "unavailable";
+  /** Where the caption model became ready: speech held before this is catch-up, not a sign of falling behind. */
+  private sttReadyAt = 0;
   private sttBusy = false;
   private embedBusy = false;
   private vadBusy = false;
@@ -125,6 +134,7 @@ class LocalLiveRun implements LiveSpeechRun {
     this.providerRunId = config.providerRunId;
     this.space = embeddingSpaceOf(config.embeddingModelId);
     this.clusterer = new OnlineClusterer(clusterParams(this.space));
+    this.stt = config.sttModelId === "off" ? "unavailable" : "loading";
   }
 
   async boot(): Promise<void> {
@@ -144,13 +154,20 @@ class LocalLiveRun implements LiveSpeechRun {
       }
     };
     this.ready.vad = await loadIfDownloaded(this.config.vadModelId, "Speech detection", () => this.engines.ensureVad(this.config.vadModelId));
-    const [embed, stt] = await Promise.all([
-      loadIfDownloaded(this.config.embeddingModelId, "Speaker", () => this.engines.ensureEmbedding(this.config.embeddingModelId)),
-      this.config.sttModelId === "off" ? Promise.resolve(false) : loadIfDownloaded(this.config.sttModelId, "Captions", () => this.engines.ensureAsr(this.config.sttModelId)),
+    // Each model is used as soon as it's loaded: the caption model can take far longer than the speaker model.
+    await Promise.all([
+      loadIfDownloaded(this.config.embeddingModelId, "Speaker", () => this.engines.ensureEmbedding(this.config.embeddingModelId)).then((ok) => (this.ready.embed = ok)),
+      this.config.sttModelId === "off"
+        ? null
+        : loadIfDownloaded(this.config.sttModelId, "Captions", () => this.engines.ensureAsr(this.config.sttModelId)).then((ok) => (ok ? this.sttBecameReady() : (this.stt = "unavailable"))),
     ]);
-    this.ready.embed = embed;
-    this.ready.stt = stt;
-    if (this.ready.vad && (stt || this.config.sttModelId === "off") && embed) this.emitDegraded(null);
+    if (this.ready.vad && this.ready.embed && (this.stt === "ready" || this.config.sttModelId === "off")) this.emitDegraded(null);
+  }
+
+  private sttBecameReady(): void {
+    this.stt = "ready";
+    this.sttReadyAt = this.ring.end;
+    for (const u of this.utterances) if (u.ended && !u.transcribed && u.endSample < this.ring.end - CATCH_UP_SAMPLES) u.transcribed = true;
   }
 
   push(frame: AudioFrame): void {
@@ -175,7 +192,7 @@ class LocalLiveRun implements LiveSpeechRun {
     if (this.ready.vad && !this.vadBusy) void this.feedVad();
     const sample = {
       // The oldest ended utterance is the one being (or about to be) transcribed; only what waits behind it is backlog.
-      sttBacklogS: this.utterances.filter((u) => u.ended && !u.transcribed).slice(1).reduce((n, u) => n + (u.endSample - u.startSample), 0) / SAMPLE_RATE,
+      sttBacklogS: this.utterances.filter((u) => u.ended && !u.transcribed && u.endSample > this.sttReadyAt && this.stt === "ready").slice(1).reduce((n, u) => n + (u.endSample - u.startSample), 0) / SAMPLE_RATE,
       embedBacklogS: this.utterances.reduce((n, u) => n + (u.windowsQueued - u.windowsDone) * 2, 0),
       sttRtf: this.lastRtf,
       failure: this.failure,
@@ -185,7 +202,7 @@ class LocalLiveRun implements LiveSpeechRun {
     if (this.decision.level !== prevLevel) console.warn(`[scheduler] level ${prevLevel} → ${this.decision.level}`, JSON.stringify({ ...sample, sttRtf: sample.sttRtf?.toFixed(2) }));
     this.failure = false;
     // Model problems are reported where they happen; with every model healthy the scheduler owns the message.
-    if (this.ready.vad && this.ready.embed && (this.ready.stt || this.config.sttModelId === "off")) this.emitDegraded(this.decision.reason);
+    if (this.ready.vad && this.ready.embed && (this.stt === "ready" || this.config.sttModelId === "off")) this.emitDegraded(this.decision.reason);
     if (!this.sttBusy) void this.runStt();
     if (!this.embedBusy) void this.runEmbeddings();
     this.finalizeTurns();
@@ -307,7 +324,7 @@ class LocalLiveRun implements LiveSpeechRun {
   }
 
   private async runStt(): Promise<void> {
-    if (!this.ready.stt || this.config.sttModelId === "off" || !this.decision.liveStt) return;
+    if (this.stt !== "ready" || !this.decision.liveStt) return;
     // Finals first (oldest ended utterance), then an interim for the open utterance.
     const final = this.utterances.find((u) => u.ended && !u.transcribed);
     const open = this.utterances.find((u) => !u.ended);
@@ -347,12 +364,13 @@ class LocalLiveRun implements LiveSpeechRun {
       if (job.final) u.transcribed = true;
       this.failure = true;
       this.emit({ type: "error", message: `live transcription failed: ${errorMessage(e)}`, fatal: false });
-      this.ready.stt = false;
+      this.stt = "loading";
       this.emitDegraded("Captions paused — processing later");
       // Try to recover the model (e.g. after a WebGPU device loss) without stopping capture.
-      void this.engines.ensureAsr(this.config.sttModelId).then(() => {
-        this.ready.stt = true;
-      }, () => undefined);
+      void this.engines.ensureAsr(this.config.sttModelId).then(
+        () => this.sttBecameReady(),
+        () => (this.stt = "unavailable"),
+      );
     } finally {
       this.sttBusy = false;
     }
@@ -364,7 +382,9 @@ class LocalLiveRun implements LiveSpeechRun {
     for (const u of this.utterances) {
       if (!u.ended) continue;
       const embeddingsSettled = !this.ready.embed || !this.decision.embeddings || u.windowsDone >= u.windowsQueued;
-      if (!force && (!embeddingsSettled || (this.ready.stt && !u.transcribed && this.decision.liveStt))) continue;
+      // Wait for text while the caption model is loading too, unless the audio has already left the ring.
+      const awaitingText = !u.transcribed && this.decision.liveStt && (this.stt === "ready" || (this.stt === "loading" && u.startSample >= this.ring.start));
+      if (!force && (!embeddingsSettled || awaitingText)) continue;
       done.push(u);
     }
     if (!done.length) return;
@@ -415,7 +435,7 @@ class LocalLiveRun implements LiveSpeechRun {
     this.scheduleWindows();
     const deadline = performance.now() + 45_000;
     while (performance.now() < deadline) {
-      const pending = this.pendingWindows.length > 0 || this.embedBusy || this.sttBusy || (this.ready.stt && this.decision.liveStt && this.utterances.some((u) => !u.transcribed));
+      const pending = this.pendingWindows.length > 0 || this.embedBusy || this.sttBusy || (this.stt === "ready" && this.decision.liveStt && this.utterances.some((u) => !u.transcribed));
       if (!pending) break;
       await new Promise((ok) => setTimeout(ok, 50));
       if (!this.embedBusy) await this.runEmbeddings();

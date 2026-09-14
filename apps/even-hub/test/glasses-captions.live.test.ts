@@ -37,3 +37,21 @@ it("captions speech on the next recording once models are loaded", async () => {
   expect(words(r).split(/\s+/).length).toBeGreaterThan(3);
   if (!custom) expect(words(r)).toMatch(/fellow Americans/i);
 });
+
+it("captions speech said while the caption model is still loading at launch", async () => {
+  // Start talking right after the app opens: warmup is still loading the models the recording needs.
+  const a = await app();
+  const r = (reports["during launch warmup"] = await a.record(wav));
+  expect(words(r).split(/\s+/).length).toBeGreaterThan(3);
+  if (!custom) expect(words(r)).toMatch(/fellow Americans/i);
+});
+
+it("captions everything once a slow caption model finishes loading", async () => {
+  // Stand-in for WebKitGTK, where Moonshine Base takes ~35 s to load: speech ends before captions can start.
+  const a = await app({ asrLoadDelayMs: 15_000 });
+  const r = (reports["slow caption model"] = await a.record(wav, 12_000));
+  if (!custom) {
+    expect(words(r)).toMatch(/fellow Americans/i);
+    expect(words(r)).toMatch(/for your country/i);
+  } else expect(words(r).split(/\s+/).length).toBeGreaterThan(3);
+});

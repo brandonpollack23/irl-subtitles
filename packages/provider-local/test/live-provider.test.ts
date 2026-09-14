@@ -10,7 +10,7 @@ const PAD = (DEFAULT_VAD.speechPadMs * SAMPLE_RATE) / 1000;
 const loudShare = (x: Float32Array) => x.filter((v) => Math.abs(v) > 0.1).length / Math.max(1, x.length);
 
 /** LocalEngines with instant models: the VAD calls loud windows speech, STT reports how loud its input was. */
-function fakeEngines() {
+function fakeEngines(asrLoadMs = 0) {
   const newWorker = () => new VadStream(() => undefined);
   let vad = newWorker();
   const sttLoudness: number[] = [];
@@ -18,7 +18,7 @@ function fakeEngines() {
     isDownloaded: async () => true,
     ensureVad: async () => undefined,
     ensureEmbedding: async () => undefined,
-    ensureAsr: async () => "wasm",
+    ensureAsr: () => new Promise((ok) => setTimeout(() => ok("wasm"), asrLoadMs)),
     call: async () => undefined,
     vadPush: (samples: Float32Array, startSample: number) => vad.push(samples, startSample, async (w) => (loudShare(w) > 0.5 ? 0.9 : 0.05)),
     transcribe: async (samples: Float32Array) => {
@@ -30,6 +30,21 @@ function fakeEngines() {
   return { engines: engines as unknown as LocalEngines, sttLoudness, recreateWorker: () => (vad = newWorker()) };
 }
 
+const config = {
+  recordingId: "rec", providerRunId: "run", language: "en", modelId: "moonshine-base-en",
+  sttModelId: "moonshine-base-en", embeddingModelId: "campplus-voxceleb", vadModelId: "silero-vad-v6",
+};
+
+/** Pushes 100 ms frames from `first` to `until`, loud inside `speech`, advancing fake time in real time. */
+async function play(run: { push(f: never): void }, first: number, until: number, speech: TimeRange[], each?: (t: number) => void) {
+  for (let t = first; t < until; t += FRAME) {
+    each?.(t);
+    const samples = new Float32Array(FRAME).map((_, i) => (speech.some((r) => t + i >= r.startSample && t + i < r.endSample) ? (i % 2 ? 0.5 : -0.5) : 0));
+    run.push({ sessionId: "rec", sequence: 0, startSample: t, sampleRateHz: SAMPLE_RATE, channels: 1, encoding: "pcm_s16le", pcm: float32ToPcm(samples) } as never);
+    await vi.advanceTimersByTimeAsync(FRAME / 16);
+  }
+}
+
 afterEach(() => {
   vi.useRealTimers();
 });
@@ -38,10 +53,7 @@ describe("local live provider", () => {
   it("keeps speech on the recording's sample clock when it attaches mid-recording", async () => {
     vi.useFakeTimers();
     const { engines, sttLoudness, recreateWorker } = fakeEngines();
-    const run = await new LocalLiveSpeechProvider(engines).start({
-      recordingId: "rec", providerRunId: "run", language: "en", modelId: "moonshine-base-en",
-      sttModelId: "moonshine-base-en", embeddingModelId: "campplus-voxceleb", vadModelId: "silero-vad-v6",
-    });
+    const run = await new LocalLiveSpeechProvider(engines).start(config);
     // Models are warm: boot finishes before the first frame arrives.
     await vi.advanceTimersByTimeAsync(0);
 
@@ -49,13 +61,8 @@ describe("local live provider", () => {
     const first = Math.round(2.5 * SAMPLE_RATE);
     const at = (s: number) => first + Math.round(s * SAMPLE_RATE);
     const speech = [{ startSample: at(0), endSample: at(1.5) }, { startSample: at(4), endSample: at(6) }, { startSample: at(9), endSample: at(11) }];
-    for (let t = first; t < at(13); t += FRAME) {
-      // The audio worker crashes and comes back between utterances with a fresh stream.
-      if (t === at(7.5)) recreateWorker();
-      const samples = new Float32Array(FRAME).map((_, i) => (speech.some((r) => t + i >= r.startSample && t + i < r.endSample) ? (i % 2 ? 0.5 : -0.5) : 0));
-      run.push({ sessionId: "rec", sequence: 0, startSample: t, sampleRateHz: SAMPLE_RATE, channels: 1, encoding: "pcm_s16le", pcm: float32ToPcm(samples) });
-      await vi.advanceTimersByTimeAsync(FRAME / 16);
-    }
+    // The audio worker crashes and comes back between utterances with a fresh stream.
+    await play(run, first, at(13), speech, (t) => t === at(7.5) && recreateWorker());
     const finished = run.finish();
     await vi.advanceTimersByTimeAsync(1000);
     await finished;
@@ -82,5 +89,54 @@ describe("local live provider", () => {
     expect(sttLoudness.length).toBeGreaterThanOrEqual(6);
     for (const share of sttLoudness) expect(share).toBeGreaterThan(0.7);
     expect(events.some((e) => e.type === "degraded" && e.reason?.startsWith("Saving"))).toBe(false);
+  });
+
+  it("captions speech that ended while the caption model was still loading", async () => {
+    vi.useFakeTimers();
+    // Speech detection and speaker models are ready at once; captions take 8 s, speech ends at 5 s.
+    const { engines } = fakeEngines(8_000);
+    const run = await new LocalLiveSpeechProvider(engines).start(config);
+    const at = (s: number) => Math.round(s * SAMPLE_RATE);
+    const speech = [{ startSample: at(1), endSample: at(2.5) }, { startSample: at(3.5), endSample: at(5) }];
+    const events: SpeechEvent[] = [];
+    void (async () => {
+      for await (const ev of run.events) events.push(ev);
+    })();
+    await play(run, 0, at(11), speech);
+    const finals = () => events.flatMap((e) => (e.type === "tokens" ? e.tokens : [])).filter((t) => t.final);
+    // Both utterances are captioned once the model is ready, before Stop.
+    for (const r of speech) expect(finals().some((t) => t.endSample > r.startSample && t.startSample < r.endSample), `${r.startSample}`).toBe(true);
+    // Their speaker turns waited for the text rather than going out empty.
+    const firstTurn = events.findIndex((e) => e.type === "turns");
+    const firstFinal = events.findIndex((e) => e.type === "tokens" && e.tokens.some((t) => t.final));
+    expect(firstFinal).toBeGreaterThanOrEqual(0);
+    if (firstTurn >= 0) expect(firstTurn).toBeGreaterThan(firstFinal);
+    expect(events.some((e) => e.type === "degraded" && e.reason !== null)).toBe(false);
+    const finished = run.finish();
+    await vi.advanceTimersByTimeAsync(1000);
+    await finished;
+  });
+
+  it("leaves speech older than the catch-up window to the final pass", async () => {
+    vi.useFakeTimers();
+    const { engines, sttLoudness } = fakeEngines(30_000);
+    const run = await new LocalLiveSpeechProvider(engines).start(config);
+    const at = (s: number) => Math.round(s * SAMPLE_RATE);
+    const early = { startSample: at(1), endSample: at(3) };
+    const late = { startSample: at(22), endSample: at(24) };
+    const events: SpeechEvent[] = [];
+    void (async () => {
+      for await (const ev of run.events) events.push(ev);
+    })();
+    await play(run, 0, at(33), [early, late]);
+    const finals = events.flatMap((e) => (e.type === "tokens" ? e.tokens : [])).filter((t) => t.final);
+    expect(finals.some((t) => t.startSample < early.endSample)).toBe(false);
+    expect(finals.some((t) => t.endSample > late.startSample && t.startSample < late.endSample)).toBe(true);
+    // The catch-up decode isn't mistaken for live STT falling behind.
+    expect(sttLoudness.length).toBeGreaterThan(0);
+    expect(events.some((e) => e.type === "degraded" && e.reason !== null)).toBe(false);
+    const finished = run.finish();
+    await vi.advanceTimersByTimeAsync(1000);
+    await finished;
   });
 });
