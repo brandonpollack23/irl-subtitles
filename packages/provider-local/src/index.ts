@@ -3,6 +3,7 @@ export * from "./catalog";
 export * from "./clustering";
 export * from "./device";
 export * from "./engines";
+export * from "./live-metrics";
 export * from "./live-provider";
 export * from "./model-files";
 export * from "./scheduler";

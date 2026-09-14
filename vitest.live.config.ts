@@ -5,6 +5,8 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["packages/*/test/**/*.live.test.ts", "apps/*/test/**/*.live.test.ts"],
+    // Latency assertions: files running side by side would compete for the same cores.
+    fileParallelism: false,
     testTimeout: 15 * 60_000,
     hookTimeout: 15 * 60_000,
   },

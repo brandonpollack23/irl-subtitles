@@ -3,7 +3,7 @@ import { IDBFactory } from "fake-indexeddb";
 import { RecordingAudio, WavFileSource } from "@irl/capture";
 import { activeAttributions, defaultSettings, G2_SPEAKER_NAME_MAX_BYTES, speakerLabel, type ModelSelection, type Person } from "@irl/domain";
 import { EphemeralKeys, IdentityService, RecordingController, type LiveSnapshot } from "@irl/pipeline";
-import { defaultSelection, LocalEngines, LocalToolkit, ModelWarmup } from "@irl/provider-local";
+import { defaultSelection, liveMetrics, LocalEngines, LocalToolkit, ModelWarmup, summarizeLiveMetrics, type LiveMetric, type LiveMetricsSummary } from "@irl/provider-local";
 import { KeyVault, MemoryBlobStore, Repository, SettingsStore, SqlTableStore } from "@irl/storage";
 import { nodeSqliteDriver } from "../../../../packages/storage/test/node-sqlite-driver";
 import { nodeWorkers } from "../../../../packages/provider-local/test/harness/node-workers";
@@ -29,6 +29,8 @@ export interface RecordingReport {
   captionLines: string[];
   firstCaptionAt: TimelineEntry | null;
   finalSegments: string[];
+  /** Live-path timings (irl-subt-kdl.1). */
+  metrics: LiveMetricsSummary;
 }
 
 /** Lines the glasses body adds around captions; everything else in the body is caption text. */
@@ -121,6 +123,8 @@ export async function createLiveApp(opts: LiveAppOptions = {}) {
     const add = (kind: TimelineEntry["kind"], text: string) =>
       timeline.push({ t: +((performance.now() - t0) / 1000).toFixed(2), audio: +(controller.current.capturedSamples / 16000).toFixed(2), kind, text });
     const offGlasses = (onGlasses.push((c) => add("glasses", c.body)), () => onGlasses.splice(0));
+    const metricEvents: LiveMetric[] = [];
+    const offMetrics = liveMetrics.on((m) => metricEvents.push(m));
     const offEngine = engines.progress.on((p) => p.status !== "downloading" && add("engine", `${p.modelId} ${p.status}${p.error ? ` ${p.error}` : ""}`));
     let last = { state: "", degraded: null as string | null, speech: false, provisional: "", segments: "" };
     const offLive = controller.live.on((s) => {
@@ -163,6 +167,7 @@ export async function createLiveApp(opts: LiveAppOptions = {}) {
     add("state", "stopping");
     await controller.stop();
     offGlasses();
+    offMetrics();
     offEngine();
     offLive();
     console.warn = warn;
@@ -176,7 +181,7 @@ export async function createLiveApp(opts: LiveAppOptions = {}) {
     const glassesBodies = during.map((e) => e.text).filter((b, i, all) => b !== all[i - 1]);
     const captionOf = (body: string) => body.split("\n").filter((l) => l.trim() && !NON_CAPTION.some((re) => re.test(l.trim())));
     const captionLines = [...new Set(glassesBodies.flatMap(captionOf))];
-    return { recordingId, timeline, glassesBodies, captionLines, firstCaptionAt: during.find((e) => captionOf(e.text).length > 0) ?? null, finalSegments };
+    return { recordingId, timeline, glassesBodies, captionLines, firstCaptionAt: during.find((e) => captionOf(e.text).length > 0) ?? null, finalSegments, metrics: summarizeLiveMetrics(metricEvents) };
   }
 
   /** Downloads anything missing (never counted as launch time), then launches warmup like the app. */

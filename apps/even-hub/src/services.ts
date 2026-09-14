@@ -24,9 +24,12 @@ import {
   defaultSelection,
   defaultWorkers,
   entriesForRole,
+  liveMetrics,
   LocalEngines,
   LocalToolkit,
   ModelWarmup,
+  summarizeLiveMetrics,
+  type LiveMetric,
   ROLE_KEYS,
   supportsLanguage,
   type DeviceCapabilities,
@@ -166,9 +169,17 @@ export async function boot(onStep: (step: string) => void = () => undefined): Pr
       return out;
     },
   });
+  // Live-path timings per recording go to diagnostics when capture ends (irl-subt-kdl.1).
+  let metricEvents: LiveMetric[] = [];
+  liveMetrics.on((m) => (m.kind === "load" || controller.activeRecordingId !== null) && metricEvents.push(m));
   let lastState = controller.current.state;
   controller.live.on((s) => {
     if (s.state === lastState) return;
+    if (s.state === "starting") metricEvents = metricEvents.filter((m) => m.kind === "load");
+    if ((lastState === "recording" || lastState === "paused") && s.state !== "recording" && s.state !== "paused" && metricEvents.some((m) => m.kind !== "load")) {
+      log.info("live-metrics", summarizeLiveMetrics(metricEvents));
+      metricEvents = [];
+    }
     lastState = s.state;
     dataChanged.emit({ recordingId: s.recordingId ?? undefined });
   });

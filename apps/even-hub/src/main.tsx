@@ -17,6 +17,8 @@ boot((step) => {
     services.dataChanged.on(() => bumpData());
     root.textContent = "";
     render(() => <App />, root);
+    const params = new URLSearchParams(location.search);
+    if (import.meta.env.DEV && params.get("bench") === "live") void import("./bench").then((m) => m.runBench(services, params));
   },
   (e) => {
     console.error(e);

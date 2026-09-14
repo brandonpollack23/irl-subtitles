@@ -180,6 +180,26 @@ OPFS (off by default in WebKitGTK; even when enabled, sync access handles are
 unsupported). Turso can't run there, so the DEV badge should read "Even simulator ·
 DB IndexedDB" and storage should open with no Turso timeout.
 
+**Live latency bench (dev builds).** Open the app with
+`?bench=live[&wav=/fixtures/dev/<file>.wav][&stt=<model id>]`: it downloads the selected
+live models, waits for warmup, plays the WAV through a real local recording, and logs one
+`[bench] {"stage":"done",…}` console line (model load times, interim/final caption lag,
+STT compute per second of new audio, VAD RTF, when captions appeared). Every recording
+also logs a `live-metrics` summary to Diagnostics. Without a desktop session the simulator
+runs on a headless compositor:
+
+```sh
+mutter --headless --wayland --no-x11 --wayland-display sim-wl --virtual-monitor 1280x900 &
+WAYLAND_DISPLAY=sim-wl GDK_BACKEND=wayland WEBKIT_DISABLE_DMABUF_RENDERER=1 \
+  pnpm --filter @irl/even-hub exec evenhub-simulator "http://localhost:5174/?bench=live" --automation-port 9898
+curl -s localhost:9898/api/console | grep -o '\[bench\][^"]*'
+```
+
+Baseline 2026-09-14 (simulator, WebKitGTK 2.52.6, no WebGPU, no SharedArrayBuffer;
+Moonshine Base, two_cities_16k.wav from moonshine-ai/moonshine test-assets): Moonshine
+load 43.2 s, CAM++ 3.1 s; 2.0 s per STT call; final lag p50 2.5 s / p95 9.0 s; first
+caption 5.5 s, then none until 18 s; scheduler at level 1.
+
 - [ ] On launch the glasses show "IRL Subtitles  Local" and "Ready… Tap to start. Double tap to exit."
       *Blank:* `createStartUpPageContainer` result in the console (`glasses` log scope).
 - [ ] Gestures mirror Conversate (`/api/input` `click` / `double_click`):

@@ -19,6 +19,7 @@ import {
 import { catalogEntry, embeddingSpaceOf } from "./catalog";
 import { clusterParams, DEFAULT_WINDOWS, OnlineClusterer } from "./clustering";
 import type { LocalEngines } from "./engines";
+import { liveMetrics } from "./live-metrics";
 import { ComputeScheduler, interpolateWords, type SchedulerDecision } from "./scheduler";
 import { VadSegmenter } from "./vad-segmenter";
 
@@ -66,6 +67,8 @@ interface Utterance extends TimeRange {
   windowsDone: number;
   lastInterimEnd: number;
   nextWindowStart: number;
+  /** End of the audio the latest STT call for this utterance covered. */
+  decodedTo: number;
 }
 
 interface WindowResult extends TimeRange {
@@ -199,6 +202,7 @@ class LocalLiveRun implements LiveSpeechRun {
     };
     const prevLevel = this.decision.level;
     this.decision = this.scheduler.update(sample);
+    if (this.decision.level !== prevLevel) liveMetrics.emit({ kind: "degraded", runId: this.providerRunId, level: this.decision.level, reason: this.decision.reason });
     if (this.decision.level !== prevLevel) console.warn(`[scheduler] level ${prevLevel} → ${this.decision.level}`, JSON.stringify({ ...sample, sttRtf: sample.sttRtf?.toFixed(2) }));
     this.failure = false;
     // Model problems are reported where they happen; with every model healthy the scheduler owns the message.
@@ -216,13 +220,15 @@ class LocalLiveRun implements LiveSpeechRun {
     try {
       const samples = this.ring.slice({ startSample: from, endSample: to });
       this.vadFed = to;
+      const t0 = performance.now();
       const { probs, firstWindowStart } = await this.engines.vadPush(samples, from);
+      liveMetrics.emit({ kind: "vad", runId: this.providerRunId, audioS: (to - from) / SAMPLE_RATE, computeMs: performance.now() - t0 });
       for (let i = 0; i < probs.length; i++) {
         for (const ev of this.segmenter.push(probs[i]!, firstWindowStart + i * 512)) {
           if (ev.type === "start") {
             // Padding can reach before the run's first audio, which live STT would treat as already evicted.
             const start = Math.max(ev.sample, this.audioStart ?? ev.sample);
-            this.utterances.push({ id: newId("utt"), startSample: start, endSample: start, ended: false, transcribed: false, windowsQueued: 0, windowsDone: 0, lastInterimEnd: start, nextWindowStart: start });
+            this.utterances.push({ id: newId("utt"), startSample: start, endSample: start, ended: false, transcribed: false, windowsQueued: 0, windowsDone: 0, lastInterimEnd: start, nextWindowStart: start, decodedTo: start });
             this.emit({ type: "speech", active: true, sample: start });
           } else {
             const u = this.utterances.find((x) => !x.ended);
@@ -275,7 +281,9 @@ class LocalLiveRun implements LiveSpeechRun {
     const batch = this.pendingWindows.splice(0, 4);
     try {
       const inputs = batch.map((w) => ({ samples: this.ring.slice(w), startSample: w.startSample, endSample: w.endSample }));
+      const t0 = performance.now();
       const results = await this.engines.embed(inputs);
+      liveMetrics.emit({ kind: "embed", runId: this.providerRunId, windows: batch.length, computeMs: performance.now() - t0 });
       results.forEach((r, i) => {
         const w = batch[i]!;
         const u = this.utterances.find((x) => x.id === w.utteranceId);
@@ -350,7 +358,13 @@ class LocalLiveRun implements LiveSpeechRun {
       const samples = this.ring.slice(range);
       const t0 = performance.now();
       const out = await this.engines.transcribe(samples, this.config.language, false);
-      this.lastRtf = (performance.now() - t0) / 1000 / ((range.endSample - range.startSample) / SAMPLE_RATE);
+      const computeMs = performance.now() - t0;
+      this.lastRtf = computeMs / 1000 / ((range.endSample - range.startSample) / SAMPLE_RATE);
+      liveMetrics.emit({
+        kind: "stt", runId: this.providerRunId, final: job.final, audioS: (range.endSample - range.startSample) / SAMPLE_RATE,
+        newAudioS: Math.max(0, range.endSample - Math.max(u.decodedTo, range.startSample)) / SAMPLE_RATE, computeMs, lagS: (this.ring.end - range.endSample) / SAMPLE_RATE,
+      });
+      u.decodedTo = Math.max(u.decodedTo, range.endSample);
       if (job.final) u.transcribed = true;
       const text = out.text.trim();
       const words = text ? interpolateWords(text, range.startSample, range.endSample) : [];

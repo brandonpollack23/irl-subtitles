@@ -3,6 +3,7 @@ import { catalogEntry } from "./catalog";
 import { availabilityOnDevice, detectCapabilities, selectTarget, type DeviceCapabilities } from "./device";
 import { downloadModelFiles, filesForTargets, missingFiles } from "./model-files";
 import { isGpuFailure } from "./gpu-errors";
+import { liveMetrics } from "./live-metrics";
 import { RpcClient } from "./rpc";
 import type { AsrResult } from "./workers/asr.worker";
 
@@ -112,6 +113,7 @@ export class LocalEngines {
       const availability = availabilityOnDevice(entry, await this.capabilities());
       if (availability.status === "unavailable") throw new Error(availability.reason);
       this.progress.emit({ modelId, status: "loading" });
+      const t0 = performance.now();
       // transformers.js reports each file separately (plus its own running totals); sum per file so
       // the model's progress doesn't jump back to 0% when the next file starts.
       const files = new Map<string, { loaded: number; total: number }>();
@@ -129,8 +131,10 @@ export class LocalEngines {
           this.progress.emit({ modelId, status: "downloading", loaded, total });
         },
       });
+      liveMetrics.emit({ kind: "load", modelId, engine: kind, ms: performance.now() - t0, ok: true });
       this.progress.emit({ modelId, status: "ready" });
     })().catch((e) => {
+      liveMetrics.emit({ kind: "load", modelId, engine: kind, ms: 0, ok: false });
       cache.delete(key);
       this.progress.emit({ modelId, status: "failed", error: errorMessage(e) });
       throw e;
