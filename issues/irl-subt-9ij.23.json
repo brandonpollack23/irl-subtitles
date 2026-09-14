@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-14T07:12:50Z",
+  "description": "In WebKitGTK 2.52.6 (Even simulator engine) streaming Silero VAD runs at RTF 2.1 (~69 ms per 512-sample session.run) through the app's engines, while Moonshine's large kernels are fine and Node runs the same build fast. ort-env.ts loads the asyncify (native WebGPU) build for every worker, including the CPU-only audio worker. Measure Silero per-call time in WebKitGTK with: asyncify build (current), plain ort-wasm-simd-threaded build, and jsep; isolate JS-side per-call overhead. JSC is also the iOS WebView engine. Output: numbers and a recommendation.",
+  "id": "irl-subt-9ij.23",
+  "labels": [],
+  "parent": "irl-subt-9ij",
+  "priority": 1,
+  "status": "open",
+  "title": "Measure ORT non-asyncify WASM build for the audio worker in WebKitGTK",
+  "type": "task",
+  "updated_at": "2026-09-14T07:12:50Z"
+}
