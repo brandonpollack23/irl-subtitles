@@ -10,6 +10,12 @@
   "id": "irl-subt-kdl.7",
   "labels": [],
   "parent": "irl-subt-kdl",
+  "comments": [
+    {
+      "text": "Spike done (jj rev 'Vendor single-thread Moonshine Streaming WASM; spike bench'). Built single-thread SIMD moonshine-wasm from moonshine-ai/moonshine@234f60fa (emsdk 4.0.8, ORT 1.23.2 minimal; ~7.5 min build; upstream script needed flatbuffers python module and builds the threaded archive first, patched with SKIP_THREADED). Vendored as vendor/moonshine-wasm (@irl/moonshine-wasm, STT subset, 13 MB wasm) + scripts/build-moonshine-wasm.sh. Loads in a module worker under Vite, CSP unchanged (wasm-unsafe-eval already allowed), Transcriber.load({files}) takes verified bytes. Results single thread, two_cities 44 s: Even simulator (WebKitGTK/JSC) Tiny load 296 ms, compute 0.218x RT, pass p50/p95 119/197 ms, line latency 55-191 ms; Small load 420 ms, 0.639x, 332/651 ms, 192-664 ms; Medium load 465 ms, 0.882x, 649/1467 ms, 386-1449 ms. Node V8: Tiny 0.188x, Small 0.637x, Medium 0.874x. Compare current Moonshine Base path in the simulator after kdl.2: load 4.0 s, 950 ms per STT call, final lag p95 3.2 s. Model files: official .ort only on download.moonshine.ai (CORS *, versioned paths e.g. quantized_26_08_21); HF moonshine-ai repos only have safetensors. Sizes en: Tiny 45 MB, Small 142 MB, Medium 279 MB. Decision: proceed with kdl.8/kdl.9 (pin CDN files by sha256), default en Small with Tiny for battery/slow devices; kdl.10 fallback not needed unless device runs fail. Phone runs (Android/iOS Even app) could not be done from this machine (no devices attached): filed as a follow-up ticket.",
+      "timestamp": "2026-09-14T10:09:32Z"
+    }
+  ],
   "priority": 0,
   "status": "in_progress",
   "title": "Spike: single-thread @moonshine-ai/moonshine-wasm build and phone benchmarks",
