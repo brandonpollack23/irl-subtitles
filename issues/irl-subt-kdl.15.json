@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [],
   "created": "2026-09-14T13:30:20Z",
@@ -8,8 +8,8 @@
   "labels": [],
   "parent": "irl-subt-kdl",
   "priority": 1,
-  "status": "open",
+  "status": "in_progress",
   "title": "Calibrate CAM++ clustering thresholds: one voice split into several speakers",
   "type": "bug",
-  "updated_at": "2026-09-14T13:30:20Z"
+  "updated_at": "2026-09-14T13:31:27Z"
 }
