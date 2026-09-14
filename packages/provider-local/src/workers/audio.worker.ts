@@ -7,7 +7,7 @@ import { windowQuality } from "../clustering";
 import { loadModelFile } from "../model-files";
 import { setupRuntime } from "../ort-env";
 import { serveRpc } from "../rpc";
-import { regionsFromProbabilities } from "../vad-segmenter";
+import { regionsFromProbabilities, VadStream } from "../vad-segmenter";
 
 /**
  * Small, latency-sensitive graphs: Silero VAD and the speaker-embedding model. Both default to WASM, where
@@ -36,7 +36,12 @@ interface VadModel {
 
 let vad: VadModel | null = null;
 let vadId: string | null = null;
-const stream = { state: new Float32Array(2 * 128), context: new Float32Array(CONTEXT), pending: new Float32Array(0), nextSample: 0 };
+const vadState = new Float32Array(2 * 128);
+const vadContext = new Float32Array(CONTEXT);
+const stream = new VadStream(() => {
+  vadState.fill(0);
+  vadContext.fill(0);
+}, WINDOW);
 
 async function loadVad(modelId: string, progress: (p: unknown) => void): Promise<void> {
   if (vad && vadId === modelId) return;
@@ -133,27 +138,12 @@ async function loadEmbedder(modelId: string, target: ExecutionTarget, progress: 
 serveRpc({
   "vad.load": async (p: { modelId: string }, ctx) => loadVad(p.modelId, ctx.progress),
 
-  "vad.reset": async (p: { startSample: number }) => {
-    stream.state.fill(0);
-    stream.context.fill(0);
-    stream.pending = new Float32Array(0);
-    stream.nextSample = p.startSample;
-  },
-
-  /** Streaming: appends samples, returns one probability per complete 32 ms window. */
-  "vad.push": (p: { samples: Float32Array }, ctx) => exclusive(async () => {
+  /** Streaming: appends samples starting at `startSample`, returns one probability per complete 32 ms window. */
+  "vad.push": (p: { samples: Float32Array; startSample: number }, ctx) => exclusive(async () => {
     if (!vad) throw new Error("VAD not loaded");
-    const joined = new Float32Array(stream.pending.length + p.samples.length);
-    joined.set(stream.pending);
-    joined.set(p.samples, stream.pending.length);
-    const n = Math.floor(joined.length / WINDOW);
-    const probs = new Float32Array(n);
-    const firstWindowStart = stream.nextSample;
-    for (let i = 0; i < n; i++) probs[i] = await vadWindow(stream.state, stream.context, joined.subarray(i * WINDOW, (i + 1) * WINDOW));
-    stream.pending = joined.slice(n * WINDOW);
-    stream.nextSample += n * WINDOW;
-    ctx.transfer([probs.buffer]);
-    return { probs, firstWindowStart };
+    const out = await stream.push(p.samples, p.startSample, (w) => vadWindow(vadState, vadContext, w));
+    ctx.transfer([out.probs.buffer]);
+    return out;
   }),
 
   /** Offline speech regions for a block (fresh recurrent state). */

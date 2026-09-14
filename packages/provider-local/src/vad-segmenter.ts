@@ -78,6 +78,38 @@ export class VadSegmenter {
   }
 }
 
+/**
+ * Live windowing on the recording's sample clock. Each push carries the absolute start of its audio; audio that
+ * doesn't continue the stream (a new run, a recreated worker, audio skipped while behind) re-anchors it, so
+ * window positions never come from a counter that drifted from the audio.
+ */
+export class VadStream {
+  private pending = new Float32Array(0);
+  private nextSample = 0;
+
+  /** `onReset` clears the model's recurrent state and context. */
+  constructor(private readonly onReset: () => void, private readonly windowSamples = DEFAULT_VAD.windowSamples) {}
+
+  async push(samples: Float32Array, startSample: number, prob: (window: Float32Array) => Promise<number>): Promise<{ probs: Float32Array; firstWindowStart: number }> {
+    if (startSample !== this.nextSample + this.pending.length) {
+      this.onReset();
+      this.pending = new Float32Array(0);
+      this.nextSample = startSample;
+    }
+    const joined = new Float32Array(this.pending.length + samples.length);
+    joined.set(this.pending);
+    joined.set(samples, this.pending.length);
+    const w = this.windowSamples;
+    const n = Math.floor(joined.length / w);
+    const probs = new Float32Array(n);
+    const firstWindowStart = this.nextSample;
+    for (let i = 0; i < n; i++) probs[i] = await prob(joined.subarray(i * w, (i + 1) * w));
+    this.pending = joined.slice(n * w);
+    this.nextSample += n * w;
+    return { probs, firstWindowStart };
+  }
+}
+
 /** Offline helper: probabilities (one per window) → speech regions. */
 export function regionsFromProbabilities(probs: ArrayLike<number>, startSample: number, params: Partial<VadParams> = {}): TimeRange[] {
   const seg = new VadSegmenter(params);

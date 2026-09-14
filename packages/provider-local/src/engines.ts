@@ -182,8 +182,9 @@ export class LocalEngines {
     }
   }
 
-  vadPush(samples: Float32Array) {
-    return this.call<{ probs: Float32Array; firstWindowStart: number }>("audio", "vad.push", { samples }, { transfer: [samples.buffer] });
+  /** `startSample` is the absolute position of `samples[0]`; the worker re-anchors when it doesn't continue the stream. */
+  vadPush(samples: Float32Array, startSample: number) {
+    return this.call<{ probs: Float32Array; firstWindowStart: number }>("audio", "vad.push", { samples, startSample }, { transfer: [samples.buffer] });
   }
 
   transcribe(samples: Float32Array, language: string, wordTimestamps: boolean) {

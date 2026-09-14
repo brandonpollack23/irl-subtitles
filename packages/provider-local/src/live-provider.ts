@@ -100,6 +100,8 @@ class LocalLiveRun implements LiveSpeechRun {
   readonly events = new AsyncQueue<SpeechEvent>();
   private ring = new RingBuffer();
   private vadFed = 0;
+  /** First sample this run received; frames are on the recording's clock, which started before the run attached. */
+  private audioStart: number | null = null;
   private segmenter = new VadSegmenter();
   private utterances: Utterance[] = [];
   private windows: WindowResult[] = [];
@@ -142,8 +144,6 @@ class LocalLiveRun implements LiveSpeechRun {
       }
     };
     this.ready.vad = await loadIfDownloaded(this.config.vadModelId, "Speech detection", () => this.engines.ensureVad(this.config.vadModelId));
-    if (this.ready.vad) await this.engines.call("audio", "vad.reset", { startSample: this.ring.start });
-    this.vadFed = this.ring.start;
     const [embed, stt] = await Promise.all([
       loadIfDownloaded(this.config.embeddingModelId, "Speaker", () => this.engines.ensureEmbedding(this.config.embeddingModelId)),
       this.config.sttModelId === "off" ? Promise.resolve(false) : loadIfDownloaded(this.config.sttModelId, "Captions", () => this.engines.ensureAsr(this.config.sttModelId)),
@@ -155,6 +155,7 @@ class LocalLiveRun implements LiveSpeechRun {
 
   push(frame: AudioFrame): void {
     if (this.closed) return;
+    this.audioStart ??= frame.startSample;
     this.ring.push(frame.startSample, pcmToFloat32(frame.pcm));
   }
 
@@ -198,12 +199,14 @@ class LocalLiveRun implements LiveSpeechRun {
     try {
       const samples = this.ring.slice({ startSample: from, endSample: to });
       this.vadFed = to;
-      const { probs, firstWindowStart } = await this.engines.vadPush(samples);
+      const { probs, firstWindowStart } = await this.engines.vadPush(samples, from);
       for (let i = 0; i < probs.length; i++) {
         for (const ev of this.segmenter.push(probs[i]!, firstWindowStart + i * 512)) {
           if (ev.type === "start") {
-            this.utterances.push({ id: newId("utt"), startSample: ev.sample, endSample: ev.sample, ended: false, transcribed: false, windowsQueued: 0, windowsDone: 0, lastInterimEnd: ev.sample, nextWindowStart: ev.sample });
-            this.emit({ type: "speech", active: true, sample: ev.sample });
+            // Padding can reach before the run's first audio, which live STT would treat as already evicted.
+            const start = Math.max(ev.sample, this.audioStart ?? ev.sample);
+            this.utterances.push({ id: newId("utt"), startSample: start, endSample: start, ended: false, transcribed: false, windowsQueued: 0, windowsDone: 0, lastInterimEnd: start, nextWindowStart: start });
+            this.emit({ type: "speech", active: true, sample: start });
           } else {
             const u = this.utterances.find((x) => !x.ended);
             if (u) {
