@@ -1,0 +1,39 @@
+import fs from "node:fs";
+import { afterAll, afterEach, expect, it } from "vitest";
+import { createLiveApp, type LiveAppOptions, type RecordingReport } from "./harness/live-app";
+
+/**
+ * Real models, real app wiring: does speech in a WAV become captions on the glasses? Defaults to the bundled JFK
+ * clip; IRL_LIVE_WAV plays another WAV (the text assertions then only check that captions appeared),
+ * IRL_LIVE_REPORT writes every timeline as JSON, IRL_LIVE_TRACE=1 adds each VAD and STT call.
+ */
+const custom = process.env.IRL_LIVE_WAV;
+const wavPath = custom ?? new URL("../public/fixtures/jfk.wav", import.meta.url).pathname;
+const wav = new Uint8Array(fs.readFileSync(wavPath));
+const reports: Record<string, RecordingReport> = {};
+const apps: Awaited<ReturnType<typeof createLiveApp>>[] = [];
+
+async function app(opts: LiveAppOptions = {}) {
+  const a = await createLiveApp(opts);
+  apps.push(a);
+  await a.launch();
+  return a;
+}
+
+afterEach(async () => {
+  for (const a of apps.splice(0)) await a.dispose();
+});
+
+afterAll(() => {
+  if (process.env.IRL_LIVE_REPORT) fs.writeFileSync(process.env.IRL_LIVE_REPORT, JSON.stringify({ wav: wavPath, reports }, null, 2));
+});
+
+const words = (r: RecordingReport) => r.captionLines.join(" ");
+
+it("captions speech on the next recording once models are loaded", async () => {
+  const a = await app();
+  await a.warmup.warm();
+  const r = (reports["warm"] = await a.record(wav));
+  expect(words(r).split(/\s+/).length).toBeGreaterThan(3);
+  if (!custom) expect(words(r)).toMatch(/fellow Americans/i);
+});

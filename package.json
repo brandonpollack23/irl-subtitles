@@ -10,6 +10,7 @@
     "ehpk": "pnpm --filter @irl/even-hub ehpk",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
+    "test:live": "vitest run --config vitest.live.config.ts",
     "check": "pnpm typecheck && pnpm test",
     "pin-models": "node scripts/pin-models.mjs",
     "fixtures": "node scripts/fetch-fixtures.mjs"
