@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web";
 import { createEffect, createSignal, onSettled, Show, type Accessor } from "solid-js";
-import { errorMessage, formatClock, SAMPLE_RATE, splitSpeakerSpans, type ClusterId, type SpeakerLabel } from "@irl/domain";
+import { errorMessage, formatClock, SAMPLE_RATE, splitSpeakerSpans, type ClusterId, type Settings, type SpeakerLabel } from "@irl/domain";
 import type { AppServices } from "../services";
 
 let services: AppServices;
@@ -93,6 +93,16 @@ export function useData<K, T>(key: () => K, load: (k: K) => Promise<T>): { value
     },
   );
   return { value, error, loading, reload: () => setNonce((n) => n + 1) };
+}
+
+/** Current settings as a signal that follows changes made anywhere, plus an updater. */
+export function useSettings() {
+  const [s, setS] = createSignal<Settings>(app().settings.get(), { ownedWrite: true });
+  onSettled(() => app().settings.changes.on((next) => setS(() => next)));
+  const update = async (patch: Partial<Settings>) => {
+    await app().settings.update(patch);
+  };
+  return [s, update] as const;
 }
 
 // Formatting ----------------------------------------------------------------------------------

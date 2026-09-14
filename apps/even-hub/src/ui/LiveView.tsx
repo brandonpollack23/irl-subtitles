@@ -1,6 +1,8 @@
+import type { JSX } from "@solidjs/web";
 import { createMemo, createSignal, For, Show } from "solid-js";
-import { activeAttributions, formatClock, speakerLabel, type ClusterId, type Person, type SpeakerAttribution } from "@irl/domain";
-import { app, Button, go, speakerColor, SpeakerName, useData } from "./lib";
+import { activeAttributions, formatClock, policyFor, speakerLabel, type ClusterId, type MatchDecision, type Person, type SpeakerAttribution } from "@irl/domain";
+import { embeddingSpaceOf } from "@irl/provider-local";
+import { app, Button, go, speakerColor, SpeakerName, useData, useSettings } from "./lib";
 import { liveSnapshot, warmupStatus } from "./model";
 import { SpeakerSheet } from "./SpeakerSheet";
 
@@ -11,7 +13,7 @@ export function LiveView() {
   const modelsLoading = () => warmup().loading.length > 0 && live().provider !== "soniox";
   const [sheet, setSheet] = createSignal<ClusterId | null>(null);
   const idle = () => live().state === "idle";
-  const settings = () => app().settings.get();
+  const [settings] = useSettings();
 
   // Names attached during the recording (live matches or manual naming) re-resolve on labelsVersion.
   const names = useData(
@@ -108,6 +110,14 @@ export function LiveView() {
           </div>
         </div>
 
+        <Show when={settings().showMatchDetails}>
+          <MatchDetails
+            matches={live().matches}
+            label={(id) => <SpeakerName label={label(id)} ordinal={clusters().get(id)?.ordinal} onOpen={setSheet} />}
+            name={(personId) => names.value()?.people.get(personId)?.fullName ?? "Unknown person"}
+          />
+        </Show>
+
         <section class="stack" aria-label="Live captions">
           <h2>Captions</h2>
           <Show when={live().segments.length === 0 && !live().provisionalText}>
@@ -143,5 +153,48 @@ export function LiveView() {
         <SpeakerSheet recordingId={live().recordingId!} clusterId={sheet()!} onClose={() => setSheet(null)} />
       </Show>
     </>
+  );
+}
+
+/**
+ * Match tuning readout (irl-subt-kdl.18): each speaker's latest live match, with the scores and the criteria that
+ * withheld a name, next to the thresholds they were judged against.
+ */
+function MatchDetails(props: { matches: MatchDecision[]; label: (id: ClusterId) => JSX.Element; name: (personId: string) => string }) {
+  const [s] = useSettings();
+  const policy = () => policyFor(embeddingSpaceOf(s().models.speakerEmbedding), s().matchPolicies);
+  const outcome = (d: MatchDecision) => (d.status === "accepted" ? "recognized" : d.status === "candidate" ? "possibly" : "no name");
+  return (
+    <section class="panel" aria-label="Match details">
+      <div class="row" style={{ "justify-content": "space-between" }}>
+        <h2>Match details</h2>
+        <a class="small" href="#/evaluation">
+          Tune
+        </a>
+      </div>
+      <p class="small muted num">
+        Recognize ≥ {policy().minScore.toFixed(2)} · possibly ≥ {policy().candidateScore.toFixed(2)} · lead {policy().minMargin.toFixed(2)} · speech {(policy().minEvidenceMs / 1000).toFixed(0)} s ·
+        agreement {Math.round(policy().minWindowAgreement * 100)}%
+      </p>
+      <Show when={props.matches.length} fallback={<p class="small muted">Scores appear once someone speaks.</p>}>
+        <For each={props.matches}>
+          {(d) => (
+            <div class="stack" style={{ gap: "2px" }}>
+              <div class="row">
+                {props.label(d.clusterId)}
+                <span class="small muted">{outcome(d)}</span>
+              </div>
+              <span class="small num">
+                {d.best ? `${props.name(d.best.personId)} ${d.best.score.toFixed(3)}` : "No saved voices to compare"}
+                {d.second ? ` · next ${props.name(d.second.personId)} ${d.second.score.toFixed(3)}` : ""} · {(d.evidenceMs / 1000).toFixed(1)} s · agreement {Math.round(d.agreement * 100)}%
+              </span>
+              <Show when={d.status !== "accepted"}>
+                <span class="small muted">{d.reason}</span>
+              </Show>
+            </div>
+          )}
+        </For>
+      </Show>
+    </section>
   );
 }

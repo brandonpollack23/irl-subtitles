@@ -7,6 +7,7 @@ import {
   type ClusterId,
   type LiveSpeechProvider,
   type LiveSpeechRun,
+  type MatchDecision,
   type Recording,
   type SpeakerCluster,
   type SpeakerTurn,
@@ -26,6 +27,8 @@ export interface CoordinatorUpdate {
   speechActive: boolean;
   degraded: string | null;
   clusters: SpeakerCluster[];
+  /** Latest live match decision per cluster (scores, evidence, why a name was withheld), for match tuning. */
+  matches: MatchDecision[];
   error: string | null;
 }
 
@@ -58,6 +61,7 @@ export class ProviderCoordinator {
   /** Clusters whose last live decision named them or found a candidate. */
   private identified = new Set<ClusterId>();
   private identifyQueued = new Set<ClusterId>();
+  private matches = new Map<ClusterId, MatchDecision>();
   /** Live identification runs one cluster at a time, so a tick and a new window never write the same row at once. */
   private identifyTail: Promise<void> = Promise.resolve();
   private speechActive = false;
@@ -213,6 +217,7 @@ export class ProviderCoordinator {
       speechActive: this.speechActive,
       degraded: this.degraded,
       clusters: [...this.clusters.values()],
+      matches: [...this.matches.values()],
       error: this.error,
     });
   }
@@ -256,6 +261,7 @@ export class ProviderCoordinator {
     try {
       const d = await this.identity.evaluateCluster(this.recording.id, clusterId, windows);
       if (!d) return;
+      this.matches.set(clusterId, d);
       // Nothing to show or undo: skip the write and the identity change it would announce.
       if (d.status === "rejected" && !this.identified.has(clusterId)) return;
       if (d.status === "rejected") this.identified.delete(clusterId);

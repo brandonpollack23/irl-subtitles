@@ -298,6 +298,10 @@ describe("recording pipeline", () => {
       await sleep(600);
       const live = env.controller.current.clusters.find((c) => c.clusterId === "L1");
       expect(live?.candidatePersonId).toBe(personId);
+      // The match readout carries the scores and why the name was withheld (irl-subt-kdl.18).
+      const match = env.controller.current.matches.find((m) => m.clusterId === "L1");
+      expect(match).toMatchObject({ status: "candidate", best: { personId } });
+      expect(match!.reason).toMatch(/^evidence \d+ms < 8000ms$/);
       expect(await env.repo.listAttributions(id2)).toEqual([]);
       await env.controller.stop();
     } finally {

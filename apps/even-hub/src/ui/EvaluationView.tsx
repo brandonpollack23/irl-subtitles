@@ -1,7 +1,7 @@
-import { createSignal, Show } from "solid-js";
-import { activeAttributions, cosine, equalErrorRate, meanVector, policyFor, rates, resolveCluster } from "@irl/domain";
+import { createSignal, For, Show } from "solid-js";
+import { activeAttributions, cosine, DEFAULT_POLICIES, equalErrorRate, meanVector, policyFor, rates, resolveCluster, type MatchPolicy } from "@irl/domain";
 import { embeddingSpaceOf } from "@irl/provider-local";
-import { app, Button, toast } from "./lib";
+import { app, Button, toast, useSettings } from "./lib";
 
 interface Evaluation {
   space: string;
@@ -90,6 +90,94 @@ export function EvaluationView() {
           </div>
         )}
       </Show>
+      <MatchTuning />
     </>
+  );
+}
+
+interface PolicyControl {
+  key: keyof MatchPolicy;
+  label: string;
+  hint: string;
+  min: number;
+  max: number;
+  step: number;
+  format: (v: number) => string;
+}
+
+const CONTROLS: readonly PolicyControl[] = [
+  { key: "minScore", label: "Recognize at score", hint: "A voice at or above this score gets the person's name.", min: 0.2, max: 0.9, step: 0.01, format: (v) => v.toFixed(2) },
+  { key: "candidateScore", label: "“Possibly” at score", hint: "Below the recognize score but at or above this, the speaker shows as “Possibly X”.", min: 0.1, max: 0.9, step: 0.01, format: (v) => v.toFixed(2) },
+  { key: "minMargin", label: "Lead over the next person", hint: "How far the best person must score above the runner-up.", min: 0, max: 0.3, step: 0.01, format: (v) => v.toFixed(2) },
+  { key: "minEvidenceMs", label: "Speech needed", hint: "Clean, non-overlapping speech before a name is given.", min: 0, max: 20_000, step: 1_000, format: (v) => `${(v / 1000).toFixed(0)} s` },
+  { key: "minWindowAgreement", label: "Window agreement", hint: "Share of 2 s windows whose best match is the same person.", min: 0, max: 1, step: 0.05, format: (v) => `${Math.round(v * 100)}%` },
+];
+
+/**
+ * Manual match tuning (irl-subt-kdl.18): the match policy for the current voice model as sliders. Saved settings are
+ * read at every match, so moving a slider during a recording applies to the next live check.
+ */
+function MatchTuning() {
+  const [s, update] = useSettings();
+  // The value being dragged, saved when the slider is released.
+  const [draft, setDraft] = createSignal<Partial<MatchPolicy>>({});
+  const space = () => embeddingSpaceOf(s().models.speakerEmbedding);
+  const saved = () => policyFor(space(), s().matchPolicies);
+  const value = (k: keyof MatchPolicy) => draft()[k] ?? saved()[k];
+  const custom = () => space() in s().matchPolicies;
+  const defaults = () => DEFAULT_POLICIES[space()] ?? DEFAULT_POLICIES.default!;
+
+  const commit = async (k: keyof MatchPolicy, v: number) => {
+    await update({ matchPolicies: { ...s().matchPolicies, [space()]: { ...saved(), [k]: v } } });
+    setDraft(({ [k]: _, ...rest }) => rest);
+  };
+
+  return (
+    <section class="panel">
+      <h2>Tune matching</h2>
+      <p class="small muted">
+        For {space()}. {custom() ? "Using your values." : "Using the defaults."} Turn on match details to see each speaker's scores on the recording screen while you adjust.
+      </p>
+      <label class="check">
+        <input type="checkbox" checked={s().showMatchDetails} onChange={(e) => void update({ showMatchDetails: e.currentTarget.checked })} />
+        <span>Show match details while recording</span>
+      </label>
+      <For each={CONTROLS}>
+        {(c) => (
+          <label class="field">
+            <span class="row" style={{ "justify-content": "space-between" }}>
+              {c.label}
+              <span class="num">{c.format(value(c.key))}</span>
+            </span>
+            <span class="hint">
+              {c.hint} Default {c.format(defaults()[c.key])}.
+            </span>
+            <input
+              type="range"
+              min={c.min}
+              max={c.max}
+              step={c.step}
+              value={value(c.key)}
+              onInput={(e) => setDraft((d) => ({ ...d, [c.key]: Number(e.currentTarget.value) }))}
+              onChange={(e) => void commit(c.key, Number(e.currentTarget.value))}
+            />
+          </label>
+        )}
+      </For>
+      <Show when={value("candidateScore") > value("minScore")}>
+        <p class="small warn">The “Possibly” score is above the recognize score, so no speaker will show as “Possibly X”.</p>
+      </Show>
+      <div class="row">
+        <Button
+          label="Reset to defaults"
+          disabled={!custom()}
+          onClick={async () => {
+            const { [space()]: _, ...rest } = s().matchPolicies;
+            await update({ matchPolicies: rest });
+            setDraft({});
+          }}
+        />
+      </div>
+    </section>
   );
 }

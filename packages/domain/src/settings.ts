@@ -25,6 +25,8 @@ export interface Settings {
   captureSource: CaptureSourceKind;
   showCaptionsOnGlasses: boolean;
   matchPolicies: Record<string, MatchPolicy>;
+  /** Show each speaker's match scores and why a name was withheld while recording (match tuning). */
+  showMatchDetails: boolean;
   /** Diagnostics include transcript text only when explicitly enabled. */
   diagnosticsIncludeContent: boolean;
   firstRunBenchmarkAt: string | null;
@@ -66,6 +68,7 @@ export function defaultSettings(models: ModelSelection): Settings {
     captureSource: "glasses",
     showCaptionsOnGlasses: true,
     matchPolicies: {},
+    showMatchDetails: false,
     diagnosticsIncludeContent: false,
     firstRunBenchmarkAt: null,
     sonioxModel: "stt-rt-v5",

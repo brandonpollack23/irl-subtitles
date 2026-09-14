@@ -9,6 +9,7 @@ import {
   rmsDbfs,
   type ClusterId,
   type LiveSpeechProvider,
+  type MatchDecision,
   type ProviderKind,
   type Recording,
   type RecordingState,
@@ -33,6 +34,8 @@ export interface LiveSnapshot {
   provisionalText: string;
   currentClusterId: ClusterId | null;
   clusters: SpeakerCluster[];
+  /** Latest live match decision per cluster, for the match readout. */
+  matches: MatchDecision[];
   degraded: string | null;
   gaps: number;
   markers: number;
@@ -45,7 +48,7 @@ export interface LiveSnapshot {
 export function idleSnapshot(provider: ProviderKind, persistAudio: boolean): LiveSnapshot {
   return {
     recordingId: null, state: "idle", provider, persistAudio, sourceLabel: "", capturedSamples: 0, levelDbfs: -Infinity, speechActive: false, segments: [],
-    provisionalText: "", currentClusterId: null, clusters: [], degraded: null, gaps: 0, markers: 0, pendingChunks: 0, error: null, labelsVersion: 0,
+    provisionalText: "", currentClusterId: null, clusters: [], matches: [], degraded: null, gaps: 0, markers: 0, pendingChunks: 0, error: null, labelsVersion: 0,
   };
 }
 

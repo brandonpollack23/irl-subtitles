@@ -2,16 +2,7 @@ import { createSignal, For, onSettled, Show } from "solid-js";
 import { errorMessage, LANGUAGES, parseWav, resampleLinear, tierForSelection, type ModelCatalogEntry, type ModelRole, type ModelSelection, type Settings } from "@irl/domain";
 import { availabilityOnDevice, catalogEntry, clearModelCache, embeddingSpaceOf, entriesForRole, firstRunBenchmark, ROLE_KEYS, supportsLanguage, type LoadProgress } from "@irl/provider-local";
 import { testSonioxKey } from "@irl/provider-soniox";
-import { app, bumpData, Button, bytes, toast, useData } from "./lib";
-
-function useSettings() {
-  const [s, setS] = createSignal<Settings>(app().settings.get(), { ownedWrite: true });
-  onSettled(() => app().settings.changes.on((next) => setS(() => next)));
-  const update = async (patch: Partial<Settings>) => {
-    await app().settings.update(patch);
-  };
-  return [s, update] as const;
-}
+import { app, bumpData, Button, bytes, toast, useData, useSettings } from "./lib";
 
 const ROLE_TITLES: Record<ModelRole, { title: string; hint: string }> = {
   vad: { title: "Speech detection", hint: "Finds speech so silence isn't transcribed." },
@@ -32,13 +23,13 @@ export function SettingsView() {
       <PrivacySection s={s()} update={update} />
       <div class="panel">
         <h2>Diagnostics</h2>
-        <p class="small muted">Device capabilities, storage, logs, and the speaker recognition calibration tool.</p>
+        <p class="small muted">Device capabilities, storage, logs, and speaker recognition calibration and tuning.</p>
         <div class="row">
           <a class="btn" href="#/diagnostics">
             Diagnostics
           </a>
           <a class="btn" href="#/evaluation">
-            Calibrate voice recognition
+            Tune voice recognition
           </a>
         </div>
       </div>
