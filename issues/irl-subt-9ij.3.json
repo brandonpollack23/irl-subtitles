@@ -6,6 +6,8 @@
   "blocks": [
     "irl-subt-9ij.9"
   ],
+  "closed_at": "2026-09-14T02:58:22Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:50Z",
   "description": "Overview, key points, decisions, action items, open questions; tap item opens supporting passage; names resolved at render time. plan.md §6.3, §10.",
   "id": "irl-subt-9ij.3",
@@ -14,8 +16,8 @@
   ],
   "parent": "irl-subt-9ij",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "Summary UI: anchored items, tappable speaker spans, jump to source",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:51Z"
+  "updated_at": "2026-09-14T02:58:22Z"
 }
