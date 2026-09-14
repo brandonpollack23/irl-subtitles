@@ -9,9 +9,15 @@
   "id": "irl-subt-0i6.3.7",
   "labels": [],
   "parent": "irl-subt-0i6.3",
+  "comments": [
+    {
+      "text": "Moonshine Streaming web path now tracked in irl-subt-kdl (kdl.7 spike on upstream @moonshine-ai/moonshine-wasm, kdl.10 fallback TS loop on ORT web) instead of community ONNX exports.",
+      "timestamp": "2026-09-14T09:32:37Z"
+    }
+  ],
   "priority": 1,
   "status": "open",
   "title": "Produce missing/WebGPU-friendly ONNX exports for catalog models",
   "type": "task",
-  "updated_at": "2026-09-13T12:51:34Z"
+  "updated_at": "2026-09-14T09:32:37Z"
 }
