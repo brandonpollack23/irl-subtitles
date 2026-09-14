@@ -7,9 +7,15 @@
   "id": "irl-subt-kdl.16",
   "labels": [],
   "parent": "irl-subt-kdl",
+  "comments": [
+    {
+      "text": "Findings: live identification runs (coordinator.ts liveIdentify, every 10 s, clusters with \u003e=3 windows). Accepted matches name the speaker live via attributions + labelsVersion. The user's rec 2 (rec_bc51...) L1 scored 0.636 \u003e= minScore 0.62 but evidence 6000 ms (3 x 2 s windows) \u003c minEvidenceMs 8000 -\u003e candidate, not accepted; post identity said 0 of 1 for the same reason. Rec 1 had no profile (person/profile created 13:11:48Z, rec ended 13:11:23Z). Pipeline gap fixed in rev sqwkxltq: candidate was overwritten by the coordinator's 1 s cluster flush and glasses never showed candidates. Open decision (not changed): minEvidenceMs sums overlapping 2 s windows at 1 s hop (plan §7.3 says 5-10 s clean speech); lowering it to ~5 s would have auto-named rec 2, but with a single enrolled person the margin check is skipped, so any voice \u003e= 0.62 with 5 s would be named. Calibrate on real G2 audio (EvaluationView harness) before changing; interacts with kdl.15, since split clusters each hold less evidence.",
+      "timestamp": "2026-09-14T13:43:35Z"
+    }
+  ],
   "priority": 1,
   "status": "in_progress",
   "title": "Live speaker identification: saved profile shows as \"Speaker 1\" during capture",
   "type": "bug",
-  "updated_at": "2026-09-14T13:32:19Z"
+  "updated_at": "2026-09-14T13:43:35Z"
 }
