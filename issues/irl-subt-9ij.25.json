@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-14T07:22:43Z",
+  "description": "Node live harness, jfk.wav (one speaker), real CAM++ + OnlineClusterer: live captions label consecutive lines 'Speaker 1', 'Speaker 2', 'Speaker 3'. Short VAD utterances (1-2.5 s) give few embedding windows. Check clusterParams thresholds for campplus and the confirm/nearestConfirmed path; add a live-harness assertion that a single-speaker clip yields one live cluster.",
+  "id": "irl-subt-9ij.25",
+  "labels": [],
+  "parent": "irl-subt-9ij",
+  "priority": 2,
+  "status": "open",
+  "title": "Live clustering splits one speaker into several",
+  "type": "bug",
+  "updated_at": "2026-09-14T07:22:43Z"
+}
