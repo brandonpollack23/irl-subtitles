@@ -4,6 +4,8 @@
     "irl-subt-2z2.2"
   ],
   "blocks": [],
+  "closed_at": "2026-09-14T02:58:20Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:47Z",
   "description": "Compress finalized chunks to Opus (24–32 kbit/s) in a WASM worker; delete raw chunks after compressed verification. plan.md §8.",
   "id": "irl-subt-2z2.3",
@@ -12,8 +14,8 @@
   ],
   "parent": "irl-subt-2z2",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "Opus compression worker and raw chunk cleanup",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:48Z"
+  "updated_at": "2026-09-14T02:58:20Z"
 }
