@@ -11,6 +11,12 @@
   "id": "irl-subt-kdl.8",
   "labels": [],
   "parent": "irl-subt-kdl",
+  "comments": [
+    {
+      "text": "Landed (jj rev 'Catalog: Moonshine Streaming models pinned from Moonshine's CDN'). Source decision: the official ORT-format files exist only on download.moonshine.ai (CORS *, immutable versioned paths like quantized_26_08_21); moonshine-ai HF repos hold only safetensors, and mirroring to our own HF repo would mean publishing under the user's account, so entries use source type url pinned by SHA-256 in catalog.lock.json (new urls section; pin-models hashes them; unpinned URL files are refused). Hashes cross-checked against the spike's independently downloaded copies (24/24 match). Existing HF pins unchanged. Entries: en small (default)/medium/tiny; ja, es, de small (default)/tiny; zh, ar, vi tiny (default); ja/zh/ar pass max_tokens_per_second 13. ko/uk keep Moonshine Base (no streaming model). CSP connect-src + app.json whitelist include https://download.moonshine.ai.",
+      "timestamp": "2026-09-14T10:15:19Z"
+    }
+  ],
   "priority": 0,
   "status": "in_progress",
   "title": "Catalog: Moonshine v2 Streaming models mirrored, pinned and hashed",
