@@ -10,16 +10,26 @@ export function hfUrl(repo: string, revision: string, path: string): string {
   return `https://huggingface.co/${repo}/resolve/${revision}/${path}`;
 }
 
+/** Where a manifest file is fetched from (and its cache key). */
+export function fileUrl(source: ModelCatalogEntry["manifest"]["source"], path: string): string {
+  return source.type === "hf" ? hfUrl(source.repo, source.revision, path) : `${source.baseUrl}/${path}`;
+}
+
 const HF_RESOLVE = /^https:\/\/huggingface\.co\/(.+?)\/resolve\/([^/]+)\/(.+)$/;
 
 function expectedSha(url: string): { sha256: string; size: number } | null {
   const m = HF_RESOLVE.exec(url);
-  if (!m) return null;
-  const [, repo, revision, path] = m;
-  const locked = LOCK.repos[repo!];
-  if (!locked || locked.revision !== revision) return null;
-  const f = locked.files.find((x) => x.path === decodeURIComponent(path!));
-  return f?.sha256 ? { sha256: f.sha256, size: f.size } : null;
+  const found = m
+    ? (() => {
+        const [, repo, revision, path] = m;
+        const locked = LOCK.repos[repo!];
+        return locked && locked.revision === revision ? locked.files.find((x) => x.path === decodeURIComponent(path!)) : undefined;
+      })()
+    : (() => {
+        const slash = url.lastIndexOf("/");
+        return LOCK.urls?.[url.slice(0, slash)]?.files.find((x) => x.path === decodeURIComponent(url.slice(slash + 1)));
+      })();
+  return found?.sha256 ? { sha256: found.sha256, size: found.size } : null;
 }
 
 export class IntegrityError extends Error {}
@@ -58,12 +68,12 @@ export type ProgressFn = (loaded: number, total: number) => void;
 
 /** Downloads (or reads from cache) one pinned file for ORT-direct adapters. */
 export async function loadModelFile(entry: ModelCatalogEntry, path: string, onProgress?: ProgressFn): Promise<Uint8Array> {
-  const src = entry.manifest.source;
-  if (src.type !== "hf") throw new Error("only Hugging Face sources are supported");
-  const url = hfUrl(src.repo, src.revision, path);
+  const url = fileUrl(entry.manifest.source, path);
   const cache = await caches.open(MODEL_CACHE);
   const hit = await cache.match(url);
   if (hit) return new Uint8Array(await hit.arrayBuffer());
+  // A plain URL has no revision to pin, so its files are fetched only with a pinned hash.
+  if (entry.manifest.source.type === "url" && !expectedSha(url)) throw new IntegrityError(`${path} isn't pinned in catalog.lock.json`);
   const res = await verifyingFetch()(url);
   if (!res.ok || !res.body) throw new Error(`download failed (${res.status}) for ${path}`);
   const total = Number(res.headers.get("content-length") ?? entry.manifest.files.find((f) => f.path === path)?.bytes ?? 0);
@@ -120,10 +130,8 @@ function cacheFor(entry: ModelCatalogEntry): Promise<Cache> {
 
 /** Files not yet in the cache the entry's adapter reads from. Uses keys(), so no cached body is opened. */
 export async function missingFiles(entry: ModelCatalogEntry, files: readonly ModelFile[]): Promise<ModelFile[]> {
-  const src = entry.manifest.source;
-  if (src.type !== "hf") return [...files];
   const cached = new Set((await (await cacheFor(entry)).keys()).map((r) => r.url));
-  return files.filter((f) => !cached.has(hfUrl(src.repo, src.revision, f.path)));
+  return files.filter((f) => !cached.has(fileUrl(entry.manifest.source, f.path)));
 }
 
 /**
@@ -134,15 +142,14 @@ export async function missingFiles(entry: ModelCatalogEntry, files: readonly Mod
  * never stored.
  */
 export async function downloadModelFiles(entry: ModelCatalogEntry, files: readonly ModelFile[], onProgress?: ProgressFn): Promise<void> {
-  const src = entry.manifest.source;
-  if (src.type !== "hf") throw new Error("only Hugging Face sources are supported");
   const cache = await cacheFor(entry);
   const missing = new Set(await missingFiles(entry, files));
   const total = files.reduce((n, f) => n + (f.bytes ?? 0), 0);
   let loaded = total - [...missing].reduce((n, f) => n + (f.bytes ?? 0), 0);
   onProgress?.(loaded, total);
   for (const f of missing) {
-    const url = hfUrl(src.repo, src.revision, f.path);
+    const url = fileUrl(entry.manifest.source, f.path);
+    if (entry.manifest.source.type === "url" && !expectedSha(url)) throw new IntegrityError(`${f.path} isn't pinned in catalog.lock.json`);
     const res = await verifyingFetch()(url);
     if (!res.ok || !res.body) throw new Error(`download failed (${res.status}) for ${f.path}`);
     const counted = res.body.pipeThrough(

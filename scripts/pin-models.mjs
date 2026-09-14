@@ -5,7 +5,7 @@ import { writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 
 const { CATALOG } = await import("../packages/provider-local/src/catalog.ts");
-const out = { generatedAt: new Date().toISOString(), repos: {} };
+const out = { generatedAt: new Date().toISOString(), repos: {}, urls: {} };
 const byRepo = new Map();
 for (const e of CATALOG) {
   if (e.manifest.source.type !== "hf" || !e.manifest.files.length) continue;
@@ -33,5 +33,19 @@ for (const [repo, wanted] of byRepo) {
   }
   out.repos[repo] = { repo, revision: info.sha, files };
   console.log(`${repo}@${info.sha.slice(0, 8)}: ${files.length}/${wanted.size} files`);
+}
+// Plain URL sources (versioned paths, no commit): hash every file.
+for (const e of CATALOG) {
+  const src = e.manifest.source;
+  if (src.type !== "url" || !e.manifest.files.length) continue;
+  const files = [];
+  for (const { path } of e.manifest.files) {
+    const res = await fetch(`${src.baseUrl}/${path}`);
+    if (!res.ok) throw new Error(`${src.baseUrl}/${path}: HTTP ${res.status}`);
+    const body = Buffer.from(await res.arrayBuffer());
+    files.push({ path, size: body.length, sha256: createHash("sha256").update(body).digest("hex") });
+  }
+  out.urls[src.baseUrl] = { baseUrl: src.baseUrl, files };
+  console.log(`${src.baseUrl}: ${files.length} files`);
 }
 writeFileSync(new URL("../packages/provider-local/src/catalog.lock.json", import.meta.url), JSON.stringify(out, null, 2) + "\n");

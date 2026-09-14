@@ -28,6 +28,8 @@ const CONNECT = [
   "https://huggingface.co",
   "https://*.huggingface.co",
   "https://*.hf.co",
+  // Moonshine Streaming models (versioned paths, pinned by SHA-256 in catalog.lock.json).
+  "https://download.moonshine.ai",
   "https://api.soniox.com",
   "wss://stt-rt.soniox.com",
   ...(process.env.IRL_SUMMARY_ORIGIN ? [process.env.IRL_SUMMARY_ORIGIN] : []),

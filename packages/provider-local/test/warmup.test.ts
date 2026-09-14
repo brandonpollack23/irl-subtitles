@@ -12,7 +12,8 @@ function deferred() {
 }
 
 function setup(opts: { missing?: string[] } = {}) {
-  let settings: Settings = defaultSettings(defaultSelection("en"));
+  // A transformers.js live model, so live STT loads through ensureAsr.
+  let settings: Settings = defaultSettings({ ...defaultSelection("en"), sttLive: "moonshine-base-en" });
   const loads = new Map<string, ReturnType<typeof deferred>>();
   const load = (id: string) => {
     let d = loads.get(id);

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-13T14:00:27.492Z",
+  "generatedAt": "2026-09-14T10:11:51.968Z",
   "repos": {
     "istupakov/silero-vad-onnx": {
       "repo": "istupakov/silero-vad-onnx",
@@ -997,6 +997,548 @@
           "path": "onnx/embed_tokens_q4f16.onnx_data",
           "size": 294010880,
           "sha256": "650aa8eb39b7404ca2c908d78243c82b6fd88321feeb8fca175745806c6b3a81"
+        }
+      ]
+    }
+  },
+  "urls": {
+    "https://download.moonshine.ai/model/small-streaming-en/quantized_26_08_21": {
+      "baseUrl": "https://download.moonshine.ai/model/small-streaming-en/quantized_26_08_21",
+      "files": [
+        {
+          "path": "adapter.ort",
+          "size": 2870368,
+          "sha256": "c665f742364febad597cc9ac1e0b341ffbee0e24a1466e2f3bde95e6e4771762"
+        },
+        {
+          "path": "cross_kv.ort",
+          "size": 5356536,
+          "sha256": "e2d3417144e9514055ebfefe8dcc4c0a55a55adcb8530435844c75c53e352bf6"
+        },
+        {
+          "path": "decoder_kv.ort",
+          "size": 81878600,
+          "sha256": "1a05465b1dd955858dfcbee039c0020fb5dd982b0f5094c34e61735d518d771b"
+        },
+        {
+          "path": "encoder.ort",
+          "size": 44148576,
+          "sha256": "2d4d973e91e8aca08c51e7e7efa28a46ab265b63d809d5294d18b86bcd85b993"
+        },
+        {
+          "path": "frontend.model.ort",
+          "size": 26944,
+          "sha256": "09b1210ae30dc5f0f3e45f0ebab914c254741323114f53fbbe5ae62cca35058f"
+        },
+        {
+          "path": "frontend.weights.ort",
+          "size": 7769464,
+          "sha256": "7ef97521bd4bad3928f5bb6808586f4fcc6e92bd5990394112eed7d4052ec338"
+        },
+        {
+          "path": "streaming_config.json",
+          "size": 512,
+          "sha256": "26f02b6afb22d60871a5efd85c3d38e569cc0ddb6c5eb6e93d3260152ae8a47a"
+        },
+        {
+          "path": "tokenizer.bin",
+          "size": 249974,
+          "sha256": "6884b35fd6377d4c4d32336a0bc152f36b64d1e45b6503683cdc238250a8472d"
+        }
+      ]
+    },
+    "https://download.moonshine.ai/model/medium-streaming-en/quantized_26_08_21": {
+      "baseUrl": "https://download.moonshine.ai/model/medium-streaming-en/quantized_26_08_21",
+      "files": [
+        {
+          "path": "adapter.ort",
+          "size": 3651296,
+          "sha256": "3f2a287def57cc094367a0eec3c4f5fc36a32ec420e86764b696920991b20281"
+        },
+        {
+          "path": "cross_kv.ort",
+          "size": 11643776,
+          "sha256": "642f6e21cd305be79342207c6f9e6b681d469d55bc48c72b27b84846fb71fd1e"
+        },
+        {
+          "path": "decoder_kv.ort",
+          "size": 146972408,
+          "sha256": "193bb366492b74fc4ad338c6778e8d8eb916aaa11b5aa264f9057f4db7759486"
+        },
+        {
+          "path": "encoder.ort",
+          "size": 94705376,
+          "sha256": "12915e76ebac7dd287c5ea63965d06103a53ba1ce242a4a34f318f3958c60c37"
+        },
+        {
+          "path": "frontend.model.ort",
+          "size": 28720,
+          "sha256": "95768855c70c8251eeecc05fedf69999da1b8ab16f605c9f457fd3354b0ad6b5"
+        },
+        {
+          "path": "frontend.weights.ort",
+          "size": 11889560,
+          "sha256": "5ac941f490cbe035b335b99a414cc393d62d4c6f9f2423495b286870d271d709"
+        },
+        {
+          "path": "streaming_config.json",
+          "size": 513,
+          "sha256": "28e83b7a28e91472692a035e0dae3116422ae43aeb2bef5ed822c44ce89b88af"
+        },
+        {
+          "path": "tokenizer.bin",
+          "size": 249974,
+          "sha256": "6884b35fd6377d4c4d32336a0bc152f36b64d1e45b6503683cdc238250a8472d"
+        }
+      ]
+    },
+    "https://download.moonshine.ai/model/tiny-streaming-en/quantized_26_08_21": {
+      "baseUrl": "https://download.moonshine.ai/model/tiny-streaming-en/quantized_26_08_21",
+      "files": [
+        {
+          "path": "adapter.ort",
+          "size": 1319664,
+          "sha256": "22ecc949e146c49667fda28d102d4e30749a107dc88a396292aa8f277ef1347c"
+        },
+        {
+          "path": "cross_kv.ort",
+          "size": 1287544,
+          "sha256": "143a36667b8d05fd9d04e8c337b7ee121f37ef299aea6b3d82bdb3d3401950b4"
+        },
+        {
+          "path": "decoder_kv.ort",
+          "size": 32583720,
+          "sha256": "8852553f312adb6c9aa4d17418015049b30f412209ee569d336548c0044627de"
+        },
+        {
+          "path": "encoder.ort",
+          "size": 7675440,
+          "sha256": "a8414e1a5dedf9f2093d7680601dd8a9b0433e7020260eafe0e370ead91134ca"
+        },
+        {
+          "path": "frontend.model.ort",
+          "size": 23344,
+          "sha256": "5121b561417b638afce0c6c31b760e37c93cf97f80d9b0031aad1fe7b6f25d61"
+        },
+        {
+          "path": "frontend.weights.ort",
+          "size": 2093464,
+          "sha256": "217da24ac6f522ebf02da8ef288e77d1ac68d50d4a6821433182e4fbf4204bbd"
+        },
+        {
+          "path": "streaming_config.json",
+          "size": 509,
+          "sha256": "74fe5ddebd63b17caf59e8a3b18c17547ff7bce1642050edbb1c3962674f8950"
+        },
+        {
+          "path": "tokenizer.bin",
+          "size": 249974,
+          "sha256": "6884b35fd6377d4c4d32336a0bc152f36b64d1e45b6503683cdc238250a8472d"
+        }
+      ]
+    },
+    "https://download.moonshine.ai/model/small-streaming-ja/quantized_26_08_23": {
+      "baseUrl": "https://download.moonshine.ai/model/small-streaming-ja/quantized_26_08_23",
+      "files": [
+        {
+          "path": "adapter.ort",
+          "size": 2869296,
+          "sha256": "edcf20b9d0bc0a92bc0ddf37d8b96599de35a6cbee970368ed74c774b055e546"
+        },
+        {
+          "path": "cross_kv.ort",
+          "size": 5358752,
+          "sha256": "fbd18ec7b9514391d7121f4d4abec1be05a60e94a0f174061428380bf772c3e7"
+        },
+        {
+          "path": "decoder_kv.ort",
+          "size": 61314512,
+          "sha256": "1246d81eeb96df05d0163dcd48ce271a061b01aa3aea047239fbde22485248be"
+        },
+        {
+          "path": "encoder.ort",
+          "size": 44358376,
+          "sha256": "1da7cc82cb91d30ad9dc4e338fb80e7a2336b2c8ad634b826419222698fbe3a5"
+        },
+        {
+          "path": "frontend.model.ort",
+          "size": 31208,
+          "sha256": "de65092295f011a39ee569f03d073e3564d94252efd74ebde16d720bcc43e38b"
+        },
+        {
+          "path": "frontend.weights.ort",
+          "size": 7769288,
+          "sha256": "4e89578a495a6c4dd5632e7acaf2fc38841e6831738c2702ef10f873125a14ec"
+        },
+        {
+          "path": "streaming_config.json",
+          "size": 512,
+          "sha256": "12d16c7f5ea6734d197b79baf47914ea7e996d6fca8d303a19aca10d0617cecc"
+        },
+        {
+          "path": "tokenizer.bin",
+          "size": 101836,
+          "sha256": "9f2599f20c3a9b03d79dbe122e443647c6589ce8e5c73e65e5c5d6f73485d5de"
+        }
+      ]
+    },
+    "https://download.moonshine.ai/model/tiny-streaming-ja/quantized_26_08_23": {
+      "baseUrl": "https://download.moonshine.ai/model/tiny-streaming-ja/quantized_26_08_23",
+      "files": [
+        {
+          "path": "adapter.ort",
+          "size": 1318472,
+          "sha256": "25f302e6203028e487d1b1f93db6fe5baf587373498062190160de70e0c4ae58"
+        },
+        {
+          "path": "cross_kv.ort",
+          "size": 1288120,
+          "sha256": "170ee70aeb3c82fd067193add0d1a8619cd16d4de80a5e0239dac12d956e8575"
+        },
+        {
+          "path": "decoder_kv.ort",
+          "size": 19717336,
+          "sha256": "ccc047610727f9fe039212a0b2370a7f970e80776376a229181a76998ff5af20"
+        },
+        {
+          "path": "encoder.ort",
+          "size": 7772792,
+          "sha256": "6420c180be55732d10db7a85f8966237bbbeee3b47addab4790ed81c22dde2cf"
+        },
+        {
+          "path": "frontend.model.ort",
+          "size": 27608,
+          "sha256": "c6fdee4c81d421617b9571e43cf952dc1e7e4f45d0cb1dbf13104ee8af4ffd45"
+        },
+        {
+          "path": "frontend.weights.ort",
+          "size": 2093288,
+          "sha256": "673a7177f030da9ce948daa1af44ec5425b6f0825348aacb80f6a01c18e42a07"
+        },
+        {
+          "path": "streaming_config.json",
+          "size": 509,
+          "sha256": "d31afd7c2dd5ee9ae3fa232312c5b42cb3e4fe1c6e9c53d885f2bea63023790a"
+        },
+        {
+          "path": "tokenizer.bin",
+          "size": 101836,
+          "sha256": "9f2599f20c3a9b03d79dbe122e443647c6589ce8e5c73e65e5c5d6f73485d5de"
+        }
+      ]
+    },
+    "https://download.moonshine.ai/model/small-streaming-es/quantized_26_08_24": {
+      "baseUrl": "https://download.moonshine.ai/model/small-streaming-es/quantized_26_08_24",
+      "files": [
+        {
+          "path": "adapter.ort",
+          "size": 2869296,
+          "sha256": "04b54114c8aab534222922640f7ca0882948ff9f6ed76777f6e184e55a8e8b15"
+        },
+        {
+          "path": "cross_kv.ort",
+          "size": 5358752,
+          "sha256": "4bfd0a641d72ccdae22751f86bbb2e25ff70c1fba4f81213f2415a1accff9618"
+        },
+        {
+          "path": "decoder_kv.ort",
+          "size": 61314512,
+          "sha256": "5b77c3d6baf801ef925a5bc54d7eb3db0c35ebbb86f8eaf5390d7f5bb42fef37"
+        },
+        {
+          "path": "encoder.ort",
+          "size": 44358376,
+          "sha256": "a9b8d6d5d9348d0e319cceffdb0196ef622df8e4e9f3fb4797dcd8dfafd50857"
+        },
+        {
+          "path": "frontend.model.ort",
+          "size": 26776,
+          "sha256": "69c76287f49db365aa278d4908ec450e69ca1b4bfb7e836159d963d623ee0c13"
+        },
+        {
+          "path": "frontend.weights.ort",
+          "size": 7769280,
+          "sha256": "2f5a0eb5f3004c9447810d74274a352746319a32144e31d95ef410f425b84dda"
+        },
+        {
+          "path": "streaming_config.json",
+          "size": 512,
+          "sha256": "12d16c7f5ea6734d197b79baf47914ea7e996d6fca8d303a19aca10d0617cecc"
+        },
+        {
+          "path": "tokenizer.bin",
+          "size": 102888,
+          "sha256": "5fbb7d4314dcb18e03c5f975609e4a4cd572b22b01d2b2accb1b3e6830696f36"
+        }
+      ]
+    },
+    "https://download.moonshine.ai/model/tiny-streaming-es/quantized_26_08_24": {
+      "baseUrl": "https://download.moonshine.ai/model/tiny-streaming-es/quantized_26_08_24",
+      "files": [
+        {
+          "path": "adapter.ort",
+          "size": 1318472,
+          "sha256": "2efd97cd2ee7d89578dd1d429a849be9fe37ac81dd9c4e1d31c8a2e7f85d43e6"
+        },
+        {
+          "path": "cross_kv.ort",
+          "size": 1288120,
+          "sha256": "9e268b1b3bb0f9ff79bca6e76055d41298de0a5ba52505ee04907a2642efa3ae"
+        },
+        {
+          "path": "decoder_kv.ort",
+          "size": 19717336,
+          "sha256": "7adf56b982df98e385d71823b9a40cf9296ae3a746efcf03f3d7bb4604032db0"
+        },
+        {
+          "path": "encoder.ort",
+          "size": 7772792,
+          "sha256": "ec9eb43a01fbfe242a2c6a86050cffe4a31050e1c9f084e98560d6c100004505"
+        },
+        {
+          "path": "frontend.model.ort",
+          "size": 23176,
+          "sha256": "9d19434b861de0c1d2aff52556911ae565cf3212ebe6d7f797c76c5c5066c2fc"
+        },
+        {
+          "path": "frontend.weights.ort",
+          "size": 2093280,
+          "sha256": "5e4d5471cd5d984d4b94a603d861539ebf1dc72de11b0cf13f38316725d5ce48"
+        },
+        {
+          "path": "streaming_config.json",
+          "size": 509,
+          "sha256": "d31afd7c2dd5ee9ae3fa232312c5b42cb3e4fe1c6e9c53d885f2bea63023790a"
+        },
+        {
+          "path": "tokenizer.bin",
+          "size": 102888,
+          "sha256": "5fbb7d4314dcb18e03c5f975609e4a4cd572b22b01d2b2accb1b3e6830696f36"
+        }
+      ]
+    },
+    "https://download.moonshine.ai/model/small-streaming-de/quantized_26_08_24": {
+      "baseUrl": "https://download.moonshine.ai/model/small-streaming-de/quantized_26_08_24",
+      "files": [
+        {
+          "path": "adapter.ort",
+          "size": 2869296,
+          "sha256": "be438a3eb12ba3697a9e474d20f899e52d8e27b43a6fc4c4c809d2a099646744"
+        },
+        {
+          "path": "cross_kv.ort",
+          "size": 5358752,
+          "sha256": "0c329cbf001bebbb9e34835e95676b9eb29e010405da46f65af511b8da16620e"
+        },
+        {
+          "path": "decoder_kv.ort",
+          "size": 61314512,
+          "sha256": "7da8ac9a1da2a486158ccde88c756fd876bf7f11ef1c2ba14b80e8edcd30028c"
+        },
+        {
+          "path": "encoder.ort",
+          "size": 44358376,
+          "sha256": "f31ef482f940e23af87906aeec986bf2e0a4862cad577bbc745264caab5a1858"
+        },
+        {
+          "path": "frontend.model.ort",
+          "size": 26776,
+          "sha256": "a93453223d93aa41d21691568cde3a01125fe00710a5f7004a825e1a322d3025"
+        },
+        {
+          "path": "frontend.weights.ort",
+          "size": 7769280,
+          "sha256": "8b417e2e0ee762e34d7163d24383823bb8bd1d037fb6966c32b3f86a3de4961f"
+        },
+        {
+          "path": "streaming_config.json",
+          "size": 512,
+          "sha256": "12d16c7f5ea6734d197b79baf47914ea7e996d6fca8d303a19aca10d0617cecc"
+        },
+        {
+          "path": "tokenizer.bin",
+          "size": 103319,
+          "sha256": "5725ad3771a1339802f8cebeda0fa8f7723f5282b1ee726c2544774d7399b9a7"
+        }
+      ]
+    },
+    "https://download.moonshine.ai/model/tiny-streaming-de/quantized_26_08_24": {
+      "baseUrl": "https://download.moonshine.ai/model/tiny-streaming-de/quantized_26_08_24",
+      "files": [
+        {
+          "path": "adapter.ort",
+          "size": 1318472,
+          "sha256": "23b91142a35cfbc533a7f03ad8387d0b6d32856b465c6fe7a14ede44a254a345"
+        },
+        {
+          "path": "cross_kv.ort",
+          "size": 1288120,
+          "sha256": "25e6d9d4f16569c2ede7e23a381fe7c60cc4b0f141adc88580557d4530634f17"
+        },
+        {
+          "path": "decoder_kv.ort",
+          "size": 19717336,
+          "sha256": "768b1464074fc4fb7327e8b863fc13dcd12cb7bbe8d8e9428fa7292f7fd9ca6e"
+        },
+        {
+          "path": "encoder.ort",
+          "size": 7772792,
+          "sha256": "74610b818058e396f4b9d9ffd730cf8e36772122464d989dd3011dfa76bd6baf"
+        },
+        {
+          "path": "frontend.model.ort",
+          "size": 23176,
+          "sha256": "4445bb4c2f41b0dd993999e06dc9367a0dde0d42a2e777116e7d93be102dc43d"
+        },
+        {
+          "path": "frontend.weights.ort",
+          "size": 2093280,
+          "sha256": "233fda61d583403bbf13ea71b6ba2335fdf57eac71be85a97dcbb90a6c2f4186"
+        },
+        {
+          "path": "streaming_config.json",
+          "size": 509,
+          "sha256": "d31afd7c2dd5ee9ae3fa232312c5b42cb3e4fe1c6e9c53d885f2bea63023790a"
+        },
+        {
+          "path": "tokenizer.bin",
+          "size": 103319,
+          "sha256": "5725ad3771a1339802f8cebeda0fa8f7723f5282b1ee726c2544774d7399b9a7"
+        }
+      ]
+    },
+    "https://download.moonshine.ai/model/tiny-streaming-zh/quantized_26_08_24": {
+      "baseUrl": "https://download.moonshine.ai/model/tiny-streaming-zh/quantized_26_08_24",
+      "files": [
+        {
+          "path": "adapter.ort",
+          "size": 1318472,
+          "sha256": "84d1bed88310f5b6dd452203bcaffb765f017a7d06da8d84a898235ef5c90e12"
+        },
+        {
+          "path": "cross_kv.ort",
+          "size": 1288120,
+          "sha256": "22c2261f3120b766a91deceb4f32ca0bef0a8f2b181509ad0dc9fe6adbd0c23a"
+        },
+        {
+          "path": "decoder_kv.ort",
+          "size": 19717336,
+          "sha256": "5caf9e4e9eaa39b93122338bfbad2917630afc51293f6229b935ae7df28bed33"
+        },
+        {
+          "path": "encoder.ort",
+          "size": 7772792,
+          "sha256": "4270ca0e1ecd10e78d658b08b91d81c7f913511177e1ad461c8a9d9d0903503d"
+        },
+        {
+          "path": "frontend.model.ort",
+          "size": 27608,
+          "sha256": "d27a9c994b43fa6568121f502e8b99d511ffd0425d4090ffddcc82c9a5667971"
+        },
+        {
+          "path": "frontend.weights.ort",
+          "size": 2090728,
+          "sha256": "ac56e8ee7780e1f254ee26f2d9c9a3b3c6cfd2f6822cb3944924ae321f86dc50"
+        },
+        {
+          "path": "streaming_config.json",
+          "size": 509,
+          "sha256": "d31afd7c2dd5ee9ae3fa232312c5b42cb3e4fe1c6e9c53d885f2bea63023790a"
+        },
+        {
+          "path": "tokenizer.bin",
+          "size": 74587,
+          "sha256": "f172da002a818b9968d5c7a995cc7c51acf2168331ab5f914b5b0860ceab8236"
+        }
+      ]
+    },
+    "https://download.moonshine.ai/model/tiny-streaming-ar/quantized_26_08_24": {
+      "baseUrl": "https://download.moonshine.ai/model/tiny-streaming-ar/quantized_26_08_24",
+      "files": [
+        {
+          "path": "adapter.ort",
+          "size": 1318472,
+          "sha256": "9c1278a338b4ff268fc5741be01446d56ca9cba9ff5f4a75c5e1b2c2e2739361"
+        },
+        {
+          "path": "cross_kv.ort",
+          "size": 1288120,
+          "sha256": "e317af289233894f49da429d4561150c2f61ca86c1b9ca91c6edd3fb4fdeecb5"
+        },
+        {
+          "path": "decoder_kv.ort",
+          "size": 19717336,
+          "sha256": "5c9a2bf2d9fc543fd4596b3ab4ab8d09f791aac5682eb1379fd8d59e34237db0"
+        },
+        {
+          "path": "encoder.ort",
+          "size": 7772792,
+          "sha256": "6785ca9932d59265375249a8f3bc62f8333fb4dee6ab7db8dfd6f1daef66f59e"
+        },
+        {
+          "path": "frontend.model.ort",
+          "size": 23176,
+          "sha256": "04c552e66efe3f7206d0a69779864f93bf3cfaf2fa595c9ce5101c8e3854a414"
+        },
+        {
+          "path": "frontend.weights.ort",
+          "size": 2093280,
+          "sha256": "6cc4d70efffe757452996574d11065e7dac6a7ff0a9be3e2fec1d0266b062b0e"
+        },
+        {
+          "path": "streaming_config.json",
+          "size": 509,
+          "sha256": "d31afd7c2dd5ee9ae3fa232312c5b42cb3e4fe1c6e9c53d885f2bea63023790a"
+        },
+        {
+          "path": "tokenizer.bin",
+          "size": 135726,
+          "sha256": "3acea39a89cdf44fa11f10bfdd7d05d9015d901999f8c8fa18988f19dcc6b267"
+        }
+      ]
+    },
+    "https://download.moonshine.ai/model/tiny-streaming-vi/quantized_26_08_24": {
+      "baseUrl": "https://download.moonshine.ai/model/tiny-streaming-vi/quantized_26_08_24",
+      "files": [
+        {
+          "path": "adapter.ort",
+          "size": 1318472,
+          "sha256": "8351344095ce2e7e8dca7a932c102c7976fd5031d9f50946c05fe4e8ea520cab"
+        },
+        {
+          "path": "cross_kv.ort",
+          "size": 1288120,
+          "sha256": "0a245cc6b617f9c3a2aebe3ba5e4e12dc6118750fb7e478ccb95fe629abe56cf"
+        },
+        {
+          "path": "decoder_kv.ort",
+          "size": 19717336,
+          "sha256": "b398871f7668c667f9853758e1bd5ffb77d1ddf72f90ae73ecd4b1f05b3df1d9"
+        },
+        {
+          "path": "encoder.ort",
+          "size": 7772792,
+          "sha256": "4774270b09a51af0bc7d7a6f5d687aa832ef6ca049ea965ba0ca23f965f3f3dd"
+        },
+        {
+          "path": "frontend.model.ort",
+          "size": 23176,
+          "sha256": "fb8c8ae3cbc72f28e56a6f7577440b4e41e41a86b183d50ebd3d35215b712a7d"
+        },
+        {
+          "path": "frontend.weights.ort",
+          "size": 2093280,
+          "sha256": "beb51a94a57cb33ea740c23d7841ca2855e39fd9df7468a407dfd5eea471d8ca"
+        },
+        {
+          "path": "streaming_config.json",
+          "size": 509,
+          "sha256": "d31afd7c2dd5ee9ae3fa232312c5b42cb3e4fe1c6e9c53d885f2bea63023790a"
+        },
+        {
+          "path": "tokenizer.bin",
+          "size": 95323,
+          "sha256": "004723b832413eca43dc95f5c1e14311fa78206f81e6bf99ce0e561c657ab209"
         }
       ]
     }

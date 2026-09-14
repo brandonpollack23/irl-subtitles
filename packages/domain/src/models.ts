@@ -8,6 +8,8 @@ export type PowerPolicy = "low-power" | "balanced" | "fast";
  * How the local provider runs an entry:
  * - ort-silero / ort-fbank-embedding / ort-waveform-embedding: hand-written ORT Web session loops.
  * - tjs-asr / tjs-embedding / tjs-llm: @huggingface/transformers pipelines (own decode loops, KV cache on GPU).
+ * - moonshine-wasm: Moonshine Streaming through Moonshine Voice's own WASM runtime (incremental encoder and
+ *   decoder caches, CPU only; vendor/moonshine-wasm).
  */
 export type ModelAdapter =
   | "ort-silero"
@@ -15,7 +17,8 @@ export type ModelAdapter =
   | "ort-waveform-embedding"
   | "tjs-asr"
   | "tjs-embedding"
-  | "tjs-llm";
+  | "tjs-llm"
+  | "moonshine-wasm";
 
 export interface ModelFile {
   /** Path within the repo, e.g. "onnx/encoder_model_fp16.onnx". */

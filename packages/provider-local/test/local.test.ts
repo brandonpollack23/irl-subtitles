@@ -26,14 +26,19 @@ describe("sha256", () => {
 });
 
 describe("catalog", () => {
-  it("pins every available Hugging Face entry and picks available defaults", () => {
+  it("pins every available entry and picks available defaults", () => {
     for (const e of CATALOG.filter((x) => x.availability.status === "available")) {
-      expect(e.manifest.source.type === "hf" && LOCK.repos[e.manifest.source.repo], e.id).toBeTruthy();
+      const src = e.manifest.source;
+      const locked = src.type === "hf" ? LOCK.repos[src.repo] : LOCK.urls?.[src.baseUrl];
+      expect(locked, e.id).toBeTruthy();
+      for (const f of e.manifest.files) if (src.type === "url") expect(locked!.files.find((x) => x.path === f.path)?.sha256, `${e.id} ${f.path}`).toMatch(/^[0-9a-f]{64}$/);
       expect(e.manifest.version).not.toBe("unpinned");
     }
     const sel = defaultSelection("en");
-    expect(sel).toEqual({ vad: "silero-vad-v6", sttLive: "moonshine-base-en", sttFinal: "whisper-large-v3-turbo-ts", speakerEmbedding: "campplus-voxceleb", summary: "gemma-4-e2b-qat-mobile" });
-    expect(defaultSelection("ja").sttLive).toBe("moonshine-base-ja");
+    expect(sel).toEqual({ vad: "silero-vad-v6", sttLive: "moonshine-streaming-small-en", sttFinal: "whisper-large-v3-turbo-ts", speakerEmbedding: "campplus-voxceleb", summary: "gemma-4-e2b-qat-mobile" });
+    expect(defaultSelection("ja").sttLive).toBe("moonshine-streaming-small-ja");
+    expect(defaultSelection("zh").sttLive).toBe("moonshine-streaming-tiny-zh");
+    expect(defaultSelection("ko").sttLive).toBe("moonshine-base-ko");
     expect(defaultSelection("auto").sttLive).toBe("whisper-small");
   });
 });

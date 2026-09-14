@@ -24,7 +24,13 @@ export interface LockedRepo {
   files: LockedFile[];
 }
 
-export const LOCK = lockJson as { generatedAt: string | null; repos: Record<string, LockedRepo> };
+/** Files served from a versioned base URL (no commit to pin), pinned by size and SHA-256 alone. */
+export interface LockedUrl {
+  baseUrl: string;
+  files: LockedFile[];
+}
+
+export const LOCK = lockJson as { generatedAt: string | null; repos: Record<string, LockedRepo>; urls?: Record<string, LockedUrl> };
 
 type Dtype = string | Record<string, string>;
 
@@ -37,7 +43,10 @@ interface EntrySpec {
   languages: readonly string[] | "auto";
   license: string;
   adapter: ModelAdapter;
+  /** Hugging Face repo, or (with `baseUrl`) just a label. */
   repo: string;
+  /** Versioned base URL for sources that aren't Hugging Face repos. */
+  baseUrl?: string;
   /** Glob-ish file patterns to pin (for ORT adapters: the exact graph file first). */
   files: string[];
   dtype?: Partial<Record<ExecutionTarget, Dtype>>;
@@ -53,7 +62,8 @@ interface EntrySpec {
 }
 
 function entry(s: EntrySpec): ModelCatalogEntry {
-  const locked = LOCK.repos[s.repo];
+  const locked = s.baseUrl ? LOCK.urls?.[s.baseUrl] : LOCK.repos[s.repo];
+  const version = s.baseUrl ? (locked ? s.baseUrl.slice(s.baseUrl.lastIndexOf("/") + 1) : undefined) : (locked as LockedRepo | undefined)?.revision;
   const gpu = s.adapter === "tjs-llm" || s.adapter === "tjs-asr" ? "webgpu" : "wasm";
   return {
     id: s.id,
@@ -69,7 +79,7 @@ function entry(s: EntrySpec): ModelCatalogEntry {
     ...(s.notes ? { notes: s.notes } : {}),
     availability: s.unavailable ? { status: "unavailable", reason: s.unavailable } : { status: "available" },
     manifest: {
-      source: { type: "hf", repo: s.repo, revision: locked?.revision ?? "main" },
+      source: s.baseUrl ? { type: "url", baseUrl: s.baseUrl } : { type: "hf", repo: s.repo, revision: (locked as LockedRepo | undefined)?.revision ?? "main" },
       files: s.files.map((path) => {
         const f = locked?.files.find((x) => x.path === path);
         return { path, ...(f ? { bytes: f.size } : {}), ...(f?.sha256 ? { sha256: f.sha256 } : {}) };
@@ -78,13 +88,35 @@ function entry(s: EntrySpec): ModelCatalogEntry {
       targets: { android: s.targets?.android ?? gpu, ios: s.targets?.ios ?? gpu, desktop: s.targets?.desktop ?? gpu },
       ...(s.requiredFeatures ? { requiredFeatures: s.requiredFeatures } : {}),
       quantization: typeof s.dtype?.webgpu === "string" ? s.dtype.webgpu : JSON.stringify(s.dtype?.webgpu ?? "fp32"),
-      version: locked?.revision ?? "unpinned",
+      version: version ?? "unpinned",
       params: { dtype: s.dtype ?? {}, requiresWebGpu: !!s.requiresWebGpu, ...(s.params ?? {}) },
     },
   };
 }
 
-const NO_STREAMING_ADAPTER = "No web decode adapter for Moonshine Streaming yet: the community ONNX exports need a sliding-window loop and GPU-friendly quantization (irl-subt-0i6.3.7)";
+const MOONSHINE_STREAMING_FILES = ["adapter.ort", "cross_kv.ort", "decoder_kv.ort", "encoder.ort", "frontend.model.ort", "frontend.weights.ort", "streaming_config.json", "tokenizer.bin"];
+const STREAMING_ARCH = { tiny: 2, small: 4, medium: 5 } as const;
+const STREAMING_PARAMS = { tiny: 34e6, small: 123e6, medium: 245e6 } as const;
+const LANGUAGE_NAMES: Record<string, string> = { en: "English", ja: "Japanese", zh: "Chinese", es: "Spanish", de: "German", ar: "Arabic", vi: "Vietnamese" };
+
+/**
+ * Moonshine v2 Streaming (MIT in every language) through Moonshine Voice's single-thread WASM runtime: the encoder and
+ * decoder cache their state, so each update costs only the new audio (irl-subt-kdl.7). Files are the official ORT-format
+ * exports on Moonshine's CDN, under versioned paths, pinned by SHA-256 in catalog.lock.json.
+ */
+function moonshineStreaming(size: keyof typeof STREAMING_ARCH, lang: string, version: string, bytes: number, extra: Partial<EntrySpec> = {}): ModelCatalogEntry {
+  const nonLatin = ["ja", "zh", "ar"].includes(lang);
+  return entry({
+    id: `moonshine-streaming-${size}-${lang}`, role: "stt-live", displayName: `Moonshine Streaming ${size[0]!.toUpperCase()}${size.slice(1)} (${lang})`,
+    parameters: STREAMING_PARAMS[size], downloadBytes: bytes, languages: [lang], license: "MIT", adapter: "moonshine-wasm",
+    repo: `moonshine-ai/${size}-streaming-${lang}`, baseUrl: `https://download.moonshine.ai/model/${size}-streaming-${lang}/${version}`,
+    files: MOONSHINE_STREAMING_FILES, timing: "segment-interpolated", targets: { android: "wasm", ios: "wasm", desktop: "wasm" },
+    notes: `${LANGUAGE_NAMES[lang] ?? lang}; streaming captions, CPU only.`,
+    // Non-Latin tokenizers emit many more tokens per second; Moonshine's repetition guard needs a higher ceiling.
+    params: { arch: STREAMING_ARCH[size], ...(nonLatin ? { options: { max_tokens_per_second: "13.0" } } : {}) },
+    ...extra,
+  });
+}
 const moonshineDtype = { webgpu: { encoder_model: "fp32", decoder_model_merged: "q4" }, wasm: { encoder_model: "fp32", decoder_model_merged: "q4" } };
 const whisperLiveDtype = { webgpu: { encoder_model: "fp32", decoder_model_merged: "q4" }, wasm: { encoder_model: "q8", decoder_model_merged: "q8" } };
 
@@ -109,9 +141,18 @@ export const CATALOG: readonly ModelCatalogEntry[] = [
   }),
 
   // Live STT ----------------------------------------------------------------------------------
-  entry({ id: "moonshine-streaming-medium-en", role: "stt-live", displayName: "Moonshine Streaming Medium (en)", parameters: 245e6, downloadBytes: 250e6, languages: ["en"], license: "MIT", adapter: "tjs-asr", repo: "Mazino0/moonshine-streaming-medium-onnx", files: [], planDefault: true, unavailable: NO_STREAMING_ADAPTER, timing: "segment-interpolated" }),
-  entry({ id: "moonshine-streaming-small-en", role: "stt-live", displayName: "Moonshine Streaming Small (en)", parameters: 123e6, downloadBytes: 500e6, languages: ["en"], license: "MIT", adapter: "tjs-asr", repo: "Workmind/moonshine-streaming-small-ONNX", files: [], unavailable: NO_STREAMING_ADAPTER, timing: "segment-interpolated" }),
-  entry({ id: "moonshine-streaming-tiny-en", role: "stt-live", displayName: "Moonshine Streaming Tiny (en)", parameters: 34e6, downloadBytes: 40e6, languages: ["en"], license: "MIT", adapter: "tjs-asr", repo: "UsefulSensors/moonshine-streaming-tiny", files: [], unavailable: "No ONNX export exists yet (irl-subt-0i6.3.7)", timing: "segment-interpolated" }),
+  moonshineStreaming("small", "en", "quantized_26_08_21", 142300974, { planDefault: true, notes: "Accurate and real time on one core of a desktop-class CPU (0.64x in the Even simulator)." }),
+  moonshineStreaming("medium", "en", "quantized_26_08_21", 269141623, { notes: "Most accurate; needs a fast core (0.88x in the Even simulator, single thread)." }),
+  moonshineStreaming("tiny", "en", "quantized_26_08_21", 45233659, { notes: "Fastest and lightest (0.22x in the Even simulator); battery and slower phones." }),
+  moonshineStreaming("small", "ja", "quantized_26_08_23", 121803780, { planDefault: true }),
+  moonshineStreaming("tiny", "ja", "quantized_26_08_23", 32319961),
+  moonshineStreaming("small", "es", "quantized_26_08_24", 121800392, { planDefault: true }),
+  moonshineStreaming("tiny", "es", "quantized_26_08_24", 32316573),
+  moonshineStreaming("small", "de", "quantized_26_08_24", 121800823, { planDefault: true }),
+  moonshineStreaming("tiny", "de", "quantized_26_08_24", 32317004),
+  moonshineStreaming("tiny", "zh", "quantized_26_08_24", 32290152, { planDefault: true }),
+  moonshineStreaming("tiny", "ar", "quantized_26_08_24", 32349411, { planDefault: true }),
+  moonshineStreaming("tiny", "vi", "quantized_26_08_24", 32309008, { planDefault: true }),
   moonshine("moonshine-base-en", "base", "en", "onnx-community/moonshine-base-ONNX", 61e6, 155e6, { notes: "Utterance-level live captions: VAD-segmented, re-decoded as the utterance grows." }),
   moonshine("moonshine-tiny-en", "tiny", "en", "onnx-community/moonshine-tiny-ONNX", 27e6, 60e6, { notes: "Battery/thermal fallback." }),
   moonshine("moonshine-base-ja", "base", "ja", "onnx-community/moonshine-base-ja-ONNX", 61e6, 155e6),
