@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [],
   "created": "2026-09-14T03:49:21Z",
@@ -8,8 +8,8 @@
   "labels": [],
   "parent": "irl-subt-9ij",
   "priority": 2,
-  "status": "open",
+  "status": "in_progress",
   "title": "Model download progress bar under the Download button",
   "type": "task",
-  "updated_at": "2026-09-14T03:49:21Z"
+  "updated_at": "2026-09-14T03:49:28Z"
 }
