@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-kdl.1"
+  ],
   "blocks": [],
   "created": "2026-09-14T09:32:28Z",
   "description": "Simulator measurements (irl-subt-9ij.20): Moonshine Base load 34.6 s, CAM++ 3.8 s, streaming Silero VAD RTF 2.1 (67 ms per 32 ms window). jsc shell with the same asyncify build: Silero 0.58 ms/window, so the web process adds ~100x somewhere. Hypotheses: timer/rAF throttling of an occluded or background WebView, worker scheduling, Cache Storage body reads, transformers.js overhead, message passing per window. Profile in the simulator (Web Inspector / console timings from A0), fix or document, and check whether iOS WKWebView behaves the same.",
