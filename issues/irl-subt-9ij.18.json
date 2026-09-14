@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-14T05:34:43Z",
+  "description": "VAD and speaker embedding share the audio worker. An embedding failure resets the worker; ensureEmbedding reloads only the embedder, so the next vad.push throws 'VAD not loaded', feedVad sets ready.vad=false and live captions stop for the rest of the run with no retry. VAD failures have no recovery path at all (STT and embeddings do). Found during irl-subt-9ij.16.",
+  "id": "irl-subt-9ij.18",
+  "labels": [],
+  "parent": "irl-subt-9ij",
+  "priority": 1,
+  "status": "open",
+  "title": "Live VAD never recovers after an audio-worker reset",
+  "type": "bug",
+  "updated_at": "2026-09-14T05:34:43Z"
+}
