@@ -11,9 +11,15 @@
     "mvp"
   ],
   "parent": "irl-subt-0i6.3",
+  "comments": [
+    {
+      "text": "See irl-subt-kdl.7: benchmark Moonshine v2 Streaming via single-thread moonshine-wasm in simulator/Android/iOS Even app.",
+      "timestamp": "2026-09-14T09:32:38Z"
+    }
+  ],
   "priority": 0,
   "status": "open",
   "title": "Benchmark live STT (Moonshine Streaming Medium/Small/Tiny, Whisper Small/Tiny) on WebGPU",
   "type": "task",
-  "updated_at": "2026-09-13T12:51:34Z"
+  "updated_at": "2026-09-14T09:32:38Z"
 }
