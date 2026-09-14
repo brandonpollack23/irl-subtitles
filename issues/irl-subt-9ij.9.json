@@ -27,9 +27,15 @@
     "mvp"
   ],
   "parent": "irl-subt-9ij",
+  "comments": [
+    {
+      "text": "Code complete for MVP; run docs/mvp/DEBUG-PLAN.md (sections 1-8; section 8 maps each plan.md §14 criterion to its checks) on reference devices.",
+      "timestamp": "2026-09-14T02:58:30Z"
+    }
+  ],
   "priority": 1,
   "status": "open",
   "title": "MVP acceptance verification (plan.md §14 checklist)",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:57Z"
+  "updated_at": "2026-09-14T02:58:30Z"
 }
