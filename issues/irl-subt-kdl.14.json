@@ -2,6 +2,7 @@
   "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [],
+  "closed_at": "2026-09-14T13:45:17Z",
   "created": "2026-09-14T13:30:20Z",
   "description": "A recording started while the previous one is post-processing shares the single-model asr worker: live moonshine-base-en and final whisper-small-ts evict each other (asr.worker load() disposes the current pipeline), so live captions barely run and the final pass slows. Seen in the Even simulator 2026-09-14: rec 2 started 13:12:08Z during rec 1's final STT (13:11:23-13:12:46Z); rec 2's final pass took 138 s for 42 s. PostProcessor.drain only checks isCapturing between jobs. Fix: post-processing waits at chunk/batch boundaries (final STT groups, speech detection blocks, embedding batches, summary) while capturing and re-ensures its model afterwards; the asr worker serializes a load behind an in-flight transcription so nothing is disposed mid-run. Streaming live models (own worker) are unaffected. Verify with the dev bench (?bench=live\u0026runs=2\u0026wait=0\u0026stt=moonshine-base-en) in the simulator.",
   "id": "irl-subt-kdl.14",
@@ -14,7 +15,7 @@
     }
   ],
   "priority": 1,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Post-processing yields the asr worker to live capture",
   "type": "bug",
   "updated_at": "2026-09-14T13:45:17Z"
