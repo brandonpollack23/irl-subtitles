@@ -4,6 +4,8 @@
     "irl-subt-f9n.3"
   ],
   "blocks": [],
+  "closed_at": "2026-09-14T02:58:20Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:49Z",
   "description": "Bottom sheet with likely people, all people, New person; set full/short name; Learn this voice toggle. plan.md §7.2.",
   "id": "irl-subt-f9n.2",
@@ -12,8 +14,8 @@
   ],
   "parent": "irl-subt-f9n",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "Speaker sheet: tap any speaker name in transcript or summary",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:49Z"
+  "updated_at": "2026-09-14T02:58:20Z"
 }
