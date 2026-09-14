@@ -4,6 +4,8 @@
     "irl-subt-b5w.1"
   ],
   "blocks": [],
+  "closed_at": "2026-09-14T02:58:20Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:47Z",
   "description": "Restrictive CSP, Even manifest network whitelist, redact secrets and transcript contents from logs/diagnostics by default. plan.md §11.",
   "id": "irl-subt-b5w.8",
@@ -12,8 +14,8 @@
   ],
   "parent": "irl-subt-b5w",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "Security baseline: strict CSP, network allowlist, diagnostics redaction",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:47Z"
+  "updated_at": "2026-09-14T02:58:20Z"
 }
