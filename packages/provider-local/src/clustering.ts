@@ -11,9 +11,15 @@ export interface ClusterParams {
   minWindowsToKeep: number;
 }
 
-/** Initial thresholds per embedding space; calibrate with the evaluation harness (irl-subt-f9n.9). */
+/** Thresholds per embedding space family; `IRL_CLUSTER_REPORT=report.json pnpm test:live` re-measures them (clustering.live.test.ts). */
 const PARAMS: Record<string, ClusterParams> = {
   default: { assign: 0.55, merge: 0.7, minWindowsToConfirm: 2, minWindowsToKeep: 2 },
+  // CAM++ on 2 s windows (irl-subt-kdl.15; LibriSpeech fixtures + jfk, clean and through a noisy band-limited mic):
+  // different speakers, window to speaker centroid, max 0.38 (p95 <= 0.25); same speaker, window to an early
+  // (first-utterance) centroid, p50 0.54-0.66 and p05 down to 0.28 at 6 dB SNR, which the old 0.55 split into extra
+  // speakers. Utterance centroids: same speaker min 0.44, different max 0.35. Joining sits just above the
+  // different-speaker tail; merging after capture folds the remaining noisy splits back in.
+  "campplus-voxceleb": { assign: 0.4, merge: 0.45, minWindowsToConfirm: 2, minWindowsToKeep: 2 },
 };
 
 export function clusterParams(embeddingSpace: string): ClusterParams {
