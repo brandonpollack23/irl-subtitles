@@ -11,6 +11,12 @@
   "id": "irl-subt-kdl.2",
   "labels": [],
   "parent": "irl-subt-kdl",
+  "comments": [
+    {
+      "text": "Landed (jj rev 'Plain ORT WASM build for CPU-only sessions'). Per-worker ORT flavor via worker name; tjs injected via Symbol.for('onnxruntime') + pnpm patch (patches/@huggingface__transformers@4.2.0.patch) since tjs 4.2 leaves supportedDevices empty for injected runtimes. Simulator two_cities: Moonshine load 43.2-\u003e4.0 s, CAM++ 3.1-\u003e0.5 s, STT 2037-\u003e950 ms/call, VAD RTF 0.32-\u003e0.018, embed 513-\u003e87 ms/window, final lag p50 2.53-\u003e1.26 s, p95 9.02-\u003e3.22 s, interim calls 2-\u003e24, max level 1-\u003e0, first caption 5.45-\u003e3.33 s. Node harness unchanged (V8). Production build bundles both builds.",
+      "timestamp": "2026-09-14T09:58:39Z"
+    }
+  ],
   "priority": 0,
   "status": "in_progress",
   "title": "Use the plain (non-asyncify) ORT WASM build for CPU-only sessions",
