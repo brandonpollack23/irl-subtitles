@@ -177,9 +177,10 @@ class LocalLiveRun implements LiveSpeechRun {
         return false;
       }
     };
-    this.ready.vad = await loadIfDownloaded(this.config.vadModelId, "Speech detection", () => this.engines.ensureVad(this.config.vadModelId));
-    // Each model is used as soon as it's loaded: the caption model can take far longer than the speaker model.
+    // All three load at once and each is used as soon as it's ready: captions don't wait on speech detection, and the
+    // caption model can take far longer than the speaker model.
     await Promise.all([
+      loadIfDownloaded(this.config.vadModelId, "Speech detection", () => this.engines.ensureVad(this.config.vadModelId)).then((ok) => (this.ready.vad = ok)),
       loadIfDownloaded(this.config.embeddingModelId, "Speaker", () => this.engines.ensureEmbedding(this.config.embeddingModelId)).then((ok) => (this.ready.embed = ok)),
       this.config.sttModelId === "off"
         ? null

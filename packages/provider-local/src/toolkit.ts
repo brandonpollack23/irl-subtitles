@@ -98,6 +98,10 @@ export class LocalToolkit implements ProcessingToolkit {
     return new ChunkedSummaryProvider(`local:${modelId}`, new LlmChatModel(this.engines, entry));
   }
 
+  /**
+   * Frees the post-processing models. The live caption model stays loaded in its own worker, so the next conversation
+   * captions at once (irl-subt-kdl.11); on iOS it is dropped before a summary model loads (see LlmChatModel).
+   */
   async release(): Promise<void> {
     await this.engines.release(["asr", "llm"]);
   }
@@ -114,13 +118,22 @@ class LlmChatModel implements ChatModel {
     this.maxNewTokens = Number(entry.manifest.params?.maxNewTokens ?? 1024);
   }
 
-  async countTokens(text: string): Promise<number> {
+  /**
+   * iOS gives a WebView one memory budget and kills the whole page past it: a multi-GB summary model on top of the
+   * live caption model risks that, so the caption model goes first there (warmup reloads it once processing is idle).
+   */
+  private async ensureLoaded(): Promise<void> {
+    if ((await this.engines.capabilities()).platform === "ios") this.engines.reset("stream");
     await this.engines.ensureLlm(this.entry.id);
+  }
+
+  async countTokens(text: string): Promise<number> {
+    await this.ensureLoaded();
     return this.engines.call<number>("llm", "llm.countTokens", { text });
   }
 
   async generate(messages: { role: string; content: string }[], opts: { signal?: AbortSignal; onTokens?: (n: number) => void }): Promise<string> {
-    await this.engines.ensureLlm(this.entry.id);
+    await this.ensureLoaded();
     const stop = () => void this.engines.call("llm", "llm.stop", {}).catch(() => undefined);
     opts.signal?.addEventListener("abort", stop, { once: true });
     try {

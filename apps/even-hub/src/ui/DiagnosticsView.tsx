@@ -85,8 +85,9 @@ export function DiagnosticsView() {
             kind="danger"
             onClick={async () => {
               if (!confirm("Delete all downloaded models? They download again when needed.")) return;
-              await app().engines.release(["audio", "asr", "llm"]);
+              await app().engines.release(["audio", "asr", "llm", "stream"]);
               await clearModelCache();
+              app().engines.forgetDownloads();
               toast("Models deleted");
             }}
           />

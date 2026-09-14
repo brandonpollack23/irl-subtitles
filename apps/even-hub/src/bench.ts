@@ -6,18 +6,23 @@ import type { AppServices } from "./services";
 
 /**
  * Dev-only live-path bench (irl-subt-kdl.1), for engines we can only reach through a URL, like the Even
- * simulator: `?bench=live[&wav=/fixtures/dev/x.wav][&stt=<model id>][&tail=3000]`. Downloads missing live
+ * simulator: `?bench=live[&wav=/fixtures/dev/x.wav][&stt=<model id>][&tail=3000][&runs=1]`. Downloads missing live
  * models, waits for warmup, plays the WAV through a real local recording, and logs one `[bench] {json}`
- * line with load times, live metrics, and when captions appeared. Read it with the simulator's
+ * line per run with load times, live metrics, and when captions appeared. With runs > 1, each later run starts once
+ * post-processing of the previous one is idle, which shows whether the live models had to load again. Read it with the simulator's
  * `GET /api/console`.
  */
 export async function runBench(services: AppServices, params: URLSearchParams): Promise<void> {
   const out = (stage: string, data: unknown) => console.info(`[bench] ${JSON.stringify({ stage, ...(data as object) })}`);
   const pageMs = () => Math.round(performance.now());
   try {
-    const { settings, engines, warmup, controller, caps, storage, inEvenApp } = services;
-    const events: LiveMetric[] = [];
-    liveMetrics.on((m) => events.push(m));
+    const { settings, engines, warmup, controller, caps, storage, inEvenApp, post } = services;
+    let events: LiveMetric[] = [];
+    const timeline: unknown[] = [];
+    liveMetrics.on((m) => {
+      events.push(m);
+      if (m.kind === "stt" || m.kind === "load") timeline.push({ t: Math.round(performance.now()), ...m });
+    });
     const bootedAtMs = pageMs();
     const models = { ...settings.get().models, summary: "off", ...(params.get("stt") ? { sttLive: params.get("stt")! } : {}) };
     await settings.update({ provider: "local", captureSource: "wav-file", models });
@@ -38,6 +43,13 @@ export async function runBench(services: AppServices, params: URLSearchParams): 
 
     const wavUrl = params.get("wav") ?? "/fixtures/jfk.wav";
     const bytes = new Uint8Array(await (await fetch(wavUrl)).arrayBuffer());
+    for (let run = 1; run <= Number(params.get("runs") ?? 1); run++) {
+    if (run > 1) {
+      // Let the previous recording's post-processing finish, as a user starting the next conversation would.
+      for (let i = 0; i < 600 && (post.busy || controller.activeRecordingId !== null); i++) await new Promise((ok) => setTimeout(ok, 500));
+      events = [];
+      timeline.length = 0;
+    }
     const source = new WavFileSource(async () => bytes, `WAV: ${wavUrl}`);
     const captions: { t: number; audio: number; text: string }[] = [];
     let t0 = performance.now();
@@ -56,10 +68,11 @@ export async function runBench(services: AppServices, params: URLSearchParams): 
     off();
     const platform = platformReport(caps, storage.diagnostics, inEvenApp);
     out("done", {
-      host: platform.host, engine: platform.engine, userAgent: caps.userAgent, webgpu: caps.webgpu.available, crossOriginIsolated: caps.crossOriginIsolated, threads: caps.wasmThreads,
+      run, host: platform.host, engine: platform.engine, userAgent: caps.userAgent, webgpu: caps.webgpu.available, crossOriginIsolated: caps.crossOriginIsolated, threads: caps.wasmThreads,
       models: live.map((id) => `${id}@${catalogEntry(id)?.manifest.version.slice(0, 8)}`), wav: wavUrl, warmMs,
-      metrics: summarizeLiveMetrics(events), firstCaption: captions[0] ?? null, captionUpdates: captions.length, captions: captions.slice(0, 40), segments,
+      metrics: summarizeLiveMetrics(events), firstCaption: captions[0] ?? null, captionUpdates: captions.length, captions: captions.slice(0, 40), segments, startedAtMs: Math.round(t0), timeline: timeline.slice(0, 12),
     });
+    }
   } catch (e) {
     out("failed", { error: errorMessage(e) });
   }

@@ -37,7 +37,10 @@ export class LocalEngines {
   private clients = new Map<EngineKind, { rpc: RpcClient; flavor: OrtFlavor }>();
   /** The VAD loaded into the audio worker, reloaded when that worker is replaced by one with another ORT build. */
   private vadModelId: string | null = null;
-  private loaded = new Map<EngineKind, Map<string, Promise<void>>>();
+  /** Per worker, the load behind each load method (a worker holds one model per method, e.g. a VAD and an embedder). */
+  private loaded = new Map<EngineKind, Map<string, { key: string; promise: Promise<void> }>>();
+  /** Models whose files were found complete; files only go away through forgetDownloads (irl-subt-kdl.11). */
+  private downloaded = new Set<string>();
   readonly progress = new Emitter<LoadProgress>();
   readonly events = new Emitter<EngineEvent>();
   caps: DeviceCapabilities | null = null;
@@ -92,10 +95,19 @@ export class LocalEngines {
 
   /** Downloaded means every file those targets read is cached; cache keys carry the pinned revision. */
   async isDownloaded(modelId: string): Promise<boolean> {
+    if (this.downloaded.has(modelId)) return true;
     const e = catalogEntry(modelId);
     if (!e) return false;
     const files = filesForTargets(e, await this.downloadTargets(e));
-    return files.length > 0 && (await missingFiles(e, files)).length === 0;
+    // Listing Cache Storage keys takes seconds in WebKit once big models are cached; a complete model stays complete.
+    const complete = files.length > 0 && (await missingFiles(e, files)).length === 0;
+    if (complete) this.downloaded.add(modelId);
+    return complete;
+  }
+
+  /** Call after deleting cached model files. */
+  forgetDownloads(): void {
+    this.downloaded.clear();
   }
 
   /**
@@ -115,6 +127,7 @@ export class LocalEngines {
         lastEmit = now;
         this.progress.emit({ modelId, status: "downloading", loaded, total });
       });
+      this.downloaded.add(modelId);
       this.progress.emit({ modelId, status: "ready" });
     } catch (e) {
       this.progress.emit({ modelId, status: "failed", error: errorMessage(e) });
@@ -128,10 +141,9 @@ export class LocalEngines {
     const client = this.client(kind, flavor);
     const key = `${modelId}:${JSON.stringify(payload)}`;
     const cache = this.loaded.get(kind)!;
-    const existing = cache.get(key);
-    if (existing) return existing;
-    // One model per engine: loading another replaces it inside the worker.
-    cache.clear();
+    const existing = cache.get(method);
+    if (existing?.key === key) return existing.promise;
+    // One model per load method: loading another replaces it inside the worker.
     const p = (async () => {
       const availability = availabilityOnDevice(entry, await this.capabilities());
       if (availability.status === "unavailable") throw new Error(availability.reason);
@@ -159,11 +171,11 @@ export class LocalEngines {
       this.progress.emit({ modelId, status: "ready" });
     })().catch((e) => {
       liveMetrics.emit({ kind: "load", modelId, engine: kind, ms: 0, ok: false });
-      cache.delete(key);
+      if (cache.get(method)?.promise === p) cache.delete(method);
       this.progress.emit({ modelId, status: "failed", error: errorMessage(e) });
       throw e;
     });
-    cache.set(key, p);
+    cache.set(method, { key, promise: p });
     return p;
   }
 

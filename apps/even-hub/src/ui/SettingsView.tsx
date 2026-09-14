@@ -277,8 +277,9 @@ function ModelsSection(props: SectionProps) {
 
   const clearCache = async () => {
     if (!confirm("Delete all downloaded models? They download again when you tap Download or record.")) return;
-    await app().engines.release(["audio", "asr", "llm"]);
+    await app().engines.release(["audio", "asr", "llm", "stream"]);
     await clearModelCache();
+    app().engines.forgetDownloads();
     setProgress({});
     setVersion((v) => v + 1);
     toast("Model cache cleared");
