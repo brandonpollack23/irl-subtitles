@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-14T07:12:50Z",
+  "description": "rec_d62ad23ebe5c4e438caa in the Even simulator: live-saved PCM was transcribed correctly by the final Whisper pass, but after the compression stage (WebCodecs Opus via packages/capture/src/opus.ts) the exported WAV is muffled: 98.5% of speech energy below 1 kHz, -85 dB at 4 kHz; Whisper Base, Moonshine and Silero all fail on it. Playback, reprocessing and voice clips from saved audio would be affected. Reproduce with an encode/decode round trip of jfk.wav in WebKitGTK and compare spectra; check sample rates reported by AudioDecoder/AudioData and the f32-planar copy.",
+  "id": "irl-subt-9ij.24",
+  "labels": [],
+  "parent": "irl-subt-9ij",
+  "priority": 2,
+  "status": "open",
+  "title": "Saved audio is corrupted by the Opus round trip in WebKitGTK",
+  "type": "bug",
+  "updated_at": "2026-09-14T07:12:50Z"
+}
