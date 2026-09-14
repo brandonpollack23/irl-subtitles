@@ -1,7 +1,8 @@
 /**
  * Compute scheduler and thermal degradation (plan.md §6.1): VAD and persistence first, embeddings on
- * completed windows next, live STT last. Levels escalate when work falls behind real time or latency
- * climbs (a proxy for thermal throttling) and relax after sustained headroom.
+ * completed windows next, live STT last. Levels escalate when work falls behind real time (a backlog, or STT
+ * needing more than a second of compute per second of new audio, a proxy for thermal throttling) and relax
+ * after sustained headroom.
  *
  * 0 normal · 1 no interim captions (final per utterance only) · 2 live STT paused (captions off,
  * processed after Stop) · 3 embeddings paused too (capture + VAD only).
@@ -13,8 +14,10 @@ export interface SchedulerSample {
   sttBacklogS: number;
   /** Seconds of audio queued for embedding. */
   embedBacklogS: number;
-  /** Recent STT real-time factor (processing time / audio time). */
-  sttRtf: number | null;
+  /** STT compute since the previous sample (ms). */
+  sttComputeMs: number;
+  /** New audio STT covered since the previous sample (s): what a live transcript actually has to keep up with. */
+  sttNewAudioS: number;
   /** A WebGPU device loss or inference failure since the last sample. */
   failure: boolean;
 }
@@ -27,10 +30,15 @@ export interface SchedulerDecision {
   embeddings: boolean;
 }
 
+/** STT load is judged over the most recent this-many seconds of new audio, and only once there are this-few. */
+const LOAD_WINDOW_S = 10;
+const LOAD_MIN_S = 4;
+
 export class ComputeScheduler {
   private level: DegradationLevel = 0;
   private healthySince = 0;
-  private rtfHistory: number[] = [];
+  /** Recent STT work, newest last. */
+  private work: { ms: number; audioS: number }[] = [];
 
   constructor(private readonly now: () => number = () => performance.now(), private readonly relaxAfterMs = 30_000) {}
 
@@ -38,25 +46,31 @@ export class ComputeScheduler {
     return this.level;
   }
 
-  private sttRuns = 0;
-  private lastRtfSample: number | null = null;
+  /**
+   * Compute per second of new audio over the recent window, or null until there's enough audio to judge. Per-call
+   * ratios mislead: a short utterance or one streaming pass carries fixed overhead, so one "yeah" looked like
+   * falling behind (irl-subt-kdl.5).
+   */
+  get sttLoad(): number | null {
+    const audio = this.work.reduce((n, w) => n + w.audioS, 0);
+    return audio >= LOAD_MIN_S ? this.work.reduce((n, w) => n + w.ms, 0) / 1000 / audio : null;
+  }
 
   update(s: SchedulerSample): SchedulerDecision {
-    // Each STT run reports once; the first runs include model warm-up and shader compilation, so they
-    // don't count, and the median keeps one slow outlier from pinning the level.
-    if (s.sttRtf !== null && s.sttRtf !== this.lastRtfSample) {
-      this.lastRtfSample = s.sttRtf;
-      if (++this.sttRuns > 2) this.rtfHistory = [...this.rtfHistory.slice(-8), s.sttRtf];
+    if (s.sttComputeMs > 0 || s.sttNewAudioS > 0) {
+      this.work.push({ ms: s.sttComputeMs, audioS: s.sttNewAudioS });
+      let audio = this.work.reduce((n, w) => n + w.audioS, 0);
+      while (this.work.length > 1 && audio - this.work[0]!.audioS >= LOAD_WINDOW_S) audio -= this.work.shift()!.audioS;
     }
-    const sorted = [...this.rtfHistory].sort((a, b) => a - b);
-    const rtf = sorted.length ? sorted[Math.floor(sorted.length / 2)]! : 0;
+    const load = this.sttLoad ?? 0;
     let target: DegradationLevel = 0;
     let reason: string | null = null;
-    if (s.sttBacklogS > 4 || rtf > 0.8) {
+    // Below one second per second the transcript keeps up; interim updates only go when it can't.
+    if (s.sttBacklogS > 4 || load > 1) {
       target = 1;
       reason = "Live captions slowed to keep up";
     }
-    if (s.sttBacklogS > 20 || rtf > 1.5 || s.failure) {
+    if (s.sttBacklogS > 20 || load > 1.5 || s.failure) {
       target = 2;
       reason = s.failure ? "Saving — processing later (local compute failed)" : "Saving — processing later";
     }
@@ -73,7 +87,7 @@ export class ComputeScheduler {
       if (t - this.healthySince >= this.relaxAfterMs) {
         this.level = (this.level - 1) as DegradationLevel;
         this.healthySince = t;
-        this.rtfHistory = [];
+        this.work = [];
       }
     } else {
       this.healthySince = t;

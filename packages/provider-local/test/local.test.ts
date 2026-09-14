@@ -4,7 +4,7 @@ import { l2normalize, SAMPLE_RATE } from "@irl/domain";
 import { catalogEntry, defaultSelection, CATALOG, LOCK } from "../src/catalog";
 import { filesForTargets } from "../src/model-files";
 import { refineClusters, OnlineClusterer, windowGrid, clusterParams } from "../src/clustering";
-import { ComputeScheduler, interpolateWords } from "../src/scheduler";
+import { ComputeScheduler, interpolateWords, type SchedulerSample } from "../src/scheduler";
 import { Sha256 } from "../src/sha256";
 import { regionsFromProbabilities, VadSegmenter } from "../src/vad-segmenter";
 
@@ -110,16 +110,33 @@ describe("clustering", () => {
 });
 
 describe("scheduler", () => {
+  const sample = (p: Partial<SchedulerSample> = {}): SchedulerSample => ({ sttBacklogS: 0, embedBacklogS: 0, sttComputeMs: 0, sttNewAudioS: 0, failure: false, ...p });
+
   it("degrades under backlog and relaxes one level after sustained headroom", () => {
     let t = 0;
     const s = new ComputeScheduler(() => t, 1000);
-    expect(s.update({ sttBacklogS: 0, embedBacklogS: 0, sttRtf: 0.2, failure: false }).level).toBe(0);
-    const d = s.update({ sttBacklogS: 30, embedBacklogS: 0, sttRtf: 2, failure: false });
+    expect(s.update(sample({ sttComputeMs: 200, sttNewAudioS: 1 })).level).toBe(0);
+    const d = s.update(sample({ sttBacklogS: 30 }));
     expect(d).toMatchObject({ level: 2, liveStt: false, embeddings: true });
     t = 500;
-    expect(s.update({ sttBacklogS: 0, embedBacklogS: 0, sttRtf: 0.1, failure: false }).level).toBe(2);
+    expect(s.update(sample()).level).toBe(2);
     t = 1600;
-    expect(s.update({ sttBacklogS: 0, embedBacklogS: 0, sttRtf: 0.1, failure: false }).level).toBe(1);
+    expect(s.update(sample()).level).toBe(1);
+  });
+
+  it("judges STT load per second of new audio over a window, not per call", () => {
+    const s = new ComputeScheduler(() => 0);
+    // Short utterances and single streaming passes are expensive per second on their own…
+    for (let i = 0; i < 3; i++) expect(s.update(sample({ sttComputeMs: 500, sttNewAudioS: 0.5 })).level).toBe(0);
+    // …but over enough audio the transcript keeps up comfortably.
+    for (let i = 0; i < 20; i++) s.update(sample({ sttComputeMs: 150, sttNewAudioS: 0.5 }));
+    expect(s.sttLoad!).toBeLessThan(0.5);
+    expect(s.current).toBe(0);
+    // Sustained compute above real time drops interim captions, then live STT.
+    for (let i = 0; i < 20; i++) s.update(sample({ sttComputeMs: 600, sttNewAudioS: 0.5 }));
+    expect(s.current).toBe(1);
+    for (let i = 0; i < 20; i++) s.update(sample({ sttComputeMs: 900, sttNewAudioS: 0.5 }));
+    expect(s.current).toBe(2);
   });
 
   it("interpolates word timing across an utterance", () => {

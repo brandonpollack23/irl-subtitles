@@ -135,7 +135,9 @@ class LocalLiveRun implements LiveSpeechRun {
   private finalLines = new Set<string>();
   private embedBusy = false;
   private vadBusy = false;
-  private lastRtf: number | null = null;
+  /** STT work since the last scheduler sample. */
+  private sttComputeMs = 0;
+  private sttNewAudioS = 0;
   private failure = false;
   private timer: ReturnType<typeof setInterval> | null = null;
   private closed = false;
@@ -221,16 +223,20 @@ class LocalLiveRun implements LiveSpeechRun {
     if (this.ready.vad && !this.vadBusy) void this.feedVad();
     const sample = {
       // The oldest ended utterance is the one being (or about to be) transcribed; only what waits behind it is backlog.
-      sttBacklogS: this.streaming ? (this.stt === "ready" ? Math.max(0, this.ring.end - this.streamFed) / SAMPLE_RATE : 0) : this.utterances.filter((u) => u.ended && !u.transcribed && u.endSample > this.sttReadyAt && this.stt === "ready").slice(1).reduce((n, u) => n + (u.endSample - u.startSample), 0) / SAMPLE_RATE,
+      // Catch-up audio held while the model loaded isn't a sign of falling behind.
+      sttBacklogS: this.streaming ? (this.stt === "ready" ? Math.max(0, this.ring.end - Math.max(this.streamFed, this.sttReadyAt)) / SAMPLE_RATE : 0) : this.utterances.filter((u) => u.ended && !u.transcribed && u.endSample > this.sttReadyAt && this.stt === "ready").slice(1).reduce((n, u) => n + (u.endSample - u.startSample), 0) / SAMPLE_RATE,
       embedBacklogS: this.utterances.reduce((n, u) => n + (u.windowsQueued - u.windowsDone) * 2, 0),
-      sttRtf: this.lastRtf,
+      sttComputeMs: this.sttComputeMs,
+      sttNewAudioS: this.sttNewAudioS,
       failure: this.failure,
     };
     const prevLevel = this.decision.level;
     this.decision = this.scheduler.update(sample);
     if (this.decision.level !== prevLevel) liveMetrics.emit({ kind: "degraded", runId: this.providerRunId, level: this.decision.level, reason: this.decision.reason });
-    if (this.decision.level !== prevLevel) console.warn(`[scheduler] level ${prevLevel} → ${this.decision.level}`, JSON.stringify({ ...sample, sttRtf: sample.sttRtf?.toFixed(2) }));
+    if (this.decision.level !== prevLevel) console.warn(`[scheduler] level ${prevLevel} → ${this.decision.level}`, JSON.stringify({ ...sample, sttLoad: this.scheduler.sttLoad?.toFixed(2) }));
     this.failure = false;
+    this.sttComputeMs = 0;
+    this.sttNewAudioS = 0;
     // Model problems are reported where they happen; with every model healthy the scheduler owns the message.
     if (this.ready.vad && this.ready.embed && (this.stt === "ready" || this.config.sttModelId === "off")) this.emitDegraded(this.decision.reason);
     if (!this.sttBusy) void (this.streaming ? this.runStream() : this.runStt());
@@ -385,10 +391,12 @@ class LocalLiveRun implements LiveSpeechRun {
       const t0 = performance.now();
       const out = await this.engines.transcribe(samples, this.config.language, false);
       const computeMs = performance.now() - t0;
-      this.lastRtf = computeMs / 1000 / ((range.endSample - range.startSample) / SAMPLE_RATE);
+      const newAudioS = Math.max(0, range.endSample - Math.max(u.decodedTo, range.startSample)) / SAMPLE_RATE;
+      this.sttComputeMs += computeMs;
+      this.sttNewAudioS += newAudioS;
       liveMetrics.emit({
         kind: "stt", runId: this.providerRunId, final: job.final, audioS: (range.endSample - range.startSample) / SAMPLE_RATE,
-        newAudioS: Math.max(0, range.endSample - Math.max(u.decodedTo, range.startSample)) / SAMPLE_RATE, computeMs, lagS: (this.ring.end - range.endSample) / SAMPLE_RATE,
+        newAudioS, computeMs, lagS: (this.ring.end - range.endSample) / SAMPLE_RATE,
       });
       u.decodedTo = Math.max(u.decodedTo, range.endSample);
       if (job.final) u.transcribed = true;
@@ -474,7 +482,8 @@ class LocalLiveRun implements LiveSpeechRun {
     }
     const newAudioS = computeMs > 0 ? Math.max(0, this.streamFed - this.lastStreamPass) / SAMPLE_RATE : 0;
     if (computeMs > 0) this.lastStreamPass = this.streamFed;
-    this.lastRtf = newAudioS > 0 ? computeMs / 1000 / newAudioS : this.lastRtf;
+    this.sttComputeMs += computeMs;
+    this.sttNewAudioS += newAudioS;
     liveMetrics.emit({ kind: "stt", runId: this.providerRunId, final: finalEnd !== null, audioS: newAudioS, newAudioS, computeMs, ...(lastEnd !== null ? { lagS: (this.ring.end - (finalEnd ?? lastEnd)) / SAMPLE_RATE } : {}) });
     this.emit({ type: "tokens", tokens, replaceProvisional: true });
   }
