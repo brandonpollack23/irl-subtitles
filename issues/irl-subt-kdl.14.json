@@ -7,9 +7,15 @@
   "id": "irl-subt-kdl.14",
   "labels": [],
   "parent": "irl-subt-kdl",
+  "comments": [
+    {
+      "text": "Landed in jj rev uwulxqqt. Before (sim, runs=2 wait=0 moonshine-base-en + whisper-small-ts): run 2 had 0 captions ('ASR model not loaded', 'asr worker terminated' from the job's release()). After: run 2 first caption 2.39 s, 16 updates, no reloads during capture; final passes pause then complete (112 words each).",
+      "timestamp": "2026-09-14T13:45:17Z"
+    }
+  ],
   "priority": 1,
   "status": "in_progress",
   "title": "Post-processing yields the asr worker to live capture",
   "type": "bug",
-  "updated_at": "2026-09-14T13:31:16Z"
+  "updated_at": "2026-09-14T13:45:17Z"
 }
