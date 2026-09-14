@@ -4,6 +4,8 @@
   "blocks": [
     "irl-subt-2z2.2"
   ],
+  "closed_at": "2026-09-14T02:58:20Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:47Z",
   "description": "Create G2 page before requesting audio. Validate s16le/16kHz/mono, assign sequence and startSample, report gaps. plan.md §4, §9.",
   "id": "irl-subt-2z2.1",
@@ -12,8 +14,8 @@
   ],
   "parent": "irl-subt-2z2",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "G2AudioSource: audioControl start/stop, PCM validation, sequencing, gap reports",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:48Z"
+  "updated_at": "2026-09-14T02:58:20Z"
 }
