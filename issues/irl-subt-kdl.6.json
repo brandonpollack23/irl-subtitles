@@ -9,6 +9,12 @@
   "id": "irl-subt-kdl.6",
   "labels": [],
   "parent": "irl-subt-kdl",
+  "comments": [
+    {
+      "text": "Explained, no code change needed beyond kdl.2. Evidence: (1) jsc shell (same JSC as the simulator), asyncify build: Silero 0.58 ms/window, Moonshine q4 decoder create 5.1 s, first encoder run 8.0 s; plain build 0.40 ms, 0.6 s, 0.17 s. (2) Simulator after kdl.2 (plain build in CPU workers): VAD RTF 0.015-0.018 (= jsc shell), Moonshine Base load 43.2 -\u003e 4.0 s, CAM++ 3.1 -\u003e 0.5 s. So the load time was asyncify. (3) The 'VAD RTF 2.1 / 67 ms per window' figure was measured on 9ij.20's base revision, before the 9ij.16 sample-clock fix; the fixed code measured VAD RTF 0.32 even with asyncify. (4) No timer/rAF throttling in the headless simulator: bench captions record wall time vs captured audio (e.g. t 2.31 s at audio 2.20 s) and the WAV source's 100 ms setInterval stays on time. (5) Remaining gap: transformers.js Moonshine Base decode is ~1.8x slower in the simulator than in Node (950 vs 530 ms per call) - ordinary JSC vs V8 wasm/JS difference; Moonshine Streaming WASM is within 10% of Node. iOS WKWebView uses the same JSC, so the same builds apply; confirm on device in kdl.13.",
+      "timestamp": "2026-09-14T10:44:03Z"
+    }
+  ],
   "priority": 0,
   "status": "in_progress",
   "title": "Explain WebKit web-process slowdown beyond asyncify",
