@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-14T07:12:50Z",
+  "description": "Models load at app open (9ij.17 ModelWarmup). The glasses already say when they're loading; also say when they're done (e.g. a short 'Captions ready' notice on the idle page and a transient line while recording), and show a failure if a model can't load. Integrate nkprtuuv (9ij.17) and lnuwmlyo (9ij.16) onto 9ij.15 and the Node live harness (9ij.20), resolving engines.ts/services.ts conflicts, and verify with pnpm check and the live harness.",
+  "id": "irl-subt-9ij.22",
+  "labels": [],
+  "parent": "irl-subt-9ij",
+  "priority": 1,
+  "status": "open",
+  "title": "Glasses announce when caption models finish loading; integrate warmup, VAD fix and harness",
+  "type": "task",
+  "updated_at": "2026-09-14T07:12:50Z"
+}
