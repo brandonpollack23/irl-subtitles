@@ -9,6 +9,12 @@
   "id": "irl-subt-kdl.3",
   "labels": [],
   "parent": "irl-subt-kdl",
+  "comments": [
+    {
+      "text": "Landed (jj rev 'Warm-up inference when live models load'). Warm-up runs inside the worker load RPC (VAD uses scratch state), reported as warmup-inference metrics; ModelWarmup only reports ready afterwards. Simulator costs: Silero 26 ms, CAM++ 401 ms (would otherwise hit the first live window), Moonshine Base 194 ms (plain build; asyncify first-run was 8 s in jsc). Live tests pass.",
+      "timestamp": "2026-09-14T10:01:55Z"
+    }
+  ],
   "priority": 0,
   "status": "in_progress",
   "title": "Warm-up inference after model load",
