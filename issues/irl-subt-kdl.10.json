@@ -9,6 +9,12 @@
   "id": "irl-subt-kdl.10",
   "labels": [],
   "parent": "irl-subt-kdl",
+  "comments": [
+    {
+      "text": "Not needed: the kdl.7 spike passed. The single-thread moonshine-wasm build compiled from the pinned commit, bundles under Vite, loads verified bytes, runs in the Even simulator (WebKitGTK/JSC, no SharedArrayBuffer) within 10% of V8, and is now the live path (kdl.9) with Small at 0.62-0.65 s compute per s of audio and final caption lag p95 \u003c 1 s. Porting the C++ streaming loop to TypeScript on onnxruntime-web would duplicate that and lose the minimal-ORT / exception-trampoline speedups. Reopen only if device runs (kdl.13) show the WASM build failing on Android or iOS.",
+      "timestamp": "2026-09-14T11:05:42Z"
+    }
+  ],
   "priority": 0,
   "status": "in_progress",
   "title": "Fallback: TypeScript Moonshine streaming loop on onnxruntime-web",
