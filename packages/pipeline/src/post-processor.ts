@@ -54,6 +54,8 @@ export interface PostProcessorDeps {
 
 const BLOCK_SAMPLES = 60 * SAMPLE_RATE;
 const MAX_STT_WINDOW = 28 * SAMPLE_RATE;
+/** How often a job paused for live capture checks whether capture ended. */
+const CAPTURE_POLL_MS = 500;
 
 /** Run ids whose tokens are the final pass for a recording. */
 export async function finalRunIds(repo: Repository, recordingId: string): Promise<Set<string>> {
@@ -115,9 +117,18 @@ export class PostProcessor {
         console.error("post-processing failed", e);
       } finally {
         this.currentRecordingId = null;
-        await this.deps.toolkit.release().catch(() => undefined);
+        // A recording that started meanwhile has loaded its live models into these workers.
+        if (!this.deps.isCapturing()) await this.deps.toolkit.release().catch(() => undefined);
       }
     }
+  }
+
+  /**
+   * Live capture shares the model workers (one model per worker), so a job that was running when a recording started
+   * waits at its next chunk boundary until capture ends; the toolkit reloads its model on the next call (irl-subt-kdl.14).
+   */
+  private async yieldToCapture(signal: AbortSignal): Promise<void> {
+    while (this.deps.isCapturing() && !signal.aborted) await sleep(CAPTURE_POLL_MS);
   }
 
   private async setStage(recordingId: string, stage: PostStage, status: StageStatus, error?: string): Promise<void> {
@@ -147,6 +158,7 @@ export class PostProcessor {
 
     for (const stage of ["finalStt", "diarization", "identity"] as const) {
       if (!stages.includes(stage)) continue;
+      await this.yieldToCapture(signal);
       if (signal.aborted) return;
       rec = (await repo.getRecording(recordingId))!;
       try {
@@ -160,6 +172,7 @@ export class PostProcessor {
     if (upstream) await this.transition(recordingId, "captured");
 
     if (stages.includes("summary") && !signal.aborted) {
+      await this.yieldToCapture(signal);
       try {
         await this.setStage(recordingId, "summary", "running");
         const r = await this.summarize((await repo.getRecording(recordingId))!, signal);
@@ -190,6 +203,7 @@ export class PostProcessor {
     const regions: TimeRange[] = [];
     const total = rec.totalSamples;
     for (let start = 0; start < total; start += BLOCK_SAMPLES) {
+      await this.yieldToCapture(signal);
       if (signal.aborted) break;
       const end = Math.min(total, start + BLOCK_SAMPLES);
       const samples = await this.deps.audio.readRange(rec.id, { startSample: start, endSample: end });
@@ -217,6 +231,7 @@ export class PostProcessor {
     const tokens: TranscriptToken[] = [];
     let detected: string | undefined;
     for (let i = 0; i < groups.length; i++) {
+      await this.yieldToCapture(signal);
       if (signal.aborted) throw new Error("cancelled");
       const g = groups[i]!;
       const samples = await this.deps.audio.readRange(rec.id, g);
@@ -252,6 +267,7 @@ export class PostProcessor {
       const grid = toolkit.windowGrid(await speech());
       const missing = grid.filter((g) => !liveWindows.some((w) => Math.abs(w.startSample - g.startSample) < SAMPLE_RATE / 2));
       for (let i = 0; i < missing.length; i += 16) {
+        await this.yieldToCapture(signal);
         if (signal.aborted) throw new Error("cancelled");
         const batch = missing.slice(i, i + 16);
         const inputs = await Promise.all(batch.map(async (range) => ({ range, samples: await this.deps.audio.readRange(rec.id, range) })));
@@ -329,6 +345,7 @@ export class PostProcessor {
     const windows = [...existing];
     if (haveAudio) {
       for (const t of turns) {
+        await this.yieldToCapture(signal);
         if (signal.aborted) throw new Error("cancelled");
         const grid = toolkit.windowGrid([t]).filter((g) => !windows.some((w) => Math.abs(w.startSample - g.startSample) < SAMPLE_RATE / 2));
         if (!grid.length) continue;

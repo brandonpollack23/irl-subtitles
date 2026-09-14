@@ -31,6 +31,19 @@ export function serveRpc(handlers: Record<string, RpcHandler>, ready: Promise<un
   };
 }
 
+/**
+ * Runs handlers one at a time, in arrival order: a load that replaces a model waits for the inference using it, and
+ * inference waits for a load in progress (irl-subt-kdl.14). A failure doesn't block what's queued behind it.
+ */
+export function serialLane(): <T>(fn: () => Promise<T>) => Promise<T> {
+  let tail: Promise<unknown> = Promise.resolve();
+  return (fn) => {
+    const run = tail.then(fn, fn);
+    tail = run.catch(() => undefined);
+    return run;
+  };
+}
+
 export class RpcClient {
   private nextId = 1;
   private pending = new Map<number, { ok: (v: unknown) => void; fail: (e: Error) => void; progress?: (p: unknown) => void }>();

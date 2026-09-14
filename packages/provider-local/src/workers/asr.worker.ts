@@ -3,13 +3,15 @@ import type { AutomaticSpeechRecognitionPipeline } from "@huggingface/transforme
 import type { ExecutionTarget } from "@irl/domain";
 import { catalogEntry } from "../catalog";
 import { setupRuntime } from "../ort-env";
-import { serveRpc } from "../rpc";
+import { serialLane, serveRpc } from "../rpc";
 
 /**
  * Speech-to-text through transformers.js (Whisper and Moonshine). A `:webgpu` worker keeps decode loops and KV
  * cache on the GPU; a `:wasm` worker runs the plain CPU build (ort-env.ts).
  */
 const runtime = setupRuntime();
+/** Live captions and post-processing share this worker; one pipeline call or load at a time, so neither disposes the other's model mid-run. */
+const lane = serialLane();
 
 let current: { id: string; target: ExecutionTarget; pipe: AutomaticSpeechRecognitionPipeline } | null = null;
 
@@ -53,9 +55,9 @@ export interface AsrResult {
 }
 
 serveRpc({
-  "asr.load": async (p: { modelId: string; target: ExecutionTarget }, ctx) => load(p.modelId, p.target, ctx.progress),
+  "asr.load": async (p: { modelId: string; target: ExecutionTarget }, ctx) => lane(() => load(p.modelId, p.target, ctx.progress)),
 
-  "asr.run": async (p: { samples: Float32Array; language: string; wordTimestamps: boolean }): Promise<AsrResult> => {
+  "asr.run": async (p: { samples: Float32Array; language: string; wordTimestamps: boolean }): Promise<AsrResult> => lane(async () => {
     if (!current) throw new Error("ASR model not loaded");
     const t0 = performance.now();
     const whisper = current.id.startsWith("whisper");
@@ -69,10 +71,11 @@ serveRpc({
       ? out.chunks.map((c) => ({ text: c.text, start: c.timestamp[0] ?? 0, end: c.timestamp[1] ?? c.timestamp[0] ?? 0 }))
       : null;
     return { text: out.text ?? "", words, language: whisper && p.language !== "auto" ? p.language : null, ms: performance.now() - t0 };
-  },
+  }),
 
-  "release": async () => {
-    await current?.pipe.dispose().catch(() => undefined);
-    current = null;
-  },
+  "release": async () =>
+    lane(async () => {
+      await current?.pipe.dispose().catch(() => undefined);
+      current = null;
+    }),
 }, runtime);

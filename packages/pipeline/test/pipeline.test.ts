@@ -119,7 +119,7 @@ function fakeToolkit(): ProcessingToolkit {
   };
 }
 
-async function setup() {
+async function setup(wrapToolkit: (t: ProcessingToolkit) => ProcessingToolkit = (t) => t) {
   const repo = new Repository(await SqlTableStore.open(nodeSqliteDriver()));
   const blobs = new MemoryBlobStore();
   const vault = await KeyVault.open(new IDBFactory());
@@ -127,7 +127,7 @@ async function setup() {
   const ephemeral = new EphemeralKeys();
   const settings = await SettingsStore.open(repo, defaultSettings({ vad: "vad", sttLive: "stt", sttFinal: "stt-final", speakerEmbedding: "emb", summary: "llm" }));
   const audio = new RecordingAudio(repo, blobs, (kind, id) => (kind === "durable" ? durable : ephemeral.get(id)));
-  const toolkit = fakeToolkit();
+  const toolkit = wrapToolkit(fakeToolkit());
   const identity = new IdentityService(repo, blobs, durable, audio, () => settings.get(), toolkit.embed);
   const captured: string[] = [];
   let controller!: RecordingController;
@@ -205,6 +205,51 @@ describe("recording pipeline", () => {
     await deleteRecording(env.repo, env.blobs, id, { removeVoiceSamples: false });
     expect(await env.repo.getRecording(id)).toBeUndefined();
     expect(await env.blobs.list(`rec/${id}/`)).toEqual([]);
+  }, 30_000);
+
+  it("pauses a post-processing job while the next recording captures, then finishes it", async () => {
+    const calls: { method: string; capturing: boolean }[] = [];
+    let second: string | null = null;
+    let secondSource: ManualSource | null = null;
+    const env: Awaited<ReturnType<typeof setup>> = await setup((t) => {
+      const log = (method: string) => calls.push({ method, capturing: env.controller.activeRecordingId !== null });
+      return {
+        ...t,
+        detectSpeech: async (...a) => (log("detectSpeech"), t.detectSpeech(...a)),
+        embed: async (...a) => (log("embed"), t.embed(...a)),
+        transcribe: async (...a) => {
+          log("transcribe");
+          if (!second) {
+            // The next conversation starts while the first chunk is being transcribed.
+            secondSource = new ManualSource();
+            second = await env.controller.start({ source: secondSource, persistAudio: false });
+          }
+          return t.transcribe(...a);
+        },
+      };
+    });
+    const source = new ManualSource();
+    const id = await env.controller.start({ source, persistAudio: true });
+    source.feed(40, "A");
+    await sleep(1200);
+    const done = env.waitDone(id);
+    await env.controller.stop();
+    for (let i = 0; i < 100 && !second; i++) await sleep(20);
+    expect(second).not.toBeNull();
+    const before = calls.length;
+    await sleep(1500);
+    // The 40 s recording has two transcription chunks; the second waits for capture to end.
+    expect(calls.length).toBe(before);
+    expect((await env.repo.getRecording(id))!.state).toBe("finalizing");
+    secondSource!.feed(3, "B");
+    await env.controller.stop();
+    await done;
+    expect(calls.filter((c) => c.method === "transcribe").length).toBeGreaterThanOrEqual(2);
+    // Only the call that started the second recording ran before it; nothing ran during capture.
+    expect(calls.filter((c) => c.capturing)).toEqual([]);
+    const rec = (await env.repo.getRecording(id))!;
+    expect(rec.processing.finalStt.status).toBe("done");
+    expect(rec.state).toBe("ready");
   }, 30_000);
 
   it("recovers an interrupted recording and never resumes capture", async () => {

@@ -6,7 +6,7 @@ import type { AppServices } from "./services";
 
 /**
  * Dev-only live-path bench (irl-subt-kdl.1), for engines we can only reach through a URL, like the Even
- * simulator: `?bench=live[&wav=/fixtures/dev/x.wav][&stt=<model id>][&tail=3000][&runs=1][&wait=1][&nowarm=1][&source=glasses&secs=15]`. Downloads missing live
+ * simulator: `?bench=live[&wav=/fixtures/dev/x.wav][&stt=<model id>][&final=<model id>][&tail=3000][&runs=1][&wait=1][&nowarm=1][&source=glasses&secs=15]`. Downloads missing live
  * models, waits for warmup, plays the WAV through a real local recording, and logs one `[bench] {json}`
  * line per run with load times, live metrics, and when captions appeared. With runs > 1, each later run starts once
  * post-processing of the previous one is idle, which shows whether the live models had to load again; wait=0 starts it
@@ -28,12 +28,13 @@ export async function runBench(services: AppServices, params: URLSearchParams): 
     });
     post.events.on((ev) => ev.progress === undefined && out("post", { t: pageMs(), ...ev }));
     const bootedAtMs = pageMs();
-    const models = { ...settings.get().models, summary: "off", ...(params.get("stt") ? { sttLive: params.get("stt")! } : {}) };
+    const models = { ...settings.get().models, summary: "off", ...(params.get("stt") ? { sttLive: params.get("stt")! } : {}), ...(params.get("final") ? { sttFinal: params.get("final")! } : {}) };
     const bridgeMic = params.get("source") === "glasses";
     await settings.update({ provider: "local", captureSource: bridgeMic ? "glasses" : "wav-file", models });
     const live = [models.vad, models.speakerEmbedding, models.sttLive].filter((id) => id !== "off");
     const downloadStart = pageMs();
-    for (const id of live) {
+    // The final-pass model too, so post-processing between runs does real work.
+    for (const id of [...live, ...(catalogEntry(models.sttFinal) ? [models.sttFinal] : [])]) {
       if (await engines.isDownloaded(id)) continue;
       out("downloading", { modelId: id });
       await engines.download(id);
@@ -80,7 +81,7 @@ export async function runBench(services: AppServices, params: URLSearchParams): 
     const platform = platformReport(caps, storage.diagnostics, inEvenApp);
     out("done", {
       run, pageMsAtStart: Math.round(t0), host: platform.host, engine: platform.engine, userAgent: caps.userAgent, webgpu: caps.webgpu.available, crossOriginIsolated: caps.crossOriginIsolated, threads: caps.wasmThreads,
-      models: live.map((id) => `${id}@${catalogEntry(id)?.manifest.version.slice(0, 8)}`), wav: bridgeMic ? "bridge mic" : wavUrl, source: sourceLabel, warmMs,
+      models: live.map((id) => `${id}@${catalogEntry(id)?.manifest.version.slice(0, 8)}`), sttFinal: models.sttFinal, wav: bridgeMic ? "bridge mic" : wavUrl, source: sourceLabel, warmMs,
       metrics: summarizeLiveMetrics(events), firstCaption: captions[0] ?? null, captionUpdates: captions.length, captions: captions.slice(0, 40), segments, startedAtMs: Math.round(t0), timeline: timeline.slice(0, 12),
     });
     }
