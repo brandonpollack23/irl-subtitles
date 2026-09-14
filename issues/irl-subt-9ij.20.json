@@ -2,6 +2,7 @@
   "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [],
+  "closed_at": "2026-09-14T07:27:36Z",
   "created": "2026-09-14T05:55:51Z",
   "description": "Integration test that runs the app's real live path in Node: RecordingController -\u003e ProviderCoordinator -\u003e LocalLiveSpeechProvider -\u003e LocalEngines -\u003e the real audio/asr worker handlers with real pinned models, fed a WAV as 100 ms frames, with GlassesController on a fake bridge so assertions are on what the glasses would show. Only the worker transport, Cache Storage and the Even bridge are shimmed. Used to diagnose 'no captions on glasses' from a saved simulator recording and to verify fixes (9ij.16, 9ij.17).",
   "id": "irl-subt-9ij.20",
@@ -18,7 +19,7 @@
     }
   ],
   "priority": 1,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Node live-pipeline harness: real app code and models on a WAV",
   "type": "task",
   "updated_at": "2026-09-14T07:27:36Z"
