@@ -2,14 +2,15 @@
   "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [],
+  "closed_at": "2026-09-14T03:56:49Z",
   "created": "2026-09-14T03:49:21Z",
   "description": "Mirror Even's Conversate: tap to start, tap to pause/resume, double-tap to end (stop and summarize). Idle root page double-tap must call shutDownPageContainer(1) (Even QA rule). Taps arrive as textEvent on the capturing text container (CLICK may be normalized to undefined); defer single tap briefly so the OS tap-then-long-press menu gesture doesn't pause. Menu keeps marker/pause/stop/save-audio.",
   "id": "irl-subt-9ij.13",
   "labels": [],
   "parent": "irl-subt-9ij",
   "priority": 2,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Glasses tap controls mirroring Conversate",
   "type": "task",
-  "updated_at": "2026-09-14T03:49:28Z"
+  "updated_at": "2026-09-14T03:56:49Z"
 }
