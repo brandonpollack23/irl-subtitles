@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-14T03:49:21Z",
+  "description": "Settings \u003e On-device models: show an overall progress bar (and current model / bytes) under 'Download selected models' while downloading. Engines progress currently reports per-file loaded/total, which jumps between files; aggregate per model.",
+  "id": "irl-subt-9ij.12",
+  "labels": [],
+  "parent": "irl-subt-9ij",
+  "priority": 2,
+  "status": "open",
+  "title": "Model download progress bar under the Download button",
+  "type": "task",
+  "updated_at": "2026-09-14T03:49:21Z"
+}
