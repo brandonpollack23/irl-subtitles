@@ -1,7 +1,9 @@
 {
   "assignee": "",
   "blocked_by": [],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-kdl.8"
+  ],
   "created": "2026-09-14T09:32:28Z",
   "description": "moonshine-ai/moonshine language-bindings/wasm (MIT, v0.1.5, 2026-08-24) runs Moonshine v2 Streaming (Tiny 34M, Small 123M, Medium 245M; en plus ja/es/de/zh/ar/vi/tl) with cached encoder/decoder state, built-in Silero VAD in C++, ORT minimal build with .ort models. Published npm build is SIMD+pthreads and needs SharedArrayBuffer; the simulator has none and the packaged Even app is likely not isolated. Build the SIMD-only variant (scripts/build-ort-wasm.sh single-thread, scripts/build-wasm.sh single-thread, emsdk 4.0.8). Benchmark two_cities.wav and our fixtures fed as live 100 ms frames with Tiny/Small/Medium: per-update compute, speech-end -\u003e final latency, load time, memory; in the Even simulator, Android Even app, iOS Even app (plus desktop Chrome for reference). Pass criterion: Small (en) holds real time with headroom on both phones alongside CAM++. Also check: CSP/wasm-unsafe-eval, worker bundling under Vite, loading verified bytes via Transcriber.load({files}), coexistence with onnxruntime-web memory. Record numbers on this ticket.",
   "id": "irl-subt-kdl.7",
@@ -11,5 +13,5 @@
   "status": "open",
   "title": "Spike: single-thread @moonshine-ai/moonshine-wasm build and phone benchmarks",
   "type": "task",
-  "updated_at": "2026-09-14T09:32:28Z"
+  "updated_at": "2026-09-14T09:32:29Z"
 }
