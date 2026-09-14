@@ -7,9 +7,15 @@
   "id": "irl-subt-9ij.16",
   "labels": [],
   "parent": "irl-subt-9ij",
+  "comments": [
+    {
+      "text": "Landed in jj revision lnuwmlyo (workspace vad-offset, on ulxzskxq). vad.push carries startSample; VadStream re-anchors on discontinuity (new run, recreated worker); utterance start clamped to the run's first sample. Regression test packages/provider-local/test/live-provider.test.ts fails on old code.",
+      "timestamp": "2026-09-14T05:34:43Z"
+    }
+  ],
   "priority": 1,
   "status": "in_progress",
   "title": "Fix live VAD sample-clock offset",
   "type": "bug",
-  "updated_at": "2026-09-14T05:24:08Z"
+  "updated_at": "2026-09-14T05:34:43Z"
 }
