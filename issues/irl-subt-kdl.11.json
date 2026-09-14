@@ -2,6 +2,7 @@
   "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [],
+  "closed_at": "2026-09-14T11:03:24Z",
   "created": "2026-09-14T09:32:28Z",
   "description": "Post-processing loads final STT into the shared asr worker, evicting the live model, so the next recording reloads it (ModelWarmup re-warms after). Give final STT its own worker (or the moonshine-wasm worker from B3 naturally separates them) so the live model stays hot; check iOS memory budget with final STT + summary models and release only under memory pressure.",
   "id": "irl-subt-kdl.11",
@@ -14,7 +15,7 @@
     }
   ],
   "priority": 0,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Keep the live STT model loaded across post-processing",
   "type": "task",
   "updated_at": "2026-09-14T11:03:24Z"
