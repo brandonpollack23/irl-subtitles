@@ -2,6 +2,7 @@
   "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [],
+  "closed_at": "2026-09-14T13:43:35Z",
   "created": "2026-09-14T13:31:46Z",
   "description": "With a saved voice profile, live captions label the user \"Speaker 1\" instead of their name. Question: does identity matching run during live capture at all, or does it run but the match thresholds (minScore/minMargin/minEvidence, irl-subt-f9n.5) or the label policy keep the name from showing? Evidence from the Even simulator 2026-09-14 (sttLive moonshine-base-en): speaker_clusters rows carry candidatePersonId person_f06da67a15074dd5b6bd with a candidateScore for rec_2e939b4aa05a474ab5fb L5 and rec_bc51692409814fb7bf84 L1, and post-processing identity reported \"1 of 4 speakers recognized\" (rec 1) and \"0 of 1 speakers recognized\" (rec 2). So a candidate is computed somewhere, but neither the live label nor rec 2's final identity used it. Trace live path -\u003e candidate -\u003e attribution -\u003e speakerLabel, find where it stops, and fix or recommend thresholds.",
   "id": "irl-subt-kdl.16",
@@ -14,7 +15,7 @@
     }
   ],
   "priority": 1,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Live speaker identification: saved profile shows as \"Speaker 1\" during capture",
   "type": "bug",
   "updated_at": "2026-09-14T13:43:35Z"
