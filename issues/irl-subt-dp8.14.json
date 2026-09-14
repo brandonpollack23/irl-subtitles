@@ -4,6 +4,8 @@
     "irl-subt-dp8.10"
   ],
   "blocks": [],
+  "closed_at": "2026-09-14T02:58:21Z",
+  "close_reason": "implemented; device/G2 verification tracked in docs/mvp/DEBUG-PLAN.md and irl-subt-9ij.9",
   "created": "2026-09-13T11:20:48Z",
   "description": "Searchable transcript with Speaker N labels in phone UI; last one or two finalized lines and current speaker on G2. plan.md §10.",
   "id": "irl-subt-dp8.14",
@@ -12,8 +14,8 @@
   ],
   "parent": "irl-subt-dp8",
   "priority": 1,
-  "status": "open",
+  "status": "closed",
   "title": "Transcript UI with anonymous clusters (phone) and live captions (G2)",
   "type": "task",
-  "updated_at": "2026-09-13T11:20:49Z"
+  "updated_at": "2026-09-14T02:58:21Z"
 }
