@@ -40,12 +40,16 @@ function csp(): Plugin {
     name: "irl-csp",
     transformIndexHtml(html, ctx) {
       const dev = !!ctx.server;
+      // Dev only: the Even simulator (Tauri on WebKitGTK) relays console output over fetch("ipc://localhost/…").
+      // Blocking it makes WebKit print "internal error… This is a WebKit bug" before Tauri
+      // falls back to postMessage. The Even app itself doesn't use it, so the shipped policy stays on the whitelist.
+      const devConnect = dev ? " ws: wss: ipc: http://ipc.localhost" : "";
       const policy = [
         "default-src 'self'",
         // wasm-unsafe-eval: ONNX Runtime WASM; blob: the runtime loads its factory from a cached blob URL.
         `script-src 'self' 'wasm-unsafe-eval' blob:${dev ? " 'unsafe-inline'" : ""}`,
         "worker-src 'self' blob:",
-        `connect-src ${CONNECT.join(" ")}${dev ? " ws: wss:" : ""}`,
+        `connect-src ${CONNECT.join(" ")}${devConnect}`,
         "img-src 'self' data: blob:",
         "media-src 'self' blob:",
         "style-src 'self' 'unsafe-inline'",
