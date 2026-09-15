@@ -4,6 +4,7 @@
   "blocks": [
     "irl-subt-3xb.5"
   ],
+  "closed_at": "2026-09-15T04:33:01Z",
   "created": "2026-09-15T03:51:05Z",
   "description": "Prove Speechmatics works from the Even WebView before building on it (same shape as the phase0 Soniox spike, spikes/phase0-probe/src/spikes/soniox.ts, results under spikes/phase0-probe/results).\n\nCheck on Android + iOS Even app and the simulator:\n1. POST https://mp.speechmatics.com/v1/api_keys?type=rt (and ?type=batch) with the user's key from the WebView: CORS allowed? Whitelist entry needed in app.json.\n2. wss://\u003cregion\u003e.rt.speechmatics.com/v2?jwt=... connects with the app.json network whitelist; which region hosts to whitelist (eu/us; pick default + setting?).\n3. Stream G2 PCM (16 kHz s16le) with diarization \"speaker\", enable_partials, a low max_delay: first-partial and final latency vs Soniox on the same clip.\n4. Realtime speaker ID round trip: session A with get_speakers -\u003e SpeakersResult identifiers; session B with speakers [{label: \u003copaque person id\u003e, speaker_identifiers}] -\u003e AddTranscript carries that label. Note how soon in an utterance the enrolled label appears (drives live glasses naming) and how speakers_sensitivity changes it.\n5. Batch: POST jobs to asr.api.speechmatics.com with a WAV from RecordingAudio, CORS, polling, get_speakers in batch; are batch identifiers usable in realtime on the same model?\n6. Can identifiers be minted from a short enrollment clip over batch (for re-enrolling from kept voice clips)?\n\nRecord results + chosen endpoints/models in the spike results and a comment here. Stop the epic if 1 or 2 fail without a workaround.",
   "id": "irl-subt-3xb.4",
@@ -16,8 +17,8 @@
     }
   ],
   "priority": 2,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Spike: Speechmatics realtime, batch and speaker ID from the Even WebView",
   "type": "task",
-  "updated_at": "2026-09-15T04:32:44Z"
+  "updated_at": "2026-09-15T04:33:01Z"
 }
