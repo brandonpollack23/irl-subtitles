@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-15T04:33:01Z",
+  "description": "Split from irl-subt-3xb.4 (desk probe done 2026-09-15, see spikes/phase0-probe/results/speechmatics/2026-09-15-desk.md). Needs a Speechmatics key and the Even app on Android, iOS, and the simulator. Use the phase0 probe's Speechmatics tab:\n1. Mint realtime JWT and open wss://eu.rt.speechmatics.com through the app.json whitelist.\n2. First-partial/final latency vs Soniox on the same G2 clip; max_delay effect.\n3. Realtime enroll (get_speakers) then identify (speakers with identifiers): how soon the enrolled label appears; speakers_sensitivity.\n4. Batch job from the WebView (upload size, polling while backgrounded); batch identifiers used in realtime.\n5. Identifiers minted from a 5-30 s enrollment clip over batch.\nThen run the app end to end: Speechmatics live captions, Speechmatics batch final transcript, and voice ID naming someone live on the glasses. Record results next to the desk probe and fix whatever differs from the documented API the providers were built on.",
+  "id": "irl-subt-3xb.9",
+  "labels": [],
+  "parent": "irl-subt-3xb",
+  "priority": 2,
+  "status": "open",
+  "title": "Speechmatics on-device verification: whitelist, latency, speaker ID round trip on Android/iOS",
+  "type": "task",
+  "updated_at": "2026-09-15T04:33:01Z"
+}
