@@ -238,6 +238,26 @@ export function cloudOptionBlocker(o: ServiceOption, role: ModelRole, models: Mo
   return null;
 }
 
+/**
+ * Replaces cloud options that can no longer run (their key was removed, the language changed, the Speechmatics audio
+ * voice ID depends on went away) with the fallback selection's values. Returns the roles it reset.
+ */
+export function repairSelection(models: ModelSelection, ctx: Pick<ResolveContext, "language" | "hasSecret">, fallback: ModelSelection): { models: ModelSelection; reset: ModelRole[] } {
+  let next = { ...models };
+  const reset: ModelRole[] = [];
+  // Two passes: resetting live captions can invalidate voice ID, which depends on it.
+  for (let pass = 0; pass < 2; pass++) {
+    for (const role of ALL_ROLES) {
+      const key = ROLE_KEYS[role];
+      const o = serviceOption(next[key]);
+      if (!o || !cloudOptionBlocker(o, role, next, { ...ctx, summaryEndpoint: true })) continue;
+      next = { ...next, [key]: fallback[key] };
+      if (!reset.includes(role)) reset.push(role);
+    }
+  }
+  return { models: next, reset };
+}
+
 export function resolveSelection(models: ModelSelection, ctx: ResolveContext): ResolvedSelection {
   const locks = selectionLocks(models);
   const out = {} as ResolvedSelection;

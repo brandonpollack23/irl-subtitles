@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   describeDataFlow,
   migrateSettings,
+  repairSelection,
   recordingLocks,
   resolveSelection,
   selectionLocks,
@@ -93,6 +94,26 @@ describe("selection resolver", () => {
     expect(serviceOption("whisper")).toBeUndefined();
     const r = resolveSelection({ ...LOCAL, sttLive: "soniox:stt-rt-v9" }, ctx({ secrets: ["soniox_api_key"] }));
     expect(option(r, "stt-live", "soniox:stt-rt-v9")).toMatchObject({ group: "cloud", disabled: null });
+  });
+});
+
+describe("repairing a selection", () => {
+  it("resets options whose key was removed, and voice ID that depended on them, to the fallback", () => {
+    const models = { ...LOCAL, sttLive: "speechmatics:enhanced", speakerEmbedding: "speechmatics:voice-id", summary: "cloud-summary" };
+    const withKey = repairSelection(models, { language: "en", hasSecret: () => true }, LOCAL);
+    expect(withKey.reset).toEqual([]);
+    const soniox = repairSelection({ ...models, sttFinal: "soniox-async:stt-async-v5" }, { language: "en", hasSecret: (n) => n === "speechmatics_api_key" }, LOCAL);
+    expect(soniox.reset).toEqual(["stt-final"]);
+    const gone = repairSelection(models, { language: "en", hasSecret: (n) => n === "soniox_api_key" }, LOCAL);
+    expect(gone.reset).toEqual(["stt-live", "speaker-embedding"]);
+    // The summary endpoint isn't a key; it stays.
+    expect(gone.models).toEqual({ ...LOCAL, summary: "cloud-summary" });
+  });
+
+  it("resets a live option that doesn't support a new language and voice ID with it", () => {
+    const models = { ...LOCAL, sttLive: "speechmatics:enhanced", speakerEmbedding: "speechmatics:voice-id" };
+    const r = repairSelection(models, { language: "auto", hasSecret: () => true }, { ...LOCAL, sttLive: "whisper-auto" });
+    expect(r.models).toMatchObject({ sttLive: "whisper-auto", speakerEmbedding: "campplus" });
   });
 });
 
