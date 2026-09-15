@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-r4t.1"
+  ],
   "blocks": [],
   "created": "2026-09-15T09:09:38Z",
   "description": "Idle menu = Start, Save audio, then each profile (active marked). Choosing one applies it via applyProfile, rebuilds the page and shows a notice (and anything reset). Labels within 32 bytes in every locale. Tests in glasses.test.ts.",
