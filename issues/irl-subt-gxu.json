@@ -11,11 +11,15 @@
     {
       "text": "Follow-up: recording/paused pages drop the status container; body is 0,0 528x288 beside the dot (overlap avoided: firmware z-order unverified).",
       "timestamp": "2026-09-15T09:39:59Z"
+    },
+    {
+      "text": "Dot is '•', on 5 s / off 0.4 s. Couldn't find how Conversate draws its pulsing dot (native, undocumented). SDK 0.0.15 has textColor 0-4 on text upgrades, so a brightness pulse is possible later (~3 upgrades/s); image flipbooks manage ~9 fps at 30x30.",
+      "timestamp": "2026-09-15T09:47:36Z"
     }
   ],
   "priority": 2,
   "status": "closed",
   "title": "Glasses recording indicator: a small blinking dot in the top-right corner instead of REC and the timer",
   "type": "task",
-  "updated_at": "2026-09-15T09:39:59Z"
+  "updated_at": "2026-09-15T09:47:36Z"
 }
