@@ -6,6 +6,7 @@
     "irl-subt-3xb.6"
   ],
   "blocks": [],
+  "closed_at": "2026-09-15T04:53:20Z",
   "created": "2026-09-15T03:51:05Z",
   "description": "Voice model option \"speechmatics:voice-id\": Speechmatics recognizes saved people itself, live and in batch, instead of local embeddings + decideMatch.\n\nStorage/identity (packages/pipeline/src/identity-service.ts, packages/domain/src/identity.ts):\n- New embeddingSpace \"speechmatics-id@\u003cmodel version\u003e\". A VoiceProfile in that space holds sealed Speechmatics identifiers (new row type or sealed JSON in VoicePrototype.sealedVector; decide in impl) with source recording and createdAt.\n- Enrollment: when the user names a cluster from a Speechmatics recording (assign/learnVoice), take that provider label's identifiers from SpeakersResult (live: requested with get_speakers at stream end, persisted per run keyed by scoped label; batch: from the job result) and store them on the person's profile. Undo, merge, forgetVoice, and \"Learn this voice\" off all apply to identifiers.\n- Identification: at session/job start send speakers [{label: \u003copaque personId token, never the name\u003e, speaker_identifiers}] within the 50-identifier budget (most recent/highest-evidence per person; exclude needsReenrollment). AddTranscript labels that match a person token -\u003e coordinator emits an accepted MatchDecision (source \"service\") so glasses show the name live (kdl.16/17 path) and hideOwnSpeechOnGlasses works for selfPersonId.\n- Model version change or identifiers rejected -\u003e profiles needsReenrollment; re-enroll from kept voice clips (keepVoiceClips) via batch get_speakers, mirroring migrateEmbeddingSpace.\n- Match tuning (kdl.18 panel): for this space show speakers_sensitivity instead of score sliders; readout shows service-assigned labels.\n- Resolver: option requires Speechmatics in stt-live or stt-final and a key; selecting it triggers the voiceprint consent (identifiers stored by Speechmatics). Switching voice model to/from it uses the existing re-enroll confirm in SettingsView setModel.\n- plan.md §6/§10 and the app.json permission description updated for cloud voiceprints.\n\nDone when: name a speaker once in a Speechmatics recording; next Speechmatics recording names them live on the glasses and in the final transcript without local embeddings; forget voice removes identifiers so they're no longer sent.",
   "id": "irl-subt-3xb.7",
@@ -18,7 +19,7 @@
     }
   ],
   "priority": 2,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Speechmatics voice identification: enroll identifiers and name known speakers live and in batch",
   "type": "task",
   "updated_at": "2026-09-15T04:53:20Z"
