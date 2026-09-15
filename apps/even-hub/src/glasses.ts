@@ -206,7 +206,8 @@ export class GlassesController {
     // enough: hiding someone else's words on a weak match is worse than showing the wearer's own.
     const isOwn = (clusterId: string | null) => settings.hideOwnSpeechOnGlasses && !!settings.selfPersonId && speakerOf(clusterId)?.personId === settings.selfPersonId;
     let body: string;
-    const degraded = s.degraded ? describe().degraded(s.degraded) : "";
+    // "Slowed to keep up" is a phone-only notice: it is transient and the captions still come, so it isn't worth glasses space.
+    const degraded = s.degraded && s.degraded.code !== "slowed" ? describe().degraded(s.degraded) : "";
     if (degraded && !settings.showCaptionsOnGlasses) body = degraded;
     else {
       const last = s.segments

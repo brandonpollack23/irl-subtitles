@@ -56,10 +56,12 @@ describe("audio", () => {
 });
 
 describe("names", () => {
-  it("prefers short names when the full name does not fit", () => {
+  it("prefers a saved short name everywhere", () => {
     const p = { fullName: "Alexandra Konstantinopoulou-Smythe", shortName: "Alex" };
-    expect(displayName(p)).toBe(p.fullName);
+    expect(displayName(p)).toBe("Alex");
     expect(displayName(p, 32)).toBe("Alex");
+    expect(displayName({ fullName: "Alice Liddell", shortName: "Alice" }, 32)).toBe("Alice");
+    expect(displayName({ fullName: "Alice Liddell", shortName: "" })).toBe("Alice Liddell");
     expect(utf8ByteLength(displayName({ fullName: "山田太郎山田太郎山田太郎山田太郎" }, 32))).toBeLessThanOrEqual(32);
     expect(truncateUtf8("héllo wörld", 8)).toBe("héll…");
     // Never splits a character a reader sees as one: a decomposed ガ (カ + combining dakuten) or an emoji sequence.
@@ -73,17 +75,17 @@ describe("names", () => {
     const base: SpeakerAttribution = { id: "a1", recordingId: "r", clusterId: "c1", personId: "p1", confidence: 1, source: "manual", revision: 1, operationId: "o1", createdAt: "", undone: false };
     expect(speakerLabel("c1", clusters, new Map(), people).text).toBe("Speaker 2");
     const active = activeAttributions([base, { ...base, id: "a2", personId: null, revision: 2, undone: true }]);
-    expect(speakerLabel("c1", clusters, active, people)).toMatchObject({ text: "Alice Liddell", kind: "confirmed" });
-    expect(speakerLabel("c1", clusters, new Map(), people, { candidate: { personId: "p1" } }).text).toBe("Possibly Alice Liddell");
+    expect(speakerLabel("c1", clusters, active, people)).toMatchObject({ text: "Alice", kind: "confirmed" });
+    expect(speakerLabel("c1", clusters, new Map(), people, { candidate: { personId: "p1" } }).text).toBe("Possibly Alice");
     // irl-subt-kdl.17: the glasses name a live candidate, marked as unsure, instead of "Speaker 2".
     const withCandidate = new Map([["c1", { ...clusters.get("c1")!, candidatePersonId: "p1" }]]);
-    expect(glassesSpeakerName("c1", withCandidate, new Map(), people)).toBe("Alice Liddell?");
-    expect(glassesSpeakerName("c1", withCandidate, active, people)).toBe("Alice Liddell");
+    expect(glassesSpeakerName("c1", withCandidate, new Map(), people)).toBe("Alice?");
+    expect(glassesSpeakerName("c1", withCandidate, active, people)).toBe("Alice");
     expect(glassesSpeakerName("c1", clusters, new Map(), people)).toBe("Speaker 2");
     // The UI language supplies the words around names; budgets account for them.
     const ja = { speaker: (n?: number) => (n ? `話者${n}` : "話者"), possibly: (name: string) => `${name}？`, maybe: (name: string) => `${name}？` };
     expect(speakerLabel("c1", clusters, new Map(), people, { words: ja })).toMatchObject({ text: "話者2", ordinal: 2 });
-    expect(glassesSpeakerName("c1", withCandidate, new Map(), people, ja)).toBe("Alice Liddell？");
+    expect(glassesSpeakerName("c1", withCandidate, new Map(), people, ja)).toBe("Alice？");
   });
 });
 

@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web";
 import { createMemo, createSignal, For, Show } from "solid-js";
 import { describe, fmt, t } from "@irl/i18n";
-import { activeAttributions, dataFlow, isVoiceIdOption, SERVICE_NAMES, formatClock, policyFor, speakerLabel, type ClusterId, type MatchDecision, type Person, type SpeakerAttribution } from "@irl/domain";
+import { activeAttributions, dataFlow, displayName, isVoiceIdOption, SERVICE_NAMES, formatClock, policyFor, speakerLabel, type ClusterId, type MatchDecision, type Person, type SpeakerAttribution } from "@irl/domain";
 import { embeddingSpaceOf } from "@irl/provider-local";
 import { app, Button, go, speakerColor, SpeakerName, useData, useSettings } from "./lib";
 import { liveSnapshot, warmupStatus } from "./model";
@@ -115,7 +115,10 @@ export function LiveView() {
           <MatchDetails
             matches={live().matches}
             label={(id) => <SpeakerName label={label(id)} ordinal={clusters().get(id)?.ordinal} onOpen={setSheet} />}
-            name={(personId) => names.value()?.people.get(personId)?.fullName ?? t().live.unknownPerson}
+            name={(personId) => {
+              const person = names.value()?.people.get(personId);
+              return person ? displayName(person) : t().live.unknownPerson;
+            }}
           />
         </Show>
 

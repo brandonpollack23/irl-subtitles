@@ -151,6 +151,16 @@ describe("glasses model loading notice", () => {
     vi.useRealTimers();
   });
 
+  it("never shows 'slowed to keep up' on the glasses, but still shows other degraded notices", async () => {
+    const { glasses, body } = page("recording");
+    const internals = glasses as unknown as { onSnapshot(s: LiveSnapshot): void };
+    const base = { state: "recording", provider: "local", persistAudio: false, capturedSamples: 0, segments: [], provisionalText: "", recordingId: null, currentClusterId: null, labelsVersion: 0 };
+    internals.onSnapshot({ ...base, degraded: { code: "slowed" } } as unknown as LiveSnapshot);
+    expect(await body()).toBe("(audio not saved)");
+    internals.onSnapshot({ ...base, degraded: { code: "captions-paused" } } as unknown as LiveSnapshot);
+    expect(await body()).toContain("Captions paused");
+  });
+
   it("re-resolves the speaker name when a live candidate lands after the label change (irl-subt-kdl.16)", async () => {
     const snapshot = (candidate?: string) =>
       ({

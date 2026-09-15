@@ -17,10 +17,10 @@ export const G2_MENU_LABEL_MAX_BYTES = 32;
 /** Budget for a speaker name on the G2 caption line. */
 export const G2_SPEAKER_NAME_MAX_BYTES = 24;
 
+/** A saved short name always wins over the full name; the full name stays for the People screens. */
 export function displayName(person: Pick<Person, "fullName" | "shortName">, maxBytes?: number): string {
-  if (maxBytes === undefined || utf8ByteLength(person.fullName) <= maxBytes) return person.fullName;
-  if (person.shortName && utf8ByteLength(person.shortName) <= maxBytes) return person.shortName;
-  return truncateUtf8(person.shortName ?? person.fullName, maxBytes);
+  const name = person.shortName || person.fullName;
+  return maxBytes === undefined ? name : truncateUtf8(name, maxBytes);
 }
 
 /** The words around speaker names, in the UI language. English is the default (exports, prompts, logs). */

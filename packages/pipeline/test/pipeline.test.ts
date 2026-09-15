@@ -303,10 +303,10 @@ describe("recording pipeline", () => {
     expect(summary.profiles[0]?.prototypes).toBe(1);
     expect(summary.profiles[0]?.clips).toBeGreaterThan(0);
     const exported = await exportRecording(env.repo, id);
-    expect(exported.markdown).toContain("Alice Liddell — confirmed by you");
+    expect(exported.markdown).toContain("Alice — confirmed by you");
     // Markdown follows the UI language; the JSON's keys and kinds don't.
     const ja = await exportRecording(env.repo, id, "ja");
-    expect(ja.markdown).toContain("Alice Liddell — 確認済み");
+    expect(ja.markdown).toContain("Alice — 確認済み");
     expect(ja.markdown).toContain("## 文字起こし");
     expect(ja.json.speakers).toEqual(exported.json.speakers.map((s) => (s.kind === "anonymous" ? { ...s, label: s.label.replace("Speaker ", "話者") } : s)));
     expect(exported.json.speakers.find((s) => s.clusterId === speakerA)?.kind).toBe("confirmed");
@@ -317,7 +317,7 @@ describe("recording pipeline", () => {
     expect(rec2.audioRetention).toBe("deleted");
     expect(await env.repo.listChunks(id2)).toEqual([]);
     const exported2 = await exportRecording(env.repo, id2);
-    const alice = exported2.json.speakers.find((s) => s.label === "Alice Liddell");
+    const alice = exported2.json.speakers.find((s) => s.label === "Alice");
     expect(alice?.kind).toBe("auto");
     expect(exported2.json.speakers.filter((s) => s.kind === "anonymous").length).toBe(1);
 

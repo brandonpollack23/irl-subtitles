@@ -1,5 +1,6 @@
 import {
   activeAttributions,
+  displayName,
   resolveCluster,
   speakerLabel,
   type ClusterId,
@@ -57,7 +58,7 @@ export interface HistoryRow {
 export async function loadHistory(): Promise<HistoryRow[]> {
   const { repo } = app().storage;
   const [recordings, people] = await Promise.all([repo.listRecordings(), repo.listPeople()]);
-  const names = new Map(people.map((p) => [p.id, p.fullName]));
+  const names = new Map(people.map((p) => [p.id, displayName(p)]));
   return Promise.all(
     recordings.map(async (recording) => {
       const attrs = activeAttributions(await repo.listAttributions(recording.id));
