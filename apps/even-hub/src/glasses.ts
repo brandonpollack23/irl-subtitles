@@ -1,6 +1,6 @@
 import { OsEventTypeList, StartUpPageCreateResult, type EvenAppBridge, type EvenHubEvent } from "@evenrealities/even_hub_sdk";
 import { getBridge, onHubEvent } from "@irl/capture";
-import { formatClock, G2_MENU_LABEL_MAX_BYTES, truncateUtf8, utf8ByteLength, errorMessage } from "@irl/domain";
+import { formatClock, G2_MENU_LABEL_MAX_BYTES, truncateUtf8, utf8ByteLength, errorMessage, SERVICE_NAMES } from "@irl/domain";
 import type { LiveSnapshot, RecordingController } from "@irl/pipeline";
 import type { SettingsStore } from "@irl/storage";
 import { logger } from "./log";
@@ -170,13 +170,13 @@ export class GlassesController {
   }
 
   private texts(mode: Mode, s: LiveSnapshot): { status: string; body: string } {
-    const provider = s.provider === "soniox" ? "Soniox" : "Local";
+    const provider = s.provider === "local" ? "Local" : SERVICE_NAMES[s.provider];
     const audio = s.persistAudio ? "saving audio" : "audio not saved";
-    // Soniox captions don't wait on local models.
-    const line = s.provider === "soniox" ? null : this.modelsLine;
+    // Cloud captions don't wait on local models.
+    const line = s.provider !== "local" ? null : this.modelsLine;
     if (mode === "idle") {
       const saving = s.persistAudio ? "Audio will be saved." : "Audio won't be saved.";
-      const { failed, missing } = s.provider === "soniox" ? { failed: [], missing: [] } : this.models;
+      const { failed, missing } = s.provider !== "local" ? { failed: [], missing: [] } : this.models;
       const lines = [
         this.notice ?? (line === "loading" ? saving : `Ready. ${saving}`),
         line === "loading" ? LOADING_IDLE : line === "ready" ? READY : "",

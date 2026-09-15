@@ -7,6 +7,7 @@ import {
   nowIso,
   pcmToFloat32,
   providerKindFor,
+  recordingLiveOption,
   selectionLocks,
   rmsDbfs,
   type ClusterId,
@@ -75,7 +76,8 @@ export interface ControllerDeps {
   ephemeral: EphemeralKeys;
   settings: SettingsStore;
   identity: IdentityService;
-  providers: (kind: ProviderKind) => Promise<LiveSpeechProvider>;
+  /** The live provider for a recording's live option: a cloud option id, or "local" for on-device models. */
+  providers: (optionId: string) => Promise<LiveSpeechProvider>;
   createSource: () => Promise<AudioSource>;
   /** Called with the recording id once capture has stopped and audio is flushed. */
   onCaptured: (recordingId: string) => void;
@@ -187,14 +189,14 @@ export class RecordingController {
     const a = this.active;
     if (!a) return;
     try {
-      const provider = await this.deps.providers(recording.provider);
+      const provider = await this.deps.providers(recordingLiveOption(recording)?.id ?? "local");
       if (this.active !== a) return;
       const coordinator = new ProviderCoordinator(this.deps.repo, recording, provider, this.deps.identity, (u) => {
         if (this.active === a) this.update({ ...u });
       });
       a.coordinator = coordinator;
       await coordinator.start();
-      await this.deps.repo.updateRecording(recording.id, (r) => ({ processing: { ...r.processing, liveStt: { status: r.models.sttLive === "off" && r.provider === "local" ? "skipped" : "running", updatedAt: nowIso() } } }));
+      await this.deps.repo.updateRecording(recording.id, (r) => ({ processing: { ...r.processing, liveStt: { status: r.models.sttLive === "off" ? "skipped" : "running", updatedAt: nowIso() } } }));
     } catch (e) {
       this.update({ degraded: `Saving — processing later (${errorMessage(e)})` });
       await this.deps.repo.updateRecording(recording.id, { degraded: `live processing unavailable: ${errorMessage(e)}` });

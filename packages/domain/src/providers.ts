@@ -100,6 +100,45 @@ export interface LiveSpeechProvider {
   start(config: TranscriptionConfig & { embeddingModelId: string; sttModelId: string | "off"; vadModelId: string }): Promise<LiveSpeechRun>;
 }
 
+/** Enrolled voices a service should recognize, labeled with opaque tokens (never names). */
+export interface ServiceSpeaker {
+  label: string;
+  identifiers: string[];
+}
+
+export interface FinalTranscriptJob {
+  recordingId: RecordingId;
+  providerRunId: string;
+  /** The cloud option id, e.g. "speechmatics-batch:enhanced". */
+  optionId: string;
+  language: string;
+  /** The whole recording as a 16 kHz mono PCM WAV. */
+  wav: Uint8Array;
+  signal: AbortSignal;
+  onProgress?: (note: string) => void;
+  /** Voices to label by token (Speechmatics voice identification). */
+  speakers?: readonly ServiceSpeaker[];
+  /** Ask the service for voiceprint identifiers of the speakers it found. */
+  getSpeakers?: boolean;
+}
+
+export interface FinalTranscriptResult {
+  /** Final tokens, with sample times from the start of the recording. */
+  tokens: TranscriptToken[];
+  turns: SpeakerTurn[];
+  /** One entry per service speaker label that has turns; cluster ids match the turns. */
+  clusters: { clusterId: ClusterId; ordinal: number; providerLabel: string }[];
+  /** Identifiers per cluster, when getSpeakers was requested. */
+  speakers?: { clusterId: ClusterId; identifiers: string[] }[];
+  language?: string;
+}
+
+/** A cloud batch service that makes the final transcript and speaker turns after Stop (irl-subt-3xb.3). */
+export interface CloudFinalProvider {
+  readonly id: string;
+  transcribe(job: FinalTranscriptJob): Promise<FinalTranscriptResult>;
+}
+
 export interface ModelSession {
   readonly modelId: string;
   readonly target: ExecutionTarget;

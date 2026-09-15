@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web";
 import { createMemo, createSignal, For, Show } from "solid-js";
-import { activeAttributions, describeDataFlow, formatClock, policyFor, speakerLabel, type ClusterId, type MatchDecision, type Person, type SpeakerAttribution } from "@irl/domain";
+import { activeAttributions, describeDataFlow, SERVICE_NAMES, formatClock, policyFor, speakerLabel, type ClusterId, type MatchDecision, type Person, type SpeakerAttribution } from "@irl/domain";
 import { embeddingSpaceOf } from "@irl/provider-local";
 import { app, Button, go, speakerColor, SpeakerName, useData, useSettings } from "./lib";
 import { liveSnapshot, warmupStatus } from "./model";
@@ -9,8 +9,8 @@ import { SpeakerSheet } from "./SpeakerSheet";
 export function LiveView() {
   const live = liveSnapshot();
   const warmup = warmupStatus();
-  // Soniox captions don't wait on local models.
-  const modelsLoading = () => warmup().loading.length > 0 && live().provider !== "soniox";
+  // Cloud captions don't wait on local models.
+  const modelsLoading = () => warmup().loading.length > 0 && live().provider === "local";
   const [sheet, setSheet] = createSignal<ClusterId | null>(null);
   const idle = () => live().state === "idle";
   const [settings] = useSettings();
@@ -59,7 +59,7 @@ export function LiveView() {
             <span class="rec-dot" aria-hidden="true" />
             <span class="rec-label">{live().state === "paused" ? "Paused" : live().state === "finalizing" ? "Saving" : live().state === "starting" ? "Starting" : "Recording"}</span>
             <span class="muted small">
-              {live().sourceLabel} · {live().provider === "soniox" ? "Soniox" : "On this phone"} · {live().persistAudio ? "saving audio" : "audio not saved"}
+              {live().sourceLabel} · {live().provider === "local" ? "On this phone" : SERVICE_NAMES[live().provider as "soniox"]} · {live().persistAudio ? "saving audio" : "audio not saved"}
             </span>
           </div>
           <div class="clock" aria-live="off">

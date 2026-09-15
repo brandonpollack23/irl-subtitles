@@ -1,5 +1,5 @@
 import { createSignal, For, onSettled, Show } from "solid-js";
-import { formatClock, SAMPLE_RATE, serviceOption, type AnchoredText, type ClusterId, type ProcessingStage, type TranscriptSegment } from "@irl/domain";
+import { formatClock, recordingLocks, recordingServicesLabel, SAMPLE_RATE, selectionLocks, serviceOption, type AnchoredText, type ClusterId, type ProcessingStage, type TranscriptSegment } from "@irl/domain";
 import { ALL_STAGES, deleteRecording, deleteRecordingAudio, exportRecording, type PostStage } from "@irl/pipeline";
 import { catalogEntry } from "@irl/provider-local";
 import { app, bumpData, Button, download, duration, go, Sheet, SpanText, speakerColor, SpeakerName, toast, useData, when } from "./lib";
@@ -202,7 +202,7 @@ function Header(props: { m: RecordingModel }) {
         </div>
       </Show>
       <p class="muted small num">
-        {when(r().startedAt ?? r().createdAt)} · {duration(r().totalSamples)} · {r().provider === "soniox" ? "Soniox" : "On-device"} · {r().language} ·{" "}
+        {when(r().startedAt ?? r().createdAt)} · {duration(r().totalSamples)} · {recordingServicesLabel(r())} · {r().language} ·{" "}
         {r().audioRetention === "persisted" ? "audio saved" : r().audioRetention === "ephemeral" ? "audio not kept" : "audio deleted"}{" "}
         <span class={["badge", { busy: badge().kind === "busy", bad: badge().kind === "bad" }]}>{badge().text}</span>
       </p>
@@ -220,7 +220,8 @@ function Processing(props: { m: RecordingModel; progress: { stage: string; progr
   const outdated = () => {
     const out: { stage: PostStage; label: string; patch: Partial<typeof settings.prototype> }[] = [];
     const cur = settings().models;
-    if (r().provider === "local" && cur.sttFinal !== r().models.sttFinal) out.push({ stage: "finalStt", label: `Re-transcribe with ${catalogEntry(cur.sttFinal)?.displayName ?? cur.sttFinal}`, patch: {} });
+    // A final transcript some other option provided (a live stream's final tokens) can't be redone on its own.
+    if (!recordingLocks(r())["stt-final"] && cur.sttFinal !== r().models.sttFinal) out.push({ stage: "finalStt", label: `Re-transcribe with ${serviceOption(cur.sttFinal)?.displayName ?? catalogEntry(cur.sttFinal)?.displayName ?? cur.sttFinal}`, patch: {} });
     if (cur.summary !== r().models.summary && cur.summary !== "off") out.push({ stage: "summary", label: `Re-summarize with ${serviceOption(cur.summary) ? "the cloud endpoint" : (catalogEntry(cur.summary)?.displayName ?? cur.summary)}`, patch: {} });
     return out;
   };
@@ -231,7 +232,7 @@ function Processing(props: { m: RecordingModel; progress: { stage: string; progr
     const models = { ...r().models };
     if (stages.includes("finalStt")) models.sttFinal = cur.sttFinal;
     if (stages.includes("summary")) models.summary = cur.summary;
-    await app().storage.repo.updateRecording(r().id, { models });
+    await app().storage.repo.updateRecording(r().id, { models, selection: { locks: selectionLocks(models) } });
     // A new transcript invalidates speakers and summary downstream.
     const expanded: PostStage[] = stages.includes("finalStt") ? ["finalStt", "diarization", "identity", "summary"] : stages;
     app().post.enqueue(r().id, expanded);

@@ -20,7 +20,19 @@ import {
   speakerLabel,
   cosine,
   meanVector,
+  rangeDurationMs,
   canTransition,
+  concatBytes,
+  float32ToPcm,
+  overlap,
+  recordingLiveOption,
+  recordingLocks,
+  SERVICE_NAMES,
+  serviceOption,
+  wavHeader,
+  type CloudFinalProvider,
+  type FinalTranscriptResult,
+  type ServiceOption,
 } from "@irl/domain";
 import { chunkPath, encodeOpus, opusEncoderRate, type RecordingAudio } from "@irl/capture";
 import { writeVerified, type BlobStore, type Repository, type Sealer, type SettingsStore } from "@irl/storage";
@@ -50,6 +62,8 @@ export interface PostProcessorDeps {
   ephemeral: EphemeralKeys;
   durable: Sealer;
   isCapturing: () => boolean;
+  /** Cloud batch final-transcript providers by option id (Speechmatics batch, Soniox async). */
+  cloudFinal?: (optionId: string) => CloudFinalProvider | null;
 }
 
 const BLOCK_SAMPLES = 60 * SAMPLE_RATE;
@@ -220,7 +234,10 @@ export class PostProcessor {
   }
 
   private async finalStt(rec: Recording, speech: () => Promise<TimeRange[]>, signal: AbortSignal): Promise<{ status: StageStatus; note?: string }> {
-    if (rec.provider === "soniox") return { status: "skipped", note: "Soniox final tokens are the transcript" };
+    const lockedBy = recordingLocks(rec)["stt-final"];
+    if (lockedBy) return { status: "skipped", note: `${SERVICE_NAMES[serviceOption(lockedBy)?.service ?? "soniox"]} final tokens are the transcript` };
+    const cloud = serviceOption(rec.models.sttFinal);
+    if (cloud?.kind === "batch-final") return this.cloudFinalStt(rec, cloud, signal);
     const liveOk = rec.processing.liveStt.status === "done" && !rec.degraded;
     const modelId = rec.models.sttFinal === "same-as-live" ? (liveOk ? null : rec.models.sttLive === "off" ? null : rec.models.sttLive) : rec.models.sttFinal;
     if (!modelId) return { status: "skipped", note: rec.models.sttLive === "off" ? "no STT model selected" : "same as live" };
@@ -251,6 +268,121 @@ export class PostProcessor {
     return { status: "done", note: `${tokens.length} words${detected ? `, language ${detected}` : ""}` };
   }
 
+  /**
+   * Cloud batch final transcript (irl-subt-3xb.3): the recording's audio goes to the service, whose tokens and turns
+   * replace the live pass only once they arrived, so a failure leaves the live transcript intact.
+   */
+  private async cloudFinalStt(rec: Recording, option: ServiceOption, signal: AbortSignal): Promise<{ status: StageStatus; note?: string }> {
+    if (!(await this.audioAvailable(rec))) return { status: "skipped", note: "audio unavailable" };
+    const provider = this.deps.cloudFinal?.(option.id);
+    if (!provider) throw new Error(`${option.displayName} is not available`);
+    const runId = newId("final");
+    const { repo } = this.deps;
+    await repo.putRun({ id: runId, recordingId: rec.id, provider: provider.id, kind: "final-stt", config: { optionId: option.id, language: rec.language }, startedAt: nowIso(), endedAt: null, state: "running", error: null, resume: null });
+    let result: FinalTranscriptResult;
+    try {
+      const wav = await this.recordingWav(rec, signal);
+      this.events.emit({ recordingId: rec.id, stage: "finalStt", status: "running", note: `sending audio to ${SERVICE_NAMES[option.service]}` });
+      result = await provider.transcribe({
+        recordingId: rec.id, providerRunId: runId, optionId: option.id, language: rec.language, wav, signal,
+        onProgress: (note) => this.events.emit({ recordingId: rec.id, stage: "finalStt", status: "running", note }),
+        ...(await this.serviceSpeakers(rec, option)),
+      });
+    } catch (e) {
+      await repo.updateRun(runId, { state: signal.aborted ? "aborted" : "failed", error: errorMessage(e), endedAt: nowIso() });
+      throw e;
+    }
+    await this.adoptServiceTranscript(rec, runId, result);
+    await repo.updateRecording(rec.id, (r) => ({ transcriptRevision: r.transcriptRevision + 1, modelVersions: { ...r.modelVersions, "stt-final": option.id } }));
+    return { status: "done", note: `${result.tokens.length} words, ${result.clusters.length} speakers from ${SERVICE_NAMES[option.service]}${result.language ? `, language ${result.language}` : ""}` };
+  }
+
+  /** Voices to send with a batch job; filled in by Speechmatics voice identification. */
+  protected async serviceSpeakers(_rec: Recording, _option: ServiceOption): Promise<{ speakers?: { label: string; identifiers: string[] }[]; getSpeakers?: boolean }> {
+    return {};
+  }
+
+  /** Reads the recording block by block (yielding to live capture) into one WAV. */
+  private async recordingWav(rec: Recording, signal: AbortSignal): Promise<Uint8Array> {
+    const parts: Uint8Array[] = [];
+    let bytes = 0;
+    for (let start = 0; start < rec.totalSamples; start += BLOCK_SAMPLES) {
+      await this.yieldToCapture(signal);
+      if (signal.aborted) throw new Error("cancelled");
+      const pcm = float32ToPcm(await this.deps.audio.readRange(rec.id, { startSample: start, endSample: Math.min(rec.totalSamples, start + BLOCK_SAMPLES) }));
+      parts.push(pcm);
+      bytes += pcm.byteLength;
+    }
+    return concatBytes([wavHeader(bytes), ...parts]);
+  }
+
+  /**
+   * Writes a service's final pass: tokens and turns replace every earlier pass, and service speakers take over the
+   * live cluster ids they overlap most, so names given during the recording stay attached.
+   */
+  private async adoptServiceTranscript(rec: Recording, runId: string, result: FinalTranscriptResult): Promise<void> {
+    const { repo } = this.deps;
+    const clusters = new Map((await repo.listClusters(rec.id)).map((c) => [c.clusterId, c]));
+    const liveTurns = (await repo.listTurns(rec.id)).filter((t) => t.final && t.providerRunId !== runId);
+    const idFor = new Map<ClusterId, ClusterId>();
+    const claimed = new Set<ClusterId>();
+    const byEvidence = [...result.clusters].sort((a, b) => serviceSpan(result, b.clusterId) - serviceSpan(result, a.clusterId));
+    for (const c of byEvidence) {
+      const votes = new Map<ClusterId, number>();
+      for (const t of result.turns.filter((x) => x.clusterId === c.clusterId)) {
+        for (const l of liveTurns) {
+          const id = resolveCluster(clusters, l.clusterId);
+          const o = overlap(t, l);
+          if (o > 0 && !claimed.has(id)) votes.set(id, (votes.get(id) ?? 0) + o);
+        }
+      }
+      const best = [...votes.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+      if (best) claimed.add(best);
+      idFor.set(c.clusterId, best ?? c.clusterId);
+    }
+    const map = (id: ClusterId) => idFor.get(id) ?? id;
+    const turns = result.turns.map((t) => ({ ...t, providerRunId: runId, clusterId: map(t.clusterId) }));
+    const tokens = result.tokens.map((t) => ({ ...t, providerRunId: runId, final: true }));
+    let nextOrdinal = Math.max(0, ...[...clusters.values()].map((c) => c.ordinal)) + 1;
+    for (const c of byEvidence) {
+      const id = map(c.clusterId);
+      const existing = clusters.get(id);
+      const evidenceMs = turns.filter((t) => t.clusterId === id).reduce((n, t) => n + rangeDurationMs(t), 0);
+      const row: SpeakerCluster = existing ? { ...existing, evidenceMs, providerLabel: c.providerLabel } : { recordingId: rec.id, clusterId: id, ordinal: nextOrdinal++, evidenceMs, providerLabel: c.providerLabel };
+      delete row.mergedInto;
+      clusters.set(id, row);
+    }
+    // Live clusters no service speaker claimed fold into the one that absorbed most of their speech.
+    const kept = new Set(turns.map((t) => t.clusterId));
+    for (const [id, c] of clusters) {
+      if (kept.has(id) || c.mergedInto) continue;
+      const votes = new Map<ClusterId, number>();
+      for (const l of liveTurns.filter((x) => resolveCluster(clusters, x.clusterId) === id)) for (const t of turns) votes.set(t.clusterId, (votes.get(t.clusterId) ?? 0) + overlap(t, l));
+      const into = [...votes.entries()].filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1])[0]?.[0];
+      if (into) clusters.set(id, { ...c, mergedInto: into });
+    }
+    // Write the new pass before removing the old one, so an interruption never leaves no transcript.
+    await repo.putTokens(tokens);
+    await repo.putTurns(turns);
+    for (const c of clusters.values()) await repo.putCluster(c);
+    await repo.updateRun(runId, { state: "finished", endedAt: nowIso() });
+    await repo.deleteTokens(rec.id, (t) => t.providerRunId !== runId);
+    await repo.deleteTurns(rec.id, (t) => t.providerRunId !== runId);
+    for (const r of await repo.listRuns(rec.id)) if (r.kind === "final-stt" && r.id !== runId && r.state === "finished") await repo.updateRun(r.id, { state: "aborted" });
+    // Voice windows follow the speaker turn they fall in.
+    const windows = await repo.listWindows(rec.id);
+    const moved = windows.map((w) => {
+      const mid = (w.startSample + w.endSample) / 2;
+      const t = turns.find((x) => x.startSample <= mid && mid < x.endSample);
+      return t && t.clusterId !== w.clusterId ? { ...w, clusterId: t.clusterId } : null;
+    }).filter((w): w is VoiceWindow => w !== null);
+    if (moved.length) await repo.putWindows(moved);
+    await this.storeServiceSpeakers(rec, runId, result.speakers?.map((s) => ({ ...s, clusterId: map(s.clusterId) })) ?? []);
+  }
+
+  /** Keeps voiceprint identifiers a service returned; used by Speechmatics voice identification. */
+  protected async storeServiceSpeakers(_rec: Recording, _runId: string, _speakers: { clusterId: ClusterId; identifiers: string[] }[]): Promise<void> {}
+
   private async diarize(rec: Recording, speech: () => Promise<TimeRange[]>, signal: AbortSignal): Promise<{ status: StageStatus; note?: string }> {
     const { repo, toolkit, identity } = this.deps;
     const modelId = rec.models.speakerEmbedding;
@@ -259,7 +391,11 @@ export class PostProcessor {
     const liveWindows = (await repo.listWindows(rec.id)).filter((w) => w.embeddingSpace === space);
     const haveAudio = await this.audioAvailable(rec);
 
-    if (rec.provider === "soniox") return this.fuseSoniox(rec, clusters, liveWindows, haveAudio, space, signal);
+    // A service's turns (a live stream, or a batch final transcript) stay authoritative.
+    const finalRun = (await repo.listRuns(rec.id)).filter((r) => r.kind === "final-stt" && r.state === "finished").at(-1);
+    const serviceTurns = recordingLiveOption(rec) !== undefined || (finalRun !== undefined && finalRun.provider !== "local");
+    if (serviceOption(modelId)) return { status: "skipped", note: `speakers from ${SERVICE_NAMES[serviceOption(modelId)!.service]}` };
+    if (serviceTurns) return this.fuseServiceTurns(rec, clusters, liveWindows, haveAudio, space, signal);
 
     // Embed speech the live pass missed (degraded, battery saver, or model not ready).
     const newWindows: VoiceWindow[] = [];
@@ -336,10 +472,11 @@ export class PostProcessor {
   }
 
   /**
-   * Soniox mode (plan.md §6.2): Soniox turns stay authoritative; local embeddings over those ranges link
-   * Soniox speaker labels across reconnect runs and feed persistent identification. Embeddings stay local.
+   * Service speakers (plan.md §6.2, Soniox or Speechmatics): the service's turns stay authoritative; local embeddings
+   * over those ranges link its speaker labels across reconnect runs and feed persistent identification. Embeddings
+   * stay local.
    */
-  private async fuseSoniox(rec: Recording, clusters: Map<ClusterId, SpeakerCluster>, existing: VoiceWindow[], haveAudio: boolean, space: string, signal: AbortSignal): Promise<{ status: StageStatus; note?: string }> {
+  private async fuseServiceTurns(rec: Recording, clusters: Map<ClusterId, SpeakerCluster>, existing: VoiceWindow[], haveAudio: boolean, space: string, signal: AbortSignal): Promise<{ status: StageStatus; note?: string }> {
     const { repo, toolkit, identity } = this.deps;
     const turns = (await repo.listTurns(rec.id)).filter((t) => t.final);
     const windows = [...existing];
@@ -357,7 +494,7 @@ export class PostProcessor {
         }
       }
     }
-    if (!windows.length) return { status: "skipped", note: "no local voice evidence for Soniox speakers" };
+    if (!windows.length) return { status: "skipped", note: "no local voice evidence for the service's speakers" };
     const byCluster = new Map<ClusterId, Float32Array[]>();
     for (const w of windows) byCluster.set(w.clusterId, [...(byCluster.get(w.clusterId) ?? []), await identity.openVector(w.sealedVector)]);
     const centroids = [...byCluster.entries()].map(([id, vs]) => ({ id, c: meanVector(vs), n: vs.length })).sort((a, b) => b.n - a.n);
@@ -448,6 +585,10 @@ export async function deleteAudio(repo: Repository, blobs: BlobStore, recordingI
   await blobs.deletePrefix(`scratch/${recordingId}/`);
   await repo.deleteChunks(recordingId);
   await repo.updateRecording(recordingId, { audioRetention: "deleted" });
+}
+
+function serviceSpan(result: FinalTranscriptResult, clusterId: ClusterId): number {
+  return result.turns.filter((t) => t.clusterId === clusterId).reduce((n, t) => n + t.endSample - t.startSample, 0);
 }
 
 function countOf(labels: readonly number[], l: number): number {

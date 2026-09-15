@@ -9,7 +9,13 @@ import {
   newId,
   SAMPLE_RATE,
   sleep,
+  parseWav,
   type AudioFrame,
+  type CloudFinalProvider,
+  type FinalTranscriptJob,
+  type ModelSelection,
+  type SpeakerTurn,
+  type TranscriptToken,
   type ConversationSummary,
   type LiveSpeechProvider,
   type LiveSpeechRun,
@@ -53,9 +59,14 @@ class ManualSource implements AudioSource {
 }
 
 class FakeLiveProvider implements LiveSpeechProvider {
-  readonly id = "fake-live";
+  readonly id: string = "fake-live";
   readonly capabilities = { transcription: "streaming", diarization: "streaming", persistentIdentity: true, languages: ["en"], execution: "local" } as const;
+  /** A cloud stream: service speaker labels ("S0-1"), no local voice windows. */
+  constructor(private readonly cloud = false) {
+    if (cloud) this.id = "fake-cloud-live";
+  }
   async start(config: { recordingId: string; providerRunId: string }): Promise<LiveSpeechRun> {
+    const cloud = this.cloud;
     const events = new AsyncQueue<SpeechEvent>();
     let acc = 0;
     let n = 0;
@@ -71,14 +82,14 @@ class FakeLiveProvider implements LiveSpeechProvider {
         const start = end - SAMPLE_RATE * 2;
         const view = new DataView(frame.pcm.buffer, frame.pcm.byteOffset);
         const voice = Math.abs(view.getInt16(0, true) / 32768) > 0.3 ? "B" : "A";
-        const clusterId = `L${voice === "A" ? 1 : 2}`;
+        const clusterId = `${cloud ? "S0-" : "L"}${voice === "A" ? 1 : 2}`;
         if (!clusters.has(clusterId)) {
           clusters.set(clusterId, clusters.size + 1);
           events.push({ type: "cluster", clusterId, ordinal: clusters.get(clusterId)! });
         }
         events.push({ type: "tokens", replaceProvisional: true, tokens: [{ id: newId("t"), recordingId: config.recordingId, providerRunId: config.providerRunId, startSample: start, endSample: end, text: ` live${n++}`, final: true, timing: "segment-interpolated" }] });
         events.push({ type: "turns", turns: [{ id: newId("turn"), recordingId: config.recordingId, providerRunId: config.providerRunId, clusterId, startSample: start, endSample: end, final: true }] });
-        events.push({ type: "window", clusterId, embedding: { startSample: start, endSample: end, vector: vectorFor(voice), embeddingSpace: SPACE, quality: 0.9 } });
+        if (!cloud) events.push({ type: "window", clusterId, embedding: { startSample: start, endSample: end, vector: vectorFor(voice), embeddingSpace: SPACE, quality: 0.9 } });
       },
       finish: async () => events.close(),
       abort: async () => events.close(),
@@ -119,22 +130,49 @@ function fakeToolkit(): ProcessingToolkit {
   };
 }
 
-async function setup(wrapToolkit: (t: ProcessingToolkit) => ProcessingToolkit = (t) => t) {
+/** A batch service that "hears" voices like the fakes and labels them S1/S2. */
+function fakeCloudFinal(opts: { fail?: boolean; jobs?: FinalTranscriptJob[] } = {}): CloudFinalProvider {
+  return {
+    id: "fake-batch",
+    transcribe: async (job) => {
+      opts.jobs?.push(job);
+      if (opts.fail) throw new Error("service unavailable");
+      const { samples } = parseWav(job.wav);
+      const tokens: TranscriptToken[] = [];
+      const turns: SpeakerTurn[] = [];
+      for (let s = 0; s + SAMPLE_RATE <= samples.length; s += SAMPLE_RATE) {
+        const voice = voiceOf(samples.subarray(s, s + SAMPLE_RATE));
+        tokens.push({ id: newId("tok"), recordingId: job.recordingId, providerRunId: job.providerRunId, startSample: s, endSample: s + SAMPLE_RATE, text: ` cloud-${voice}`, final: true, timing: "word" });
+        const clusterId = `B-S${voice === "A" ? 1 : 2}`;
+        const last = turns.at(-1);
+        if (last?.clusterId === clusterId) last.endSample = s + SAMPLE_RATE;
+        else turns.push({ id: newId("turn"), recordingId: job.recordingId, providerRunId: job.providerRunId, clusterId, startSample: s, endSample: s + SAMPLE_RATE, final: true });
+      }
+      const ids = [...new Set(turns.map((t) => t.clusterId))];
+      return { tokens, turns, clusters: ids.map((clusterId, i) => ({ clusterId, ordinal: i + 1, providerLabel: clusterId.slice(2) })), language: "en" };
+    },
+  };
+}
+
+async function setup(wrapToolkit: (t: ProcessingToolkit) => ProcessingToolkit = (t) => t, opts: { models?: Partial<ModelSelection>; cloudFinal?: CloudFinalProvider; liveRequests?: string[] } = {}) {
   const repo = new Repository(await SqlTableStore.open(nodeSqliteDriver()));
   const blobs = new MemoryBlobStore();
   const vault = await KeyVault.open(new IDBFactory());
   const durable = await vault.durableSealer();
   const ephemeral = new EphemeralKeys();
-  const settings = await SettingsStore.open(repo, defaultSettings({ vad: "vad", sttLive: "stt", sttFinal: "stt-final", speakerEmbedding: "emb", summary: "llm" }));
+  const settings = await SettingsStore.open(repo, defaultSettings({ vad: "vad", sttLive: "stt", sttFinal: "stt-final", speakerEmbedding: "emb", summary: "llm", ...opts.models }));
   const audio = new RecordingAudio(repo, blobs, (kind, id) => (kind === "durable" ? durable : ephemeral.get(id)));
   const toolkit = wrapToolkit(fakeToolkit());
   const identity = new IdentityService(repo, blobs, durable, audio, () => settings.get(), toolkit.embed);
   const captured: string[] = [];
   let controller!: RecordingController;
-  const post = new PostProcessor({ repo, blobs, audio, toolkit, identity, settings, ephemeral, durable, isCapturing: () => controller.activeRecordingId !== null });
+  const post = new PostProcessor({ repo, blobs, audio, toolkit, identity, settings, ephemeral, durable, isCapturing: () => controller.activeRecordingId !== null, cloudFinal: () => opts.cloudFinal ?? null });
   controller = new RecordingController({
     repo, blobs, durable, ephemeral, settings, identity,
-    providers: async () => new FakeLiveProvider(),
+    providers: async (optionId) => {
+      opts.liveRequests?.push(optionId);
+      return new FakeLiveProvider(optionId !== "local");
+    },
     createSource: async () => new ManualSource(),
     onCaptured: (id) => {
       captured.push(id);
@@ -145,9 +183,11 @@ async function setup(wrapToolkit: (t: ProcessingToolkit) => ProcessingToolkit = 
   return { repo, blobs, durable, ephemeral, settings, audio, identity, post, controller, captured, waitDone };
 }
 
-async function record(env: Awaited<ReturnType<typeof setup>>, script: ["A" | "B", number][], persistAudio = true) {
+async function record(env: Awaited<ReturnType<typeof setup>>, script: ["A" | "B", number][], persistAudio = true, opts: { liveReady?: boolean } = {}) {
   const source = new ManualSource();
   const id = await env.controller.start({ source, persistAudio });
+  // Frames pushed before the live provider started only reach storage, not live captions.
+  if (opts.liveReady) await sleep(100);
   for (const [voice, seconds] of script) source.feed(seconds, voice);
   await sleep(1200);
   const done = env.waitDone(id);
@@ -325,4 +365,70 @@ describe("recording pipeline", () => {
     expect(source.sink).not.toBeNull(); // the old controller's source; the relaunch never touched capture
     void id;
   });
+});
+
+describe("cloud options (irl-subt-3xb.3)", () => {
+  it("dispatches a live stream by option id, skips final STT it provides, and links its speakers with local embeddings", async () => {
+    const liveRequests: string[] = [];
+    const env = await setup(undefined, { models: { sttLive: "soniox:stt-rt-v5" }, liveRequests });
+    const id = await record(env, [["A", 8], ["B", 8]], true, { liveReady: true });
+    expect(liveRequests).toEqual(["soniox:stt-rt-v5"]);
+    const rec = (await env.repo.getRecording(id))!;
+    expect(rec.provider).toBe("soniox");
+    expect(rec.selection?.locks).toMatchObject({ vad: "soniox:stt-rt-v5", "stt-final": "soniox:stt-rt-v5" });
+    expect(rec.processing.finalStt).toMatchObject({ status: "skipped", error: "Soniox final tokens are the transcript" });
+    expect(rec.processing.diarization.status).toBe("done");
+    const t = await loadTranscript(env.repo, id);
+    expect(t.segments[0]!.text).toMatch(/^live/);
+    expect(new Set(t.segments.map((s) => s.clusterId))).toEqual(new Set(["S0-1", "S0-2"]));
+    // Local windows were embedded over the service's turns.
+    expect((await env.repo.listWindows(id)).every((w) => w.clusterId.startsWith("S0-"))).toBe(true);
+  }, 20_000);
+
+  it("gets the final transcript from a cloud batch provider and keeps live speaker ids", async () => {
+    const jobs: FinalTranscriptJob[] = [];
+    const liveRequests: string[] = [];
+    const env = await setup(undefined, { models: { sttFinal: "speechmatics-batch:enhanced" }, cloudFinal: fakeCloudFinal({ jobs }), liveRequests });
+    const id = await record(env, [["A", 8], ["B", 8]], true, { liveReady: true });
+    expect(liveRequests).toEqual(["local"]);
+    const rec = (await env.repo.getRecording(id))!;
+    expect(rec.processing.finalStt.status).toBe("done");
+    expect(jobs).toHaveLength(1);
+    expect(jobs[0]!.optionId).toBe("speechmatics-batch:enhanced");
+    expect(parseWav(jobs[0]!.wav).samples.length).toBe(16 * SAMPLE_RATE);
+    expect(rec.modelVersions["stt-final"]).toBe("speechmatics-batch:enhanced");
+    const t = await loadTranscript(env.repo, id);
+    expect(t.segments.map((s) => s.text.split(" ")[0])).toEqual(["cloud-A", "cloud-B"]);
+    // Service speakers took over the live clusters they overlap, so names given live stay attached.
+    expect(t.segments.map((s) => s.clusterId)).toEqual(["L1", "L2"]);
+    expect((await env.repo.listTokens(id)).every((tok) => tok.text.startsWith(" cloud-"))).toBe(true);
+    expect(rec.processing.diarization.status).toBe("done");
+  }, 20_000);
+
+  it("leaves the live transcript intact when the cloud final transcript fails", async () => {
+    const env = await setup(undefined, { models: { sttFinal: "speechmatics-batch:enhanced" }, cloudFinal: fakeCloudFinal({ fail: true }) });
+    const id = await record(env, [["A", 6]], true, { liveReady: true });
+    const rec = (await env.repo.getRecording(id))!;
+    expect(rec.processing.finalStt).toMatchObject({ status: "failed", error: "service unavailable" });
+    expect(rec.state).toBe("ready");
+    const t = await loadTranscript(env.repo, id);
+    expect(t.segments[0]!.text).toMatch(/^live/);
+    expect((await env.repo.listRuns(id)).find((r) => r.kind === "final-stt")?.state).toBe("failed");
+  }, 20_000);
+
+  it("reprocesses a Soniox recording made before selection snapshots with the Soniox rules", async () => {
+    const env = await setup(undefined, { models: { sttFinal: "same-as-live" } });
+    const id = await record(env, [["A", 6]], true, { liveReady: true });
+    expect((await loadTranscript(env.repo, id)).segments[0]!.text).toMatch(/^live/);
+    // What an older Soniox recording looks like: provider soniox, local model ids, no snapshot.
+    const { selection: _s, ...old } = (await env.repo.getRecording(id))!;
+    await env.repo.putRecording({ ...old, provider: "soniox", models: { ...old.models, sttFinal: "stt-final" } });
+    const done = env.waitDone(id);
+    env.post.enqueue(id, ["finalStt", "diarization", "identity"]);
+    await done;
+    const rec = (await env.repo.getRecording(id))!;
+    expect(rec.processing.finalStt).toMatchObject({ status: "skipped" });
+    const t = await loadTranscript(env.repo, id);
+    expect(t.segments[0]!.text).toMatch(/^live/);
+  }, 20_000);
 });

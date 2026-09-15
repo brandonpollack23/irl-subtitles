@@ -4,6 +4,7 @@ import {
   errorMessage,
   float32ToPcm,
   SAMPLE_RATE,
+  serviceOption,
   sleep,
   type AudioFrame,
   type LiveSpeechProvider,
@@ -63,7 +64,8 @@ interface Connection {
 
 export interface SonioxProviderOptions {
   apiKey: () => Promise<string | null>;
-  model: () => string;
+  /** Model when the live option doesn't name one. */
+  model?: () => string;
   /** Reads older audio from storage when a reconnect needs more than the in-memory ring holds. */
   replay?: (recordingId: string, startSample: number, endSample: number) => Promise<Float32Array | null>;
 }
@@ -114,7 +116,7 @@ class SonioxRun implements LiveSpeechRun {
     const client = new SonioxClient({ config: async () => ({ api_key: this.apiKey }) });
     const source = new PushSource();
     const recording = client.realtime.record({
-      model: this.opts.model(),
+      model: serviceOption(this.config.modelId)?.model ?? this.opts.model?.() ?? "stt-rt-v5",
       audio_format: "pcm_s16le",
       sample_rate: SAMPLE_RATE,
       num_channels: 1,

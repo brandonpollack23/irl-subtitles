@@ -117,6 +117,22 @@ describe("model warmup", () => {
     expect(t.warmup.current).toEqual({ loading: [], failed: [], missing: [], ready: true });
   });
 
+  it("loads nothing for roles a cloud option provides or for cloud options themselves", async () => {
+    const t = setup();
+    t.update({ models: { ...t.settings().models, sttLive: "speechmatics:enhanced", speakerEmbedding: "speechmatics:voice-id" } });
+    await t.warmup.warm();
+    expect(t.engines.ensureVad).not.toHaveBeenCalled();
+    expect(t.engines.ensureLiveStt).not.toHaveBeenCalled();
+    expect(t.engines.ensureEmbedding).not.toHaveBeenCalled();
+    expect(t.warmup.current).toEqual({ loading: [], failed: [], missing: [], ready: true });
+
+    // A batch final transcript keeps speech detection while live captions run on the phone.
+    t.update({ models: { ...defaultSelection("en"), sttLive: "moonshine-base-en", sttFinal: "speechmatics-batch:enhanced" } });
+    for (const id of ["silero-vad-v6", "campplus-voxceleb", "moonshine-base-en"]) t.loads.set(id, { ...deferred(), promise: Promise.resolve() });
+    await t.warmup.selectionChanged();
+    expect(t.engines.ensureVad).toHaveBeenCalledWith("silero-vad-v6");
+  });
+
   it("reports loads a recording starts on its own, for the selected live models only", async () => {
     const t = setup();
     t.engines.progress.emit({ modelId: "moonshine-base-en", status: "loading" });

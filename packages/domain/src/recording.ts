@@ -1,6 +1,6 @@
 import type { RecordingId } from "./audio";
 import type { ModelSelection } from "./models";
-import { serviceOption, selectionLocks, type SelectionLocks } from "./selection";
+import { ROLE_KEYS, SERVICE_NAMES, serviceOption, selectionLocks, type SelectionLocks } from "./selection";
 import type { Marker } from "./transcript";
 
 /**
@@ -105,6 +105,22 @@ export function recordingLocks(r: Pick<Recording, "models" | "provider" | "selec
 /** The cloud live option a recording streamed to, if any (older Soniox recordings stored a local id). */
 export function recordingLiveOption(r: Pick<Recording, "models" | "provider">) {
   return serviceOption(r.models.sttLive) ?? (r.provider === "soniox" ? serviceOption("soniox:stt-rt-v5") : undefined);
+}
+
+/** "On-device", "Soniox", "Speechmatics + on-device"...: where a recording was processed, for its details line. */
+export function recordingServicesLabel(r: Pick<Recording, "models" | "provider" | "selection">): string {
+  const locks = recordingLocks(r);
+  const names = new Set<string>();
+  let local = false;
+  for (const role of ["vad", "stt-live", "stt-final", "speaker-embedding"] as const) {
+    const id = locks[role] ?? r.models[ROLE_KEYS[role]];
+    if (id === "off" || id === "same-as-live") continue;
+    const o = serviceOption(id) ?? (role === "stt-live" ? recordingLiveOption(r) : undefined);
+    if (o) names.add(SERVICE_NAMES[o.service]);
+    else local = true;
+  }
+  if (!names.size) return "On-device";
+  return [...names, ...(local ? ["on-device"] : [])].join(" + ");
 }
 
 export function recordingDurationSamples(r: Pick<Recording, "totalSamples">): number {

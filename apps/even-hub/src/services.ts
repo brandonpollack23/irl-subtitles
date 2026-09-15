@@ -7,6 +7,8 @@ import {
   glassesSpeakerName,
   serviceOption,
   type BenchmarkResult,
+  type CloudFinalProvider,
+  type LiveSpeechProvider,
   type Person,
   type Settings,
 } from "@irl/domain";
@@ -121,13 +123,14 @@ export async function boot(onStep: (step: string) => void = () => undefined): Pr
 
   const soniox = new SonioxSpeechProvider({
     apiKey: () => storage.secrets.get("soniox_api_key"),
-    model: () => serviceOption(settings.get().models.sttLive)?.model ?? "stt-rt-v5",
     replay: (id, s, e) => audio.readRange(id, { startSample: s, endSample: e }),
   });
+  const liveProviders: Record<string, LiveSpeechProvider> = { soniox };
+  const cloudFinal = (_optionId: string): CloudFinalProvider | null => null;
 
   let controller!: RecordingController;
   const post = new PostProcessor({
-    repo: storage.repo, blobs: storage.blobs, audio, toolkit, identity, settings, ephemeral, durable: storage.durable,
+    repo: storage.repo, blobs: storage.blobs, audio, toolkit, identity, settings, ephemeral, durable: storage.durable, cloudFinal,
     isCapturing: () => controller.activeRecordingId !== null,
   });
   post.events.on((e) => {
@@ -153,7 +156,12 @@ export async function boot(onStep: (step: string) => void = () => undefined): Pr
 
   controller = new RecordingController({
     repo: storage.repo, blobs: storage.blobs, durable: storage.durable, ephemeral, settings, identity,
-    providers: async (kind) => (kind === "soniox" ? soniox : toolkit.liveProvider()),
+    providers: async (optionId) => {
+      if (optionId === "local") return toolkit.liveProvider();
+      const provider = liveProviders[serviceOption(optionId)?.service ?? ""];
+      if (!provider) throw new Error(`No live provider for ${optionId}`);
+      return provider;
+    },
     createSource,
     onCaptured: (id) => {
       post.enqueue(id);
