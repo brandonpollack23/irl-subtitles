@@ -9,14 +9,15 @@
   "blocks": [
     "irl-subt-0n7.10"
   ],
+  "closed_at": "2026-09-15T06:21:21Z",
   "created": "2026-09-15T05:39:51Z",
   "description": "Author ja for every key once extraction is complete.\n- Start with a short glossary so terms stay consistent: 文字起こし (transcript), 話者 (speaker), 話者識別 (speaker identification), 声紋 / 音声プロファイル (voiceprint / voice profile), 要約 (summary), 録音 (recording), ライブ字幕 (live captions), APIキー, マーカー.\n- Polite, concise UI register (です/ます for sentences, noun phrases for buttons and menu items).\n- Consent and privacy text (cloud audio streaming, Speechmatics voiceprints) must be reviewed by a fluent reader before shipping; don't ship machine translation unreviewed for those.\n- Catalog parity check passes; no English left in ja except brand/product names.",
   "id": "irl-subt-0n7.7",
   "labels": [],
   "parent": "irl-subt-0n7",
   "priority": 2,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Japanese catalog: translate and review all strings",
   "type": "task",
-  "updated_at": "2026-09-15T06:16:58Z"
+  "updated_at": "2026-09-15T06:21:21Z"
 }
