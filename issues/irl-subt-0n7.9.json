@@ -3,7 +3,9 @@
   "blocked_by": [
     "irl-subt-0n7.1"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-0n7.10"
+  ],
   "created": "2026-09-15T05:39:51Z",
   "description": "Per the spike's findings: add \"ja\" to app.json supported_languages, localize the network permission description and any store listing text if Even Hub supports it, and make sure review requirements (exit dialog, recording indicator wording) are met in Japanese.",
   "id": "irl-subt-0n7.9",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Even Hub manifest and store metadata for Japanese",
   "type": "task",
-  "updated_at": "2026-09-15T05:39:51Z"
+  "updated_at": "2026-09-15T05:39:52Z"
 }
