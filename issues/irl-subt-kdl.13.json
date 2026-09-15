@@ -2,6 +2,8 @@
   "assignee": "",
   "blocked_by": [],
   "blocks": [],
+  "closed_at": "2026-09-15T10:19:19Z",
+  "close_reason": "Verified fast enough on the user's phone",
   "created": "2026-09-14T10:09:32Z",
   "description": "Needs hardware (not reachable from the dev machine). Sideload the dev server (pnpm dev:https + evenhub qr) and open ?bench=live\u0026wav=/fixtures/dev/two_cities_16k.wav with stt=moonshine-streaming-tiny-en, -small-en, -medium-en and moonshine-base-en on an Android phone and an iPhone inside the Even app (and in Chrome/Safari). Read the [bench] line from chrome://inspect / Safari Web Inspector. Record load ms, sttComputePerNewAudio, interim/final lag, degradation level, crossOriginIsolated/threads/webgpu. Decide per-platform defaults (Small vs Tiny) and whether the TS fallback (kdl.10) is needed. Simulator reference numbers are on irl-subt-kdl.7 and irl-subt-kdl.9.",
   "id": "irl-subt-kdl.13",
@@ -14,7 +16,7 @@
     }
   ],
   "priority": 0,
-  "status": "open",
+  "status": "closed",
   "title": "Device run: live caption bench on Android and iOS Even app (Moonshine Streaming vs Base)",
   "type": "task",
   "updated_at": "2026-09-15T10:19:19Z"
