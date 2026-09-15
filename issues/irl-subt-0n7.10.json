@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-0n7.7"
+  ],
   "blocks": [],
   "created": "2026-09-15T05:39:51Z",
   "description": "With the phone set to Japanese and uiLanguage = System: phone UI fully Japanese, switching to English and back re-renders phone and glasses immediately, dates/durations formatted correctly, G2 menu and captions status readable and untruncated, consent screens correct, export in the UI language. Repeat with phone in English and uiLanguage = 日本語. Screenshots in a comment here.",
@@ -11,5 +13,5 @@
   "status": "open",
   "title": "On-device verification: Japanese UI on Android/iOS and the G2",
   "type": "task",
-  "updated_at": "2026-09-15T05:39:51Z"
+  "updated_at": "2026-09-15T05:39:52Z"
 }
