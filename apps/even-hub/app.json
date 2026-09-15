@@ -1,6 +1,8 @@
 {
   "package_id": "com.brandonpollack.irlsubtitles",
   "name": "IRL Subtitles",
+  "tagline": "Subtitles with speaker attribution",
+  "description": "A highly configurable take on Even's built-in Conversate that shows who is talking with every caption. It learns voices over time, so you can put names to the people you talk with and keep your own speech off the display. Models run privately on your phone, or you can switch to the Soniox and Speechmatics cloud services for extra speed and accuracy.",
   "version": "0.1.0",
   "edition": "202601",
   "min_sdk_version": "0.0.15",
