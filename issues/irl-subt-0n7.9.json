@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-0n7.1"
+  ],
   "blocks": [],
   "created": "2026-09-15T05:39:51Z",
   "description": "Per the spike's findings: add \"ja\" to app.json supported_languages, localize the network permission description and any store listing text if Even Hub supports it, and make sure review requirements (exit dialog, recording indicator wording) are met in Japanese.",
