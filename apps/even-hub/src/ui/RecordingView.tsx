@@ -194,7 +194,7 @@ function Header(props: { m: RecordingModel }) {
         </div>
       </Show>
       <p class="muted small num">
-        {when(r().startedAt ?? r().createdAt)} · {duration(r().totalSamples)} · {describe().recordingServices(recordingServices(r()))} · {r().language} ·{" "}
+        {when(r().startedAt ?? r().createdAt)} · {duration(r().totalSamples)} · {describe().recordingServices(recordingServices(r()))} · {r().language === "auto" ? t().languages.auto : fmt().language(r().language)} ·{" "}
         {r().audioRetention === "persisted" ? t().recording.audioSaved : r().audioRetention === "ephemeral" ? t().recording.audioNotKept : t().recording.audioRemoved}{" "}
         <span class={["badge", { busy: badge().kind === "busy", bad: badge().kind === "bad" }]}>{badge().text}</span>
       </p>

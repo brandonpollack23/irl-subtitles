@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web";
 import { createEffect, createSignal, onSettled, Show, type Accessor } from "solid-js";
 import { formatClock, SAMPLE_RATE, splitSpeakerSpans, type ClusterId, type Settings, type SpeakerLabel } from "@irl/domain";
-import { describe, t } from "@irl/i18n";
+import { describe, fmt, t } from "@irl/i18n";
 import type { AppServices } from "../services";
 
 let services: AppServices;
@@ -112,18 +112,13 @@ export function duration(samples: number): string {
   return formatClock(samples);
 }
 
+/** "Today, 2:05 PM" / "Sep 14, 2:05 PM" in the UI locale. */
 export function when(iso: string | null): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  const today = new Date();
-  const sameDay = d.toDateString() === today.toDateString();
-  return sameDay ? `Today, ${d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : d.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  return fmt().when(iso);
 }
 
 export function bytes(n: number): string {
-  if (n >= 2 ** 30) return `${(n / 2 ** 30).toFixed(1)} GB`;
-  if (n >= 2 ** 20) return `${Math.round(n / 2 ** 20)} MB`;
-  return `${Math.round(n / 1024)} KB`;
+  return fmt().bytes(n);
 }
 
 export function seconds(samples: number): number {

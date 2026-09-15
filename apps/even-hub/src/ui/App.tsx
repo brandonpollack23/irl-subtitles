@@ -1,6 +1,6 @@
 import { createSignal, For, Match, Show, Switch } from "solid-js";
 import { formatClock, nowIso } from "@irl/domain";
-import { t } from "@irl/i18n";
+import { fmt, t } from "@irl/i18n";
 import { deleteRecording } from "@irl/pipeline";
 import { DevPlatformMarker } from "./DevPlatformMarker";
 import { DiagnosticsView } from "./DiagnosticsView";
@@ -65,7 +65,7 @@ function RecoveryBanner() {
           <div class="stack" style={{ gap: "2px" }}>
             <strong>{t().app.recoveredTitle}</strong>
             <span class="small muted">
-              {t().app.recoveredDetail(new Date(rec.createdAt).toLocaleString(), formatClock(rec.recoveryCursor))}
+              {t().app.recoveredDetail(fmt().dateTime(rec.createdAt), formatClock(rec.recoveryCursor))}
               {rec.error ? `. ${rec.error}` : ""}
             </span>
           </div>
