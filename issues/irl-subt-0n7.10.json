@@ -11,9 +11,15 @@
   "id": "irl-subt-0n7.10",
   "labels": [],
   "parent": "irl-subt-0n7",
+  "comments": [
+    {
+      "text": "Also verify on the G2 (from the desk spike, irl-subt-0n7.1): kana and kanji render in text containers and menu items (no tofu), and the Japanese menu labels (録音を開始, 音声保存: オン/オフ, マーカー追加, 一時停止, 再開, 停止して要約) display untruncated. If glyphs are missing, file a follow-up to keep the glasses in English while the phone is Japanese.",
+      "timestamp": "2026-09-15T06:21:22Z"
+    }
+  ],
   "priority": 2,
   "status": "open",
   "title": "On-device verification: Japanese UI on Android/iOS and the G2",
   "type": "task",
-  "updated_at": "2026-09-15T05:39:52Z"
+  "updated_at": "2026-09-15T06:21:22Z"
 }
