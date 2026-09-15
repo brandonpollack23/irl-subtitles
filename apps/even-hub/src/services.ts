@@ -36,7 +36,7 @@ import {
   supportsLanguage,
   type DeviceCapabilities,
 } from "@irl/provider-local";
-import { SonioxSpeechProvider } from "@irl/provider-soniox";
+import { SonioxAsyncProvider, SonioxSpeechProvider } from "@irl/provider-soniox";
 import { SpeechmaticsBatchProvider, SpeechmaticsSpeechProvider } from "@irl/provider-speechmatics";
 import { openStorage, SettingsStore, type StorageHandles } from "@irl/storage";
 import workletUrl from "@irl/capture/worklet?worker&url";
@@ -133,7 +133,8 @@ export async function boot(onStep: (step: string) => void = () => undefined): Pr
   });
   const liveProviders: Record<string, LiveSpeechProvider> = { soniox, speechmatics };
   const speechmaticsBatch = new SpeechmaticsBatchProvider({ apiKey: () => storage.secrets.get("speechmatics_api_key") });
-  const finalProviders: Record<string, CloudFinalProvider> = { speechmatics: speechmaticsBatch };
+  const sonioxAsync = new SonioxAsyncProvider({ apiKey: () => storage.secrets.get("soniox_api_key") });
+  const finalProviders: Record<string, CloudFinalProvider> = { speechmatics: speechmaticsBatch, soniox: sonioxAsync };
   const cloudFinal = (optionId: string): CloudFinalProvider | null => {
     const o = serviceOption(optionId);
     return o?.kind === "batch-final" ? (finalProviders[o.service] ?? null) : null;

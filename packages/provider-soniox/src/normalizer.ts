@@ -31,9 +31,10 @@ export class SonioxNormalizer {
     return this.lastFinalEnd;
   }
 
-  clusterFor(connection: number, speaker: string | undefined): { clusterId: ClusterId; created: boolean; ordinal: number } | null {
+  /** `connection` "batch" is an async file transcription: one pass, labels `B-<speaker>`. */
+  clusterFor(connection: number | "batch", speaker: string | undefined): { clusterId: ClusterId; created: boolean; ordinal: number } | null {
     if (!speaker) return null;
-    const id = `S${connection}-${speaker}`;
+    const id = connection === "batch" ? `B-${speaker}` : `S${connection}-${speaker}`;
     const existing = this.clusters.get(id);
     if (existing) return { clusterId: id, created: false, ordinal: existing };
     const ordinal = this.clusters.size + 1;
@@ -41,7 +42,7 @@ export class SonioxNormalizer {
     return { clusterId: id, created: true, ordinal };
   }
 
-  result(connection: number, connectionStartSample: number, tokens: readonly SonioxTokenLike[]): SpeechEvent[] {
+  result(connection: number | "batch", connectionStartSample: number, tokens: readonly SonioxTokenLike[]): SpeechEvent[] {
     const events: SpeechEvent[] = [];
     const finals: TranscriptToken[] = [];
     const provisional: TranscriptToken[] = [];
