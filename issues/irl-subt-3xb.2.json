@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-15T03:51:05Z",
+  "description": "Rework apps/even-hub/src/ui/SettingsView.tsx around the resolver from the registry ticket.\n\n- Services section (replaces ProviderSection): one generic key row per cloud service (Soniox, Speechmatics): saved/not-saved state, Save/Replace, Test (testSonioxKey; testSpeechmaticsKey once it exists), Remove. Removing a key that a selected option needs resets those roles to their local default with a toast (today's Remove does this for provider only). Short per-service privacy line.\n- Models section (replaces \"On-device models\" heading): each ModelPicker lists local entries and cloud options in \u003coptgroup\u003es \"On this phone\" / \"Cloud\". Disabled options show the resolver's reason (e.g. \"Save a Speechmatics key\", \"Needs Speechmatics live captions or final transcript\"). Locked roles render a disabled select showing \"Provided by Soniox\" with a one-line why.\n- Selecting a cloud option for the first time asks for consent describing what leaves the phone (audio; for voice-id also voiceprints). Stored per service.\n- A summary line above the pickers: \"Everything stays on this phone\" vs \"Audio goes to Soniox while recording; voices matched on this phone\" etc., derived from the resolved selection. Same string feeds LiveView idle text and RecordingView meta (replace provider === \"soniox\" checks there).\n- Download selected / Measure / benchmark-selected-best only touch local, unlocked roles; changeLanguage fallback skips cloud options that support the language.\n- services.ts startup fallback loop (roles unavailable on device) must leave cloud options alone.\n\nDone when: switching live captions to Soniox locks speech detection and final transcript in the UI; removing the key unlocks them back to local defaults; existing settings screens tests/snapshots updated.",
+  "id": "irl-subt-3xb.2",
+  "labels": [],
+  "parent": "irl-subt-3xb",
+  "priority": 2,
+  "status": "open",
+  "title": "Settings: API key entries per service and per-role pickers with cloud options and locked roles",
+  "type": "task",
+  "updated_at": "2026-09-15T03:51:05Z"
+}
