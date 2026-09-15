@@ -8,9 +8,15 @@
   "id": "irl-subt-kdl.19",
   "labels": [],
   "parent": "irl-subt-kdl",
+  "comments": [
+    {
+      "text": "Follow-up: checking This is me shows a note linking to Settings › Recording for the hide toggle (state-aware).",
+      "timestamp": "2026-09-15T03:40:19Z"
+    }
+  ],
   "priority": 2,
   "status": "closed",
   "title": "Hide my own speech on the glasses: mark a person as me, off-by-default toggle",
   "type": "task",
-  "updated_at": "2026-09-15T03:37:42Z"
+  "updated_at": "2026-09-15T03:40:19Z"
 }
