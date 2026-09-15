@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [],
   "created": "2026-09-15T10:09:27Z",
@@ -7,8 +7,8 @@
   "id": "irl-subt-re3",
   "labels": [],
   "priority": 2,
-  "status": "open",
+  "status": "in_progress",
   "title": "Settings: let the user choose WebGPU or CPU for local models, with a your-mileage-may-vary note",
   "type": "task",
-  "updated_at": "2026-09-15T10:09:27Z"
+  "updated_at": "2026-09-15T10:09:39Z"
 }
