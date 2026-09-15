@@ -7,9 +7,15 @@
   "id": "irl-subt-kdl.13",
   "labels": [],
   "parent": "irl-subt-kdl",
+  "comments": [
+    {
+      "text": "2026-09-15: user tested live captions on their own phone in the Even app; local live captions were plenty fast. No bench numbers recorded. Keeping the catalog defaults as they are (Moonshine Streaming Small for en/ja/es/de, Tiny for zh/ar/vi); the TS fallback (kdl.10) isn't needed as the default path. Closed on this result, same as irl-subt-0i6.2 was closed without an iPhone run.",
+      "timestamp": "2026-09-15T10:19:19Z"
+    }
+  ],
   "priority": 0,
   "status": "open",
   "title": "Device run: live caption bench on Android and iOS Even app (Moonshine Streaming vs Base)",
   "type": "task",
-  "updated_at": "2026-09-14T10:09:32Z"
+  "updated_at": "2026-09-15T10:19:19Z"
 }
