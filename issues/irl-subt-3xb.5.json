@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-15T03:51:05Z",
+  "description": "New packages/provider-speechmatics implementing LiveSpeechProvider, modeled on packages/provider-soniox.\n\n- Auth: long-lived key from SecretStore (\"speechmatics_api_key\") -\u003e temp RT JWT (ttl ~1 h, refresh on reconnect). testSpeechmaticsKey: smallest authenticated call, sanitized message (as testSonioxKey).\n- StartRecognition: audio_format raw pcm_s16le 16000; transcription_config { language, diarization: \"speaker\", enable_partials, max_delay, operating_point from option id }.\n- Normalizer (like SonioxNormalizer): AddPartialTranscript -\u003e provisional tokens (replaceProvisional), AddTranscript -\u003e final tokens with sample times (seconds * 16000 + connection startSample), speaker labels -\u003e SpeechEvent turns with provider labels scoped per connection (S\u003cconn\u003e-\u003clabel\u003e, same rule as Soniox; IMPLEMENTATION.md \"Soniox speaker labels are scoped per connection\"). EndOfUtterance -\u003e speech-activity events.\n- Reconnect with the ring buffer + storage replay and 1 s overlap exactly like SonioxRun; consider extracting that ring/replay/backoff into a shared helper in @irl/domain or a small package rather than copying.\n- capabilities: { transcription: \"streaming\", diarization: \"fused-with-stt\", persistentIdentity: true, languages: supported list, execution: \"cloud\" }.\n- Registry options speechmatics:standard / speechmatics:enhanced (or current model names from the spike) with provides vad + stt-final.\n- app.json whitelist entries + permission desc mention Speechmatics.\n- Tests: normalizer against recorded JSON fixtures from the spike; reconnect/overlap dedupe.\n\nDone when: selecting Speechmatics live captions records a conversation end to end on device with captions, speaker turns, and local voice matching over Speechmatics ranges (fused path).",
+  "id": "irl-subt-3xb.5",
+  "labels": [],
+  "parent": "irl-subt-3xb",
+  "priority": 2,
+  "status": "open",
+  "title": "Speechmatics live provider: realtime STT and diarization",
+  "type": "task",
+  "updated_at": "2026-09-15T03:51:05Z"
+}
