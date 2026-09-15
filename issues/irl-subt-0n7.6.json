@@ -4,7 +4,9 @@
     "irl-subt-0n7.1",
     "irl-subt-0n7.2"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-0n7.7"
+  ],
   "created": "2026-09-15T05:39:51Z",
   "description": "Move glasses.ts strings (loading/ready lines, menu labels, Save audio on/off, Add marker, Stop and summarize, hints, degraded-state text like \"Saving — processing later\", captions-unavailable/not-downloaded lines, status line) to the catalog.\n- Write short Japanese variants that fit G2_MENU_LABEL_MAX_BYTES and TEXT_LIMIT at 3 bytes/char; add a test asserting every glasses message in every locale fits its budget (with max-length params such as service names and speaker short names).\n- truncateUtf8 must not cut inside a grapheme cluster (check Intl.Segmenter).\n- Re-render the glasses page when the UI language changes.\nApply the fallback chosen in the spike if the G2 can't render some characters.",
   "id": "irl-subt-0n7.6",
