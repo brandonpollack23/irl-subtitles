@@ -28,6 +28,7 @@
     }
   ],
   "supported_languages": [
-    "en"
+    "en",
+    "ja"
   ]
 }
