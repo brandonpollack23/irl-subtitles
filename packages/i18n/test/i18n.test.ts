@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { UI_LOCALES, UserError } from "@irl/domain";
+import { G2_MENU_LABEL_MAX_BYTES, UI_LOCALES, UserError, utf8ByteLength } from "@irl/domain";
 import { describer, en, fmt, formatters, keyPaths, locale, localeChanges, matchLocale, messages, resolveLocale, setLocale, t, withFallback } from "../src";
 
 describe("locale resolution", () => {
@@ -140,5 +140,21 @@ describe("describer", () => {
     expect(en.recordingServices({ services: [], local: true })).toBe("On-device");
     expect(en.recordingServices({ services: ["speechmatics"], local: true })).toBe("Speechmatics + on-device");
     expect(ja.recordingServices({ services: ["soniox"], local: false })).toBe("Soniox");
+  });
+});
+
+describe("glasses budgets", () => {
+  it("every menu label fits the G2's 32-byte limit untruncated, in every locale", () => {
+    for (const l of UI_LOCALES) {
+      for (const [key, text] of Object.entries(messages(l).glasses.menu)) expect(utf8ByteLength(text), `${l}:${key} "${text}"`).toBeLessThanOrEqual(G2_MENU_LABEL_MAX_BYTES);
+    }
+  });
+
+  it("anonymous speaker words leave room for a name on the caption line", () => {
+    for (const l of UI_LOCALES) {
+      const s = messages(l).speakers;
+      expect(utf8ByteLength(s.speaker(12)), l).toBeLessThanOrEqual(24);
+      expect(utf8ByteLength(s.maybe("")), l).toBeLessThanOrEqual(6);
+    }
   });
 });

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { OsEventTypeList, type EvenHubEvent } from "@evenrealities/even_hub_sdk";
+import { setLocale } from "@irl/i18n";
 import type { LiveSnapshot, RecordingController } from "@irl/pipeline";
 import type { SettingsStore } from "@irl/storage";
 import { GlassesController, gestureOf } from "../src/glasses";
@@ -205,5 +206,18 @@ describe("glasses model loading notice", () => {
       "Ready. Audio won't be saved.\nCaptions unavailable: Moonshine Base (en) didn't load. Recording still works.\nNot downloaded: CAM++ (WeSpeaker, VoxCeleb). Download on your phone for live captions.\nTap to start. Double tap to exit.",
     );
     vi.useRealTimers();
+  });
+
+  it("speaks the UI language, menu included", async () => {
+    setLocale("ja");
+    try {
+      const { bridge, body } = page("idle");
+      expect(await body()).toBe("準備完了。音声は保存されません。\nタップで開始、ダブルタップで終了。");
+      const pageArg = bridge.rebuildPageContainer.mock.calls.at(-1)![0] as unknown as { textObject: { content: string }[]; menuObject: { menuItems: { itemName: string }[] } };
+      expect(pageArg.menuObject.menuItems.map((i) => i.itemName)).toEqual(["録音を開始", "音声保存: オフ"]);
+      expect(pageArg.textObject[0]!.content).toBe("IRL Subtitles  端末内");
+    } finally {
+      setLocale("en");
+    }
   });
 });

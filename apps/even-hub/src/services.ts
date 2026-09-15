@@ -1,3 +1,4 @@
+import { t } from "@irl/i18n";
 import { G2AudioSource, getBridge, PhoneMicSource, RecordingAudio, WavFileSource, type AudioSource } from "@irl/capture";
 import {
   activeAttributions,
@@ -245,7 +246,7 @@ export async function boot(onStep: (step: BootStep) => void = () => undefined): 
     const live = controller.current.clusters;
     const clusterMap = new Map([...clusters, ...live].map((c) => [c.clusterId, c]));
     const active = activeAttributions(attrs);
-    const name = glassesSpeakerName(clusterId, clusterMap, active, new Map<string, Person>(people.map((p) => [p.id, p])));
+    const name = glassesSpeakerName(clusterId, clusterMap, active, new Map<string, Person>(people.map((p) => [p.id, p])), t().speakers);
     return { name, personId: active.get(clusterId)?.personId ?? null };
   };
   const glasses = new GlassesController(controller, settings, names);
@@ -261,9 +262,9 @@ export async function boot(onStep: (step: BootStep) => void = () => undefined): 
 
   // After Stop the idle glasses page says what the phone is doing with the last conversation.
   post.events.on((e) => {
-    if (e.stage === "finalStt" && e.status === "running" && e.progress === undefined && !e.note) glasses.showNotice("Processing your last conversation on the phone…");
+    if (e.stage === "finalStt" && e.status === "running" && e.progress === undefined && !e.note) glasses.showNotice(t().glasses.processingLast);
     if (e.stage === "done") {
-      void storage.repo.getRecording(e.recordingId).then((r) => glasses.showNotice(r?.title ? `Ready on your phone: ${r.title}` : "Ready on your phone."));
+      void storage.repo.getRecording(e.recordingId).then((r) => glasses.showNotice(r?.title ? t().glasses.readyOnPhoneTitle(r.title) : t().glasses.readyOnPhone));
     }
   });
   onStep("glasses");

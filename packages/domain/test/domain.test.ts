@@ -62,6 +62,9 @@ describe("names", () => {
     expect(displayName(p, 32)).toBe("Alex");
     expect(utf8ByteLength(displayName({ fullName: "山田太郎山田太郎山田太郎山田太郎" }, 32))).toBeLessThanOrEqual(32);
     expect(truncateUtf8("héllo wörld", 8)).toBe("héll…");
+    // Never splits a character a reader sees as one: a decomposed ガ (カ + combining dakuten) or an emoji sequence.
+    expect(truncateUtf8("\u30ab\u3099".repeat(3), 9)).toBe("\u30ab\u3099…");
+    expect(truncateUtf8("👩‍👩‍👧ok", 10)).toBe("…");
   });
 
   it("labels clusters from active attributions", () => {

@@ -26,14 +26,20 @@ export function utf8ByteLength(value: string): number {
   return new TextEncoder().encode(value).byteLength;
 }
 
-/** Truncates to at most maxBytes of UTF-8 without splitting a code point; appends … when cut. */
+/** User-perceived characters: combining marks, emoji sequences, and kana with dakuten stay whole. */
+function graphemes(value: string): Iterable<string> {
+  if (typeof Intl !== "undefined" && "Segmenter" in Intl) return [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(value)].map((s) => s.segment);
+  return value;
+}
+
+/** Truncates to at most maxBytes of UTF-8 without splitting a character (grapheme cluster); appends … when cut. */
 export function truncateUtf8(value: string, maxBytes: number): string {
   if (utf8ByteLength(value) <= maxBytes) return value;
   const ellipsis = "…";
   const budget = maxBytes - utf8ByteLength(ellipsis);
   let out = "";
   let used = 0;
-  for (const ch of value) {
+  for (const ch of graphemes(value)) {
     const n = utf8ByteLength(ch);
     if (used + n > budget) break;
     out += ch;

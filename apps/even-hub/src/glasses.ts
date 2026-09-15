@@ -1,7 +1,7 @@
 import { OsEventTypeList, StartUpPageCreateResult, type EvenAppBridge, type EvenHubEvent } from "@evenrealities/even_hub_sdk";
 import { getBridge, onHubEvent } from "@irl/capture";
 import { formatClock, G2_MENU_LABEL_MAX_BYTES, truncateUtf8, utf8ByteLength, errorMessage, SERVICE_NAMES } from "@irl/domain";
-import { describe } from "@irl/i18n";
+import { describe, localeChanges, t } from "@irl/i18n";
 import type { LiveSnapshot, RecordingController } from "@irl/pipeline";
 import type { SettingsStore } from "@irl/storage";
 import { logger } from "./log";
@@ -12,9 +12,6 @@ const MENU = { start: 1, stop: 2, pause: 3, resume: 4, marker: 5, toggleAudio: 6
 const STATUS = { id: 1, name: "status" };
 const BODY = { id: 2, name: "body" };
 const TEXT_LIMIT = 900;
-const LOADING_IDLE = "Caption models are loading. You can start now; captions follow once they're ready.";
-const LOADING_LIVE = "Captions loading, they'll start shortly.";
-const READY = "Captions ready.";
 /** Loads shorter than this (a model that was already in memory) don't flash a loading line. */
 const LOADING_SHOW_AFTER_MS = 400;
 const READY_NOTICE_MS = 4000;
@@ -84,6 +81,15 @@ export class GlassesController {
     onHubEvent((e) => this.onEvent(e));
     this.controller.live.on((s) => this.onSnapshot(s));
     this.settings.changes.on(() => this.lastSnapshot && this.mode === "idle" && void this.render(this.lastSnapshot, true));
+    // A new UI language rebuilds the page (menu labels live in the page) and re-resolves speaker words.
+    localeChanges.on(() => {
+      this.nameCache.clear();
+      this.nameVersion = "";
+      if (this.lastSnapshot) {
+        void this.refreshNames(this.lastSnapshot);
+        void this.render(this.lastSnapshot, true);
+      }
+    });
     await this.ensurePage();
     this.onSnapshot(this.controller.current);
     return true;
@@ -135,22 +141,23 @@ export class GlassesController {
 
   private menu(mode: Mode): { itemName: string; itemID: number }[] {
     const persist = this.settings.get().persistAudio;
+    const m = t().glasses.menu;
     switch (mode) {
       case "idle":
         return [
-          { itemName: label("Start recording"), itemID: MENU.start },
-          { itemName: label(persist ? "Save audio: on" : "Save audio: off"), itemID: MENU.toggleAudio },
+          { itemName: label(m.start), itemID: MENU.start },
+          { itemName: label(persist ? m.audioOn : m.audioOff), itemID: MENU.toggleAudio },
         ];
       case "recording":
         return [
-          { itemName: "Add marker", itemID: MENU.marker },
-          { itemName: "Pause", itemID: MENU.pause },
-          { itemName: "Stop and summarize", itemID: MENU.stop },
+          { itemName: label(m.marker), itemID: MENU.marker },
+          { itemName: label(m.pause), itemID: MENU.pause },
+          { itemName: label(m.stop), itemID: MENU.stop },
         ];
       case "paused":
         return [
-          { itemName: "Resume", itemID: MENU.resume },
-          { itemName: "Stop and summarize", itemID: MENU.stop },
+          { itemName: label(m.resume), itemID: MENU.resume },
+          { itemName: label(m.stop), itemID: MENU.stop },
         ];
       case "finalizing":
         return [];
@@ -171,25 +178,26 @@ export class GlassesController {
   }
 
   private texts(mode: Mode, s: LiveSnapshot): { status: string; body: string } {
-    const provider = s.provider === "local" ? "Local" : SERVICE_NAMES[s.provider];
-    const audio = s.persistAudio ? "saving audio" : "audio not saved";
+    const g = t().glasses;
+    const provider = s.provider === "local" ? g.local : SERVICE_NAMES[s.provider];
+    const audio = s.persistAudio ? g.savingAudio : g.audioNotSaved;
     // Cloud captions don't wait on local models.
     const line = s.provider !== "local" ? null : this.modelsLine;
     if (mode === "idle") {
-      const saving = s.persistAudio ? "Audio will be saved." : "Audio won't be saved.";
+      const saving = s.persistAudio ? g.audioWillSave : g.audioWontSave;
       const { failed, missing } = s.provider !== "local" ? { failed: [], missing: [] } : this.models;
       const lines = [
-        this.notice ?? (line === "loading" ? saving : `Ready. ${saving}`),
-        line === "loading" ? LOADING_IDLE : line === "ready" ? READY : "",
-        failed.length ? `Captions unavailable: ${failed.join(", ")} didn't load. Recording still works.` : "",
-        missing.length ? `Not downloaded: ${missing.join(", ")}. Download on your phone for live captions.` : "",
-        "Tap to start. Double tap to exit.",
+        this.notice ?? (line === "loading" ? saving : g.ready(saving)),
+        line === "loading" ? g.loadingIdle : line === "ready" ? g.captionsReady : "",
+        failed.length ? g.captionsFailed(failed.join(", ")) : "",
+        missing.length ? g.notDownloaded(missing.join(", ")) : "",
+        g.idleHint,
       ];
-      return { status: `IRL Subtitles  ${provider}`, body: truncateUtf8(lines.filter(Boolean).join("\n"), TEXT_LIMIT) };
+      return { status: `${t().common.appName}  ${provider}`, body: truncateUtf8(lines.filter(Boolean).join("\n"), TEXT_LIMIT) };
     }
-    if (mode === "finalizing") return { status: "Stopped", body: "Saved. Processing on your phone…" };
+    if (mode === "finalizing") return { status: g.stopped, body: g.processing };
     // The recording indicator is always the first thing on the status line (plan.md §11: never covert).
-    const indicator = mode === "paused" ? "PAUSED" : "REC";
+    const indicator = mode === "paused" ? g.paused : g.rec;
     const speakerOf = (clusterId: string | null) => (clusterId && s.recordingId ? this.nameCache.get(`${s.recordingId}:${clusterId}`) : undefined);
     const speaker = speakerOf(s.currentClusterId)?.name;
     const status = `${indicator} ${formatClock(s.capturedSamples)}  ${speaker ?? ""}`.trim();
@@ -211,11 +219,12 @@ export class GlassesController {
       // Provisional text has no speaker yet; it belongs to the latest turn's speaker.
       const provisional = isOwn(s.currentClusterId) ? "" : s.provisionalText;
       const caption = [...last, provisional].filter(Boolean).join("\n");
-      const tail = caption.length > 220 ? `…${caption.slice(-220)}` : caption;
-      const hint = mode === "paused" ? "Tap to resume. Double tap to end." : "";
+      const chars = [...caption];
+      const tail = chars.length > 220 ? `…${chars.slice(-220).join("")}` : caption;
+      const hint = mode === "paused" ? g.pausedHint : "";
       const captions = settings.showCaptionsOnGlasses;
-      const modelsLine = !captions ? "" : line === "loading" ? LOADING_LIVE : line === "ready" ? READY : "";
-      body = [captions ? tail : "", modelsLine, degraded, hint, `(${audio})`].filter(Boolean).join("\n");
+      const modelsLine = !captions ? "" : line === "loading" ? g.loadingLive : line === "ready" ? g.captionsReady : "";
+      body = [captions ? tail : "", modelsLine, degraded, hint, g.audioTag(audio)].filter(Boolean).join("\n");
     }
     return { status: truncateUtf8(status, 120), body: truncateUtf8(body || " ", TEXT_LIMIT) };
   }
@@ -242,7 +251,7 @@ export class GlassesController {
     for (const id of ids) {
       const key = `${s.recordingId}:${id}`;
       if (this.nameCache.has(key)) continue;
-      this.nameCache.set(key, await this.names(s.recordingId, id).catch(() => ({ name: "Speaker", personId: null })));
+      this.nameCache.set(key, await this.names(s.recordingId, id).catch(() => ({ name: t().speakers.speaker(), personId: null })));
       changed = true;
     }
     if (changed && this.lastSnapshot) void this.render(this.lastSnapshot, false);
