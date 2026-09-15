@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-15T03:35:14Z",
+  "description": "User request: in People, mark one person as 'me' (one at a time, settings.selfPersonId). A Settings toggle, off by default (hideOwnSpeechOnGlasses), removes caption lines attributed to that person from the glasses prompter. Only accepted/confirmed attributions count, not 'Name?' candidates, so another speaker's captions aren't hidden on a weak match.",
+  "id": "irl-subt-kdl.19",
+  "labels": [],
+  "parent": "irl-subt-kdl",
+  "priority": 2,
+  "status": "open",
+  "title": "Hide my own speech on the glasses: mark a person as me, off-by-default toggle",
+  "type": "task",
+  "updated_at": "2026-09-15T03:35:14Z"
+}
