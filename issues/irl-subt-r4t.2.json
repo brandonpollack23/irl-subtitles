@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-r4t.1"
+  ],
   "blocks": [],
   "created": "2026-09-15T09:09:38Z",
   "description": "Settings \u003e Profiles: list with Use / In use, modified marker + Update, Rename, Delete; Save current settings as a profile (name within the byte budget, at most 8). Live idle page: profile select. en + ja strings.",
