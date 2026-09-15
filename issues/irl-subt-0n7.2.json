@@ -4,7 +4,8 @@
   "blocks": [
     "irl-subt-0n7.3",
     "irl-subt-0n7.4",
-    "irl-subt-0n7.5"
+    "irl-subt-0n7.5",
+    "irl-subt-0n7.6"
   ],
   "created": "2026-09-15T05:39:51Z",
   "description": "- New packages/i18n (no Solid dependency). en catalog is the source of truth (`as const`); `Messages` type derived from it; ja must satisfy that type so missing keys fail `pnpm typecheck`. Parameterized messages are functions (e.g. `speakerN: (n: number) =\u003e ...`).\n- Locale resolution: `uiLanguage: \"system\" | \"en\" | \"ja\"`; \"system\" walks navigator.languages (and the host locale if the spike finds one) and falls back to en.\n- Formatters bound to the resolved locale: date/time, relative \"Today\", durations, numbers, byte sizes.\n- Solid wrapper in apps/even-hub (context or signal) so switching language re-renders without reload; set \u003chtml lang\u003e to the active locale.\n- Settings: add uiLanguage with a migrateSettings step and tests; Settings view gets a \"Display language\" picker (English / 日本語 / System) shown in each language's own name.\n- Tests: resolution/fallback, catalog parity (runtime check too, for keys added to en but stubbed in ja), formatter output for en and ja.\nConsider @solid-primitives/i18n only if it works with solid-js 2.0 rc; otherwise keep the in-house typed catalog.",

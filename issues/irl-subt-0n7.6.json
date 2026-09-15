@@ -1,7 +1,8 @@
 {
   "assignee": "",
   "blocked_by": [
-    "irl-subt-0n7.1"
+    "irl-subt-0n7.1",
+    "irl-subt-0n7.2"
   ],
   "blocks": [],
   "created": "2026-09-15T05:39:51Z",
@@ -13,5 +14,5 @@
   "status": "open",
   "title": "Glasses UI: localize G2 strings within byte budgets",
   "type": "task",
-  "updated_at": "2026-09-15T05:39:51Z"
+  "updated_at": "2026-09-15T05:39:52Z"
 }
