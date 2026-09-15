@@ -1,13 +1,19 @@
-export type SpeechmaticsRegion = "eu" | "us";
+export type SpeechmaticsRegion = "eu" | "us" | "au";
 
+export const SPEECHMATICS_REGIONS: readonly SpeechmaticsRegion[] = ["eu", "us", "au"];
+
+/**
+ * Speechmatics hosts per region. Long-lived keys and batch jobs are region-bound, so batch calls go to the same region
+ * as realtime; temporary keys come from one global endpoint and work in any realtime region.
+ */
 export const SPEECHMATICS_ENDPOINTS = {
   keys: "https://mp.speechmatics.com",
-  batch: "https://asr.api.speechmatics.com",
+  batch: (region: SpeechmaticsRegion) => `https://${region}1.asr.api.speechmatics.com`,
   realtime: (region: SpeechmaticsRegion) => `wss://${region}.rt.speechmatics.com/v2`,
 } as const;
 
-/** Hosts for app.json's network whitelist. */
-export const SPEECHMATICS_WHITELIST = ["https://mp.speechmatics.com", "https://asr.api.speechmatics.com", "wss://eu.rt.speechmatics.com", "wss://us.rt.speechmatics.com"] as const;
+/** Hosts for app.json's network whitelist and the CSP. */
+export const SPEECHMATICS_WHITELIST = ["https://mp.speechmatics.com", ...SPEECHMATICS_REGIONS.flatMap((r) => [SPEECHMATICS_ENDPOINTS.batch(r), `wss://${r}.rt.speechmatics.com`])];
 
 export class SpeechmaticsAuthError extends Error {}
 
@@ -34,11 +40,11 @@ export async function mintRealtimeKey(apiKey: string, ttlSeconds = 3600, fetchIm
 }
 
 /** Smallest authenticated request; the batch API answers 401 with CORS headers, so a rejection is readable. */
-export async function testSpeechmaticsKey(apiKey: string, fetchImpl: typeof fetch = fetch): Promise<{ ok: boolean; message: string }> {
+export async function testSpeechmaticsKey(apiKey: string, region: SpeechmaticsRegion = "eu", fetchImpl: typeof fetch = fetch): Promise<{ ok: boolean; message: string }> {
   try {
-    const r = await fetchImpl(`${SPEECHMATICS_ENDPOINTS.batch}/v2/jobs?limit=1`, { headers: { Authorization: `Bearer ${apiKey}` } });
+    const r = await fetchImpl(`${SPEECHMATICS_ENDPOINTS.batch(region)}/v2/jobs?limit=1`, { headers: { Authorization: `Bearer ${apiKey}` } });
     if (r.ok) return { ok: true, message: "Key works" };
-    if (r.status === 401 || r.status === 403) return { ok: false, message: "Speechmatics rejected the key" };
+    if (r.status === 401 || r.status === 403) return { ok: false, message: "Speechmatics rejected the key (keys only work in the region they were created in)" };
     return { ok: false, message: `Speechmatics returned HTTP ${r.status}` };
   } catch {
     return { ok: false, message: "Could not reach Speechmatics (offline, blocked by the network allowlist, or CORS)" };

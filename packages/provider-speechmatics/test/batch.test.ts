@@ -32,11 +32,11 @@ describe("SpeechmaticsBatchProvider", () => {
       },
     });
     const notes: string[] = [];
-    const provider = new SpeechmaticsBatchProvider({ apiKey: async () => "sk", fetch: api.impl, pollDelayMs: () => 0 });
+    const provider = new SpeechmaticsBatchProvider({ apiKey: async () => "sk", region: () => "au", fetch: api.impl, pollDelayMs: () => 0 });
     const out = await provider.transcribe(job({ speakers: [{ label: "p_bob", identifiers: ["id-bob"] }], getSpeakers: true, onProgress: (n) => notes.push(n) }));
 
     const post = api.calls[0]!;
-    expect(post.url).toBe("https://asr.api.speechmatics.com/v2/jobs");
+    expect(post.url).toBe("https://au1.asr.api.speechmatics.com/v2/jobs");
     const form = post.body as FormData;
     expect(JSON.parse(String(form.get("config")))).toEqual({
       type: "transcription",
@@ -44,7 +44,7 @@ describe("SpeechmaticsBatchProvider", () => {
     });
     expect(form.get("data_file")).toBeInstanceOf(Blob);
     expect(api.calls.map((c) => c.method)).toEqual(["POST", "GET", "GET", "GET", "DELETE"]);
-    expect(api.calls.at(-1)!.url).toBe("https://asr.api.speechmatics.com/v2/jobs/job1?force=true");
+    expect(api.calls.at(-1)!.url).toBe("https://au1.asr.api.speechmatics.com/v2/jobs/job1?force=true");
 
     expect(out.tokens.map((t) => [t.text, t.startSample, t.final, t.providerRunId])).toEqual([[" 你好", 0, true, "final1"], [" 早", 16000, true, "final1"], [" 嗯", 32000, true, "final1"]]);
     expect(out.clusters.map((c) => c.clusterId)).toEqual(["B-S1", "B-S2", "SM-p_bob"]);

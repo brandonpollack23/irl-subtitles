@@ -127,7 +127,7 @@ export async function boot(onStep: (step: string) => void = () => undefined): Pr
     log.warn("Speechmatics rejected saved voice identifiers", reason);
     void identity.markServiceProfilesStale().then(() => identity.migrateEmbeddingSpace(SPEECHMATICS_VOICE_ID, SPEECHMATICS_VOICE_SPACE)).catch((e) => log.error("re-enrolling voices failed", errorMessage(e)));
   }
-  const speechmaticsBatch = new SpeechmaticsBatchProvider({ apiKey: () => storage.secrets.get("speechmatics_api_key"), onIdentifiersRejected });
+  const speechmaticsBatch = new SpeechmaticsBatchProvider({ apiKey: () => storage.secrets.get("speechmatics_api_key"), region: () => settings.get().speechmaticsRegion, onIdentifiersRejected });
   // Enrolls one person's kept clips with Speechmatics: the speaker with the most speech in the job is them.
   const enrollWithSpeechmatics = async (wav: Uint8Array, language: string) => {
     const r = await speechmaticsBatch.transcribe({ recordingId: "enroll", providerRunId: newId("enroll"), optionId: "speechmatics-batch:enhanced", language, wav, signal: new AbortController().signal, getSpeakers: true });

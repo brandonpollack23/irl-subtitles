@@ -186,7 +186,7 @@ async function changeLanguage(props: SectionProps, language: string, keys: Parti
 interface ServiceInfo {
   service: "soniox" | "speechmatics";
   privacy: string;
-  test: ((key: string) => Promise<{ ok: boolean; message: string }>) | null;
+  test: ((key: string, s: Settings) => Promise<{ ok: boolean; message: string }>) | null;
 }
 
 const SERVICES: readonly ServiceInfo[] = [
@@ -198,7 +198,7 @@ const SERVICES: readonly ServiceInfo[] = [
   {
     service: "speechmatics",
     privacy: "Receives audio only for the options you pick below. With voice identification it also keeps voiceprints of the people you name.",
-    test: (k) => testSpeechmaticsKey(k),
+    test: (k, s) => testSpeechmaticsKey(k, s.speechmaticsRegion),
   },
 ];
 
@@ -228,10 +228,11 @@ function ServiceKey(props: SectionProps & { info: ServiceInfo; saved: boolean; k
       <Show when={props.info.service === "speechmatics"}>
         <label class="field">
           Region
-          <span class="hint">Where live audio is processed.</span>
+          <span class="hint">Where Speechmatics processes audio, live and after you stop. Use the region your key was created in.</span>
           <select value={props.s.speechmaticsRegion} onChange={(e) => void props.update({ speechmaticsRegion: e.currentTarget.value as Settings["speechmaticsRegion"] })}>
             <option value="eu">Europe</option>
             <option value="us">United States</option>
+            <option value="au">Australia</option>
           </select>
         </label>
       </Show>
@@ -260,7 +261,7 @@ function ServiceKey(props: SectionProps & { info: ServiceInfo; saved: boolean; k
               onClick={async () => {
                 const k = key().trim() || (await app().storage.secrets.get(secret()));
                 if (!k) return;
-                toast((await test()(k)).message);
+                toast((await test()(k, props.s)).message);
               }}
             />
           )}

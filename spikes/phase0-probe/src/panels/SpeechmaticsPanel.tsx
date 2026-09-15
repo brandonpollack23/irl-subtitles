@@ -49,7 +49,7 @@ export function SpeechmaticsPanel() {
   const batch = async (mode: "enroll" | "identify", seconds: number) => {
     log.log(`capturing ${seconds} s…`);
     const wav = await captureWav(audio(), seconds, log.log);
-    const { report, speakers } = await batchJob(wav, { apiKey: apiKey(), language: language(), getSpeakers: mode === "enroll", speakers: mode === "identify" ? enrolled() : [] }, log.log);
+    const { report, speakers } = await batchJob(wav, { apiKey: apiKey(), region: region(), language: language(), getSpeakers: mode === "enroll", speakers: mode === "identify" ? enrolled() : [] }, log.log);
     if (mode === "enroll" && speakers.length) setEnrolled(speakers.map((sp, i) => ({ label: `P${i + 1}`, speaker_identifiers: sp.speaker_identifiers })));
     await reporter.publish({ kind: `batch-${mode}`, clipSeconds: seconds, ...report });
   };
@@ -70,6 +70,7 @@ export function SpeechmaticsPanel() {
             <select value={region()} onChange={(e) => setRegion(e.currentTarget.value as Region)}>
               <option value="eu">eu.rt.speechmatics.com</option>
               <option value="us">us.rt.speechmatics.com</option>
+              <option value="au">au.rt.speechmatics.com</option>
             </select>
           </Field>
           <Field label="Model">

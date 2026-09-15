@@ -36,8 +36,8 @@ export interface Settings {
   firstRunBenchmarkAt: string | null;
   /** When the user agreed to send data to each cloud service (audio; for Speechmatics voice ID also voiceprints). */
   cloudConsent: Partial<Record<CloudConsentKey, string>>;
-  /** Speechmatics realtime region. */
-  speechmaticsRegion: "eu" | "us";
+  /** Speechmatics region for realtime and batch; must match where the saved key was created. */
+  speechmaticsRegion: "eu" | "us" | "au";
   /** Speechmatics speakers_sensitivity (0–1) for voice identification; null uses the service default. */
   speechmaticsSpeakersSensitivity: number | null;
 }

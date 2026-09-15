@@ -13,9 +13,12 @@
         "https://api.soniox.com",
         "wss://stt-rt.soniox.com",
         "https://mp.speechmatics.com",
-        "https://asr.api.speechmatics.com",
+        "https://eu1.asr.api.speechmatics.com",
+        "https://us1.asr.api.speechmatics.com",
+        "https://au1.asr.api.speechmatics.com",
         "wss://eu.rt.speechmatics.com",
-        "wss://us.rt.speechmatics.com"
+        "wss://us.rt.speechmatics.com",
+        "wss://au.rt.speechmatics.com"
       ]
     }
   ],

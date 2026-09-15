@@ -9,11 +9,12 @@ import {
   type SpeakerTurn,
   type TranscriptToken,
 } from "@irl/domain";
-import { SPEECHMATICS_ENDPOINTS } from "./auth";
+import { SPEECHMATICS_ENDPOINTS, type SpeechmaticsRegion } from "./auth";
 import { SpeechmaticsNormalizer, type SpeechmaticsResult } from "./normalizer";
 
 export interface SpeechmaticsBatchOptions {
   apiKey: () => Promise<string | null>;
+  region?: () => SpeechmaticsRegion;
   fetch?: typeof fetch;
   /** Delay before the n-th status poll. */
   pollDelayMs?: (attempt: number) => number;
@@ -50,6 +51,8 @@ export class SpeechmaticsBatchProvider implements CloudFinalProvider {
     const key = await this.opts.apiKey();
     if (!key) throw new Error("No Speechmatics API key saved");
     const auth = { Authorization: `Bearer ${key}` };
+    // A job is only reachable in the region it was created in.
+    const api = SPEECHMATICS_ENDPOINTS.batch(this.opts.region?.() ?? "eu");
     const language = job.language === "auto" ? "auto" : (SPEECHMATICS_LANGUAGES[job.language] ?? job.language);
     const diarization: Record<string, unknown> = {};
     if (job.speakers?.length) diarization.speakers = job.speakers.map((s) => ({ label: s.label, speaker_identifiers: s.identifiers }));
@@ -64,26 +67,26 @@ export class SpeechmaticsBatchProvider implements CloudFinalProvider {
     form.append("data_file", new Blob([job.wav as BlobPart], { type: "audio/wav" }), `${job.recordingId}.wav`);
 
     job.onProgress?.("uploading audio to Speechmatics");
-    const created = await this.request(`${SPEECHMATICS_ENDPOINTS.batch}/v2/jobs`, { method: "POST", headers: auth, body: form, signal: job.signal });
+    const created = await this.request(`${api}/v2/jobs`, { method: "POST", headers: auth, body: form, signal: job.signal });
     const { id } = (await created.json()) as { id: string };
     try {
-      await this.waitForJob(id, auth, job);
+      await this.waitForJob(api, id, auth, job);
       job.onProgress?.("fetching the transcript");
-      const transcript = (await (await this.request(`${SPEECHMATICS_ENDPOINTS.batch}/v2/jobs/${id}/transcript?format=json-v2`, { headers: auth, signal: job.signal })).json()) as JsonV2;
+      const transcript = (await (await this.request(`${api}/v2/jobs/${id}/transcript?format=json-v2`, { headers: auth, signal: job.signal })).json()) as JsonV2;
       return normalizeBatch(job, transcript);
     } finally {
       // Speechmatics keeps job audio and results until deleted; nothing is left behind, even after a failure.
-      await this.fetch(`${SPEECHMATICS_ENDPOINTS.batch}/v2/jobs/${id}?force=true`, { method: "DELETE", headers: auth }).catch(() => undefined);
+      await this.fetch(`${api}/v2/jobs/${id}?force=true`, { method: "DELETE", headers: auth }).catch(() => undefined);
     }
   }
 
-  private async waitForJob(id: string, auth: Record<string, string>, job: FinalTranscriptJob): Promise<void> {
+  private async waitForJob(api: string, id: string, auth: Record<string, string>, job: FinalTranscriptJob): Promise<void> {
     const started = Date.now();
     const delay = this.opts.pollDelayMs ?? ((n: number) => Math.min(10_000, 2000 + n * 1000));
     for (let attempt = 0; ; attempt++) {
       await sleep(delay(attempt));
       if (job.signal.aborted) throw new Error("cancelled");
-      const status = ((await (await this.request(`${SPEECHMATICS_ENDPOINTS.batch}/v2/jobs/${id}`, { headers: auth, signal: job.signal })).json()) as JobStatus).job;
+      const status = ((await (await this.request(`${api}/v2/jobs/${id}`, { headers: auth, signal: job.signal })).json()) as JobStatus).job;
       if (status?.status === "done") return;
       if (status?.status && status.status !== "running") {
         const reason = status.errors?.map((e) => e.message ?? "").join("; ") ?? "";

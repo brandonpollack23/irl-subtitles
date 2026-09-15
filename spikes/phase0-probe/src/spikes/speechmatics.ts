@@ -3,7 +3,7 @@ import { EvenAudioSource, type SonioxAudio } from "./soniox";
 
 type Log = (...p: unknown[]) => void;
 
-export type Region = "eu" | "us";
+export type Region = "eu" | "us" | "au";
 
 /**
  * Spike irl-subt-3xb.4: Speechmatics realtime, batch, and speaker identification from the Even WebView. Browsers must
@@ -272,6 +272,7 @@ export async function captureWav(audio: SonioxAudio, seconds: number, log: Log):
 
 export interface BatchOptions {
   apiKey: string;
+  region: Region;
   language: string;
   getSpeakers: boolean;
   speakers: EnrolledSpeaker[];
@@ -282,6 +283,8 @@ export async function batchJob(wav: Uint8Array, opts: BatchOptions, log: Log): P
   const t0 = performance.now();
   const ms = () => Math.round(performance.now() - t0);
   const auth = { Authorization: `Bearer ${opts.apiKey}` };
+  // Keys and jobs are region-bound.
+  const api = `https://${opts.region}1.asr.api.speechmatics.com`;
   const diar: Record<string, unknown> = {};
   if (opts.getSpeakers) diar.get_speakers = true;
   if (opts.speakers.length) diar.speakers = opts.speakers;
@@ -291,8 +294,8 @@ export async function batchJob(wav: Uint8Array, opts: BatchOptions, log: Log): P
   form.append("data_file", new Blob([wav as BlobPart], { type: "audio/wav" }), "probe.wav");
   const report: Record<string, unknown> = { api: "speechmatics batch v2", audioSeconds: (wav.byteLength - 44) / 2 / SAMPLE_RATE, getSpeakers: opts.getSpeakers, enrolled: opts.speakers.length };
   try {
-    log("POST https://asr.api.speechmatics.com/v2/jobs…");
-    const created = await fetch("https://asr.api.speechmatics.com/v2/jobs", { method: "POST", headers: auth, body: form });
+    log(`POST ${api}/v2/jobs…`);
+    const created = await fetch(`${api}/v2/jobs`, { method: "POST", headers: auth, body: form });
     report.createStatus = created.status;
     report.createdMs = ms();
     if (!created.ok) return { report: { ...report, ok: false, body: (await created.text()).slice(0, 300) }, speakers: [] };
@@ -301,7 +304,7 @@ export async function batchJob(wav: Uint8Array, opts: BatchOptions, log: Log): P
     let polls = 0;
     while (status === "running" && ms() < 10 * 60_000) {
       await new Promise((ok) => setTimeout(ok, Math.min(5000, 1000 + polls * 500)));
-      const r = await fetch(`https://asr.api.speechmatics.com/v2/jobs/${id}`, { headers: auth });
+      const r = await fetch(`${api}/v2/jobs/${id}`, { headers: auth });
       status = ((await r.json()) as { job?: { status?: string } }).job?.status ?? `http ${r.status}`;
       polls++;
     }
@@ -309,10 +312,10 @@ export async function batchJob(wav: Uint8Array, opts: BatchOptions, log: Log): P
     report.doneMs = ms();
     report.polls = polls;
     if (status !== "done") return { report: { ...report, ok: false }, speakers: [] };
-    const t = await fetch(`https://asr.api.speechmatics.com/v2/jobs/${id}/transcript?format=json-v2`, { headers: auth });
+    const t = await fetch(`${api}/v2/jobs/${id}/transcript?format=json-v2`, { headers: auth });
     const json = (await t.json()) as { results?: SmResult[]; speakers?: EnrolledSpeaker[] };
     const labels = new Set((json.results ?? []).map((r) => r.alternatives?.[0]?.speaker).filter(Boolean));
-    await fetch(`https://asr.api.speechmatics.com/v2/jobs/${id}`, { method: "DELETE", headers: auth }).then((r) => (report.deleteStatus = r.status)).catch((e) => (report.deleteError = String(e)));
+    await fetch(`${api}/v2/jobs/${id}`, { method: "DELETE", headers: auth }).then((r) => (report.deleteStatus = r.status)).catch((e) => (report.deleteError = String(e)));
     const speakers = json.speakers ?? [];
     return { report: { ...report, ok: true, words: json.results?.length ?? 0, labels: [...labels], speakers: speakers.map((s) => ({ label: s.label, identifiers: s.speaker_identifiers.length })), transcriptMs: ms() }, speakers };
   } catch (e) {

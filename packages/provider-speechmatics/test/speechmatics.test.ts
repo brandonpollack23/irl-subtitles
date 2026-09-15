@@ -57,8 +57,10 @@ describe("Speechmatics keys", () => {
   });
 
   it("tests a key against the batch API", async () => {
-    expect((await testSpeechmaticsKey("k", (async () => new Response("{}", { status: 200 })) as unknown as typeof fetch)).ok).toBe(true);
-    expect(await testSpeechmaticsKey("k", (async () => new Response("detail", { status: 401 })) as unknown as typeof fetch)).toEqual({ ok: false, message: "Speechmatics rejected the key" });
+    const urls: string[] = [];
+    expect((await testSpeechmaticsKey("k", "au", (async (url: string) => (urls.push(url), new Response("{}", { status: 200 }))) as unknown as typeof fetch)).ok).toBe(true);
+    expect(urls).toEqual(["https://au1.asr.api.speechmatics.com/v2/jobs?limit=1"]);
+    expect(await testSpeechmaticsKey("k", "eu", (async () => new Response("detail", { status: 401 })) as unknown as typeof fetch)).toEqual({ ok: false, message: "Speechmatics rejected the key (keys only work in the region they were created in)" });
   });
 });
 
@@ -116,7 +118,7 @@ describe("SpeechmaticsSpeechProvider", () => {
   it("streams, reconnects from the last final minus overlap, and returns speaker identifiers at the end", async () => {
     const sockets: FakeSocket[] = [];
     const provider = new SpeechmaticsSpeechProvider({
-      apiKey: async () => "sk", fetch: keyFetch, region: () => "us",
+      apiKey: async () => "sk", fetch: keyFetch, region: () => "au",
       socket: (url) => {
         const s = new FakeSocket(url);
         sockets.push(s);
@@ -128,7 +130,7 @@ describe("SpeechmaticsSpeechProvider", () => {
     const collected = drain(run.events);
     await sleep(0);
     const first = sockets[0]!;
-    expect(first.url).toBe("wss://us.rt.speechmatics.com/v2?jwt=jwt");
+    expect(first.url).toBe("wss://au.rt.speechmatics.com/v2?jwt=jwt");
     expect(first.json[0]).toMatchObject({
       message: "StartRecognition",
       audio_format: { type: "raw", encoding: "pcm_s16le", sample_rate: 16000 },
