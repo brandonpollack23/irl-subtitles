@@ -24,6 +24,18 @@
   font: 16px/1.5 var(--font);
 }
 
+/*
+ * Japanese (irl-subt-0n7.8). Atkinson Hyperlegible has no kana or kanji, so Japanese text falls through to a Japanese
+ * system font; <html lang> selects it, which also gives Han characters their Japanese forms. Latin stays Atkinson.
+ */
+:root:lang(ja) {
+  --font: "Atkinson Hyperlegible Next Variable", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Noto Sans CJK JP", "Yu Gothic UI", Meiryo, system-ui, sans-serif;
+  font: 16px/1.6 var(--font);
+  /* Kinsoku: no small kana or closing punctuation at a line start; break between phrases, not inside words, where supported. */
+  line-break: strict;
+  word-break: auto-phrase;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --ground: #12171d;
@@ -145,3 +157,7 @@ table.kv td { word-break: break-word; }
 .dev-features { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .dev-features .ok > span:first-child { color: var(--ok); }
 .dev-features .missing > span:first-child { color: var(--rec); }
+
+/* Negative tracking and synthesized italics damage kana and kanji. */
+:lang(ja) h1, :lang(ja) .clock { letter-spacing: 0; }
+:lang(ja) .speaker.possible { font-style: normal; }
