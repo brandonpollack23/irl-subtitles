@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-15T03:51:05Z",
+  "description": "stt-final cloud option \"speechmatics-batch:\u003cmodel\u003e\": after Stop, send the recording's audio to the Speechmatics batch API for the final transcript + diarization, replacing local final STT.\n\n- Implement the cloud final-provider interface from the pipeline dispatch ticket: build WAV from RecordingAudio, create job (diarization speaker, get_speakers when voice-id is selected), poll with backoff and cancellation (PostProcessor signal), fetch json-v2, normalize to FinalWord tokens + turns with a new providerRunId, same replacement semantics as local final STT (post-processor.ts deleteTokens by runId).\n- Non-persisted audio mode: the job must be submitted before the ephemeral key is dropped; if submission fails the stage fails visibly rather than silently losing audio.\n- Respect \"post-processing yields to live capture\" (kdl.14): uploading/polling is network, but don't decode large WAVs while capturing.\n- Resolver: with live local and final Speechmatics batch, VAD stays for live; with live off, VAD is locked by the batch service.\n- Reprocess offer in RecordingView works for this option.\n\nDone when: a local-live recording gets a Speechmatics final transcript and speaker turns after Stop; failure leaves the live transcript intact.",
+  "id": "irl-subt-3xb.6",
+  "labels": [],
+  "parent": "irl-subt-3xb",
+  "priority": 2,
+  "status": "open",
+  "title": "Speechmatics batch final transcript",
+  "type": "task",
+  "updated_at": "2026-09-15T03:51:05Z"
+}
