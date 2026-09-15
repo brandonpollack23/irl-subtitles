@@ -3,7 +3,9 @@
   "blocked_by": [
     "irl-subt-3xb.1"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-3xb.5"
+  ],
   "created": "2026-09-15T03:51:05Z",
   "description": "Make the pipeline choose providers from the recording's resolved selection instead of ProviderKind.\n\n- RecordingController deps.providers(kind) (controller.ts:188, services.ts:155) -\u003e providers(optionId) returning a LiveSpeechProvider from a registry map (local toolkit, Soniox, later Speechmatics).\n- controller.ts:195 liveStt \"skipped\" check uses the resolved selection.\n- PostProcessor: replace rec.provider === \"soniox\" with capabilities: skip final STT when stt-final is locked by the live service (post-processor.ts:223); run the fused-service path when diarization is \"fused-with-stt\" (generalize fuseSoniox, post-processor.ts:342, to key on providerLabel scoping rather than the Soniox name). Final STT dispatches to a cloud batch provider when stt-final is a cloud option (interface only here; implementations in the batch tickets).\n- ModelWarmup (services.ts ModelWarmup) doesn't load local models for locked roles (e.g. no VAD/Moonshine warm-up when Soniox is live).\n- Old recordings with provider \"soniox\" and no resolved snapshot map to the Soniox rules so reprocessing still works (RecordingView.tsx:223 re-transcribe offer).\n\nDone when: pipeline tests cover local, Soniox-live, and a fake cloud-final provider; existing Soniox recordings reprocess unchanged.",
   "id": "irl-subt-3xb.3",
@@ -13,5 +15,5 @@
   "status": "open",
   "title": "Pipeline: dispatch live and final providers from the resolved selection",
   "type": "task",
-  "updated_at": "2026-09-15T03:51:05Z"
+  "updated_at": "2026-09-15T03:51:06Z"
 }
