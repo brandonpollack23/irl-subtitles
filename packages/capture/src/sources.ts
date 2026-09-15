@@ -1,5 +1,5 @@
 import { AudioInputSource } from "@evenrealities/even_hub_sdk";
-import { float32ToPcm, parseWav, resampleLinear, SAMPLE_RATE, type CaptureSourceKind } from "@irl/domain";
+import { float32ToPcm, parseWav, resampleLinear, SAMPLE_RATE, type CaptureSourceKind, UserError } from "@irl/domain";
 import { getBridge, onHubEvent } from "./even";
 
 export type PcmSink = (pcm: Uint8Array) => void;
@@ -31,8 +31,8 @@ export class G2AudioSource implements AudioSource {
 
   async start(sink: PcmSink): Promise<void> {
     const bridge = await getBridge();
-    if (!bridge) throw new Error("Even bridge unavailable: G2 capture only works inside the Even app");
-    if (!(await this.preparePage())) throw new Error("could not create the glasses page (required before opening the microphone)");
+    if (!bridge) throw new UserError("glasses-unavailable", "Even bridge unavailable: G2 capture only works inside the Even app");
+    if (!(await this.preparePage())) throw new UserError("glasses-page", "could not create the glasses page (required before opening the microphone)");
     this.dispose = onHubEvent((e) => {
       const pcm = e.audioEvent?.audioPcm;
       if (!pcm?.byteLength) return;
@@ -44,7 +44,7 @@ export class G2AudioSource implements AudioSource {
     if (!ok) {
       this.dispose();
       this.dispose = null;
-      throw new Error("audioControl(true) failed: are the glasses connected?");
+      throw new UserError("glasses-audio", "audioControl(true) failed: are the glasses connected?");
     }
     document.addEventListener("visibilitychange", this.onVisible);
   }

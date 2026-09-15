@@ -7,7 +7,9 @@ import {
   type ClusterId,
   type Person,
   type SpeakerLabel,
+  type UiLocale,
 } from "@irl/domain";
+import { formatters, messages } from "@irl/i18n";
 import type { Repository } from "@irl/storage";
 import { loadTranscript } from "./post-processor";
 
@@ -21,8 +23,14 @@ export interface RecordingExport {
   summary: unknown;
 }
 
-/** plan.md §11: exports distinguish confirmed from inferred identities; audio and voiceprints are never included. */
-export async function exportRecording(repo: Repository, recordingId: string): Promise<{ json: RecordingExport; markdown: string }> {
+/**
+ * plan.md §11: exports distinguish confirmed from inferred identities; audio and voiceprints are never included.
+ * The Markdown and speaker labels are in the UI language; JSON keys and `kind` values never change.
+ */
+export async function exportRecording(repo: Repository, recordingId: string, locale: UiLocale = "en"): Promise<{ json: RecordingExport; markdown: string }> {
+  const m = messages(locale);
+  const x = m.export;
+  const f = formatters(locale, m);
   const rec = await repo.getRecording(recordingId);
   if (!rec) throw new Error("recording not found");
   const { segments, clusters } = await loadTranscript(repo, recordingId);
@@ -30,9 +38,9 @@ export async function exportRecording(repo: Repository, recordingId: string): Pr
   const attrs = activeAttributions(await repo.listAttributions(recordingId));
   const summaryRec = await repo.getSummary(recordingId);
   const labels = new Map<ClusterId, SpeakerLabel>();
-  for (const id of new Set(segments.map((s) => s.clusterId).filter((x): x is string => !!x))) labels.set(id, speakerLabel(id, clusters, attrs, people));
-  const kindNote = (l: SpeakerLabel) => (l.kind === "confirmed" ? "" : l.kind === "auto" ? " (auto)" : "");
-  const render = (text: string) => splitSpeakerSpans(text).map((p) => (p.type === "text" ? p.text : labels.get(p.clusterId)?.text ?? "Speaker")).join("");
+  for (const id of new Set(segments.map((s) => s.clusterId).filter((x): x is string => !!x))) labels.set(id, speakerLabel(id, clusters, attrs, people, { words: m.speakers }));
+  const kindNote = (l: SpeakerLabel) => (l.kind === "auto" ? x.autoTag : "");
+  const render = (text: string) => splitSpeakerSpans(text).map((p) => (p.type === "text" ? p.text : labels.get(p.clusterId)?.text ?? m.speakers.speaker())).join("");
 
   const json: RecordingExport = {
     format: "irl-subtitles.export.v1",
@@ -43,29 +51,29 @@ export async function exportRecording(repo: Repository, recordingId: string): Pr
     summary: summaryRec?.summary ?? null,
   };
 
-  const lines: string[] = [`# ${rec.title ?? "Recording"}`, "", `${new Date(rec.createdAt).toLocaleString()} · ${formatClock(rec.totalSamples)}`, ""];
-  lines.push("## Speakers", "");
-  for (const l of labels.values()) lines.push(`- ${l.text}${l.kind === "confirmed" ? " — confirmed by you" : l.kind === "auto" ? " — recognized automatically" : " — unidentified"}`);
+  const lines: string[] = [`# ${rec.title ?? x.untitled}`, "", `${f.dateTime(rec.createdAt)} · ${formatClock(rec.totalSamples)}`, ""];
+  lines.push(`## ${x.speakers}`, "");
+  for (const l of labels.values()) lines.push(`- ${l.text} — ${l.kind === "confirmed" ? x.confirmed : l.kind === "auto" ? x.auto : x.unidentified}`);
   const s = summaryRec?.summary;
   if (s) {
-    lines.push("", "## Summary", "", render(s.overview));
+    lines.push("", `## ${m.summary.title}`, "", render(s.overview));
     const list = (title: string, items: readonly AnchoredText[]) => {
       if (!items.length) return;
       lines.push("", `### ${title}`, "");
       for (const i of items) lines.push(`- ${render(i.text)}`);
     };
-    list("Key points", s.keyPoints);
-    list("Decisions", s.decisions);
+    list(m.summary.keyPoints, s.keyPoints);
+    list(m.summary.decisions, s.decisions);
     if (s.actionItems.length) {
-      lines.push("", "### Action items", "");
-      for (const a of s.actionItems) lines.push(`- ${render(a.text)}${a.ownerClusterId ? ` — ${labels.get(a.ownerClusterId)?.text ?? "?"}` : ""}${a.dueText ? ` (due ${a.dueText})` : ""}`);
+      lines.push("", `### ${m.summary.actionItems}`, "");
+      for (const a of s.actionItems) lines.push(`- ${render(a.text)}${a.ownerClusterId ? ` — ${labels.get(a.ownerClusterId)?.text ?? "?"}` : ""}${a.dueText ? ` (${m.summary.due(a.dueText)})` : ""}`);
     }
-    list("Open questions", s.openQuestions);
+    list(m.summary.openQuestions, s.openQuestions);
   }
-  lines.push("", "## Transcript", "");
+  lines.push("", `## ${x.transcript}`, "");
   for (const seg of segments) {
     const l = seg.clusterId ? labels.get(seg.clusterId) : undefined;
-    lines.push(`**[${formatClock(seg.startSample)}] ${l ? l.text + kindNote(l) : "Unknown"}:** ${seg.text}`, "");
+    lines.push(`**[${formatClock(seg.startSample)}] ${l ? l.text + kindNote(l) : x.unknownSpeaker}:** ${seg.text}`, "");
   }
   return { json, markdown: lines.join("\n") };
 }

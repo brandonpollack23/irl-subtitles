@@ -7,6 +7,8 @@
  * 0 normal · 1 no interim captions (final per utterance only) · 2 live STT paused (captions off,
  * processed after Stop) · 3 embeddings paused too (capture + VAD only).
  */
+import type { DegradedReason } from "@irl/domain";
+
 export type DegradationLevel = 0 | 1 | 2 | 3;
 
 export interface SchedulerSample {
@@ -24,7 +26,7 @@ export interface SchedulerSample {
 
 export interface SchedulerDecision {
   level: DegradationLevel;
-  reason: string | null;
+  reason: DegradedReason | null;
   interimCaptions: boolean;
   liveStt: boolean;
   embeddings: boolean;
@@ -64,19 +66,19 @@ export class ComputeScheduler {
     }
     const load = this.sttLoad ?? 0;
     let target: DegradationLevel = 0;
-    let reason: string | null = null;
+    let reason: DegradedReason | null = null;
     // Below one second per second the transcript keeps up; interim updates only go when it can't.
     if (s.sttBacklogS > 4 || load > 1) {
       target = 1;
-      reason = "Live captions slowed to keep up";
+      reason = { code: "slowed" };
     }
     if (s.sttBacklogS > 20 || load > 1.5 || s.failure) {
       target = 2;
-      reason = s.failure ? "Saving — processing later (local compute failed)" : "Saving — processing later";
+      reason = s.failure ? { code: "saving-later", detail: "local compute failed" } : { code: "saving-later" };
     }
     if (s.embedBacklogS > 30) {
       target = 3;
-      reason = "Saving — processing later";
+      reason = { code: "saving-later" };
     }
     const t = this.now();
     if (target > this.level) {
@@ -94,7 +96,7 @@ export class ComputeScheduler {
     }
     return {
       level: this.level,
-      reason: this.level === 0 ? null : (reason ?? (this.level >= 2 ? "Saving — processing later" : "Live captions slowed to keep up")),
+      reason: this.level === 0 ? null : (reason ?? (this.level >= 2 ? { code: "saving-later" } : { code: "slowed" })),
       interimCaptions: this.level === 0,
       liveStt: this.level <= 1,
       embeddings: this.level <= 2,

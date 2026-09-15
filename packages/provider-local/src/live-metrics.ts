@@ -1,4 +1,4 @@
-import { Emitter } from "@irl/domain";
+import { Emitter, type DegradedReason } from "@irl/domain";
 
 /**
  * Timings from the local live path, for diagnostics, the live harness, and the dev bench (irl-subt-kdl.1).
@@ -22,7 +22,7 @@ export type LiveMetric =
   | { kind: "embed"; runId: string; windows: number; computeMs: number }
   | { kind: "load"; modelId: string; engine: string; ms: number; ok: boolean }
   | { kind: "warmup-inference"; modelId: string; ms: number }
-  | { kind: "degraded"; runId: string; level: number; reason: string | null };
+  | { kind: "degraded"; runId: string; level: number; reason: DegradedReason | null };
 
 export const liveMetrics = new Emitter<LiveMetric>();
 

@@ -16,6 +16,9 @@ import {
   type TranscriptSegment,
   type TranscriptToken,
   type VoiceWindow,
+  degradedText,
+  type DegradedReason,
+  type LiveProblem,
 } from "@irl/domain";
 import type { Repository } from "@irl/storage";
 import type { IdentityService } from "./identity-service";
@@ -26,11 +29,11 @@ export interface CoordinatorUpdate {
   provisionalText: string;
   currentClusterId: ClusterId | null;
   speechActive: boolean;
-  degraded: string | null;
+  degraded: DegradedReason | null;
   clusters: SpeakerCluster[];
   /** Latest live match decision per cluster (scores, evidence, why a name was withheld), for match tuning. */
   matches: MatchDecision[];
-  error: string | null;
+  error: LiveProblem | null;
 }
 
 const MAX_RESTARTS = 3;
@@ -66,8 +69,8 @@ export class ProviderCoordinator {
   /** Live identification runs one cluster at a time, so a tick and a new window never write the same row at once. */
   private identifyTail: Promise<void> = Promise.resolve();
   private speechActive = false;
-  private degraded: string | null = null;
-  private error: string | null = null;
+  private degraded: DegradedReason | null = null;
+  private error: LiveProblem | null = null;
   private currentCluster: ClusterId | null = null;
   private emitScheduled = false;
   private pumps: Promise<void>[] = [];
@@ -105,7 +108,7 @@ export class ProviderCoordinator {
       });
     } catch (e) {
       await this.repo.updateRun(providerRunId, { state: "failed", error: errorMessage(e), endedAt: nowIso() });
-      this.setDegraded(`Saving — processing later (${errorMessage(e)})`);
+      this.setDegraded({ code: "saving-later", detail: errorMessage(e) });
       this.run = null;
       return;
     }
@@ -127,11 +130,11 @@ export class ProviderCoordinator {
     if (this.run !== run || this.finished) return;
     this.run = null;
     if (this.restarts++ < MAX_RESTARTS) {
-      this.setDegraded(`Restarting live processing (${message})`);
+      this.setDegraded({ code: "restarting", detail: message });
       await this.startRun();
       if (this.run) this.setDegraded(null);
     } else {
-      this.setDegraded("Saving — processing later");
+      this.setDegraded({ code: "saving-later" });
     }
   }
 
@@ -196,16 +199,16 @@ export class ProviderCoordinator {
         this.setDegraded(ev.reason);
         return;
       case "error":
-        this.error = ev.message;
+        this.error = { during: "recording", detail: ev.message };
         if (ev.fatal && this.run) void this.onRunFailure(this.run, ev.message);
         break;
     }
     this.scheduleEmit();
   }
 
-  private setDegraded(reason: string | null): void {
+  private setDegraded(reason: DegradedReason | null): void {
     this.degraded = reason;
-    void this.repo.updateRecording(this.recording.id, { degraded: reason }).catch(() => undefined);
+    void this.repo.updateRecording(this.recording.id, { degraded: reason && degradedText(reason) }).catch(() => undefined);
     this.scheduleEmit();
   }
 
@@ -249,7 +252,7 @@ export class ProviderCoordinator {
       this.pendingTokens.unshift(...tokens);
       this.pendingTurns.unshift(...turns);
       this.pendingWindows.unshift(...windows);
-      this.error = `saving transcript failed: ${errorMessage(e)}`;
+      this.error = { during: "saving", detail: `saving transcript failed: ${errorMessage(e)}` };
     }
   }
 

@@ -4,5 +4,5 @@
   "version": "0.1.0",
   "type": "module",
   "exports": { ".": "./src/index.ts" },
-  "dependencies": {"@irl/domain": "workspace:*", "@irl/storage": "workspace:*", "@irl/capture": "workspace:*"}
+  "dependencies": {"@irl/domain": "workspace:*", "@irl/i18n": "workspace:*", "@irl/storage": "workspace:*", "@irl/capture": "workspace:*"}
 }

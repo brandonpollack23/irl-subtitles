@@ -8,7 +8,7 @@ it("summarizes lag, compute per new audio, and loads", () => {
     { kind: "stt", runId: "r", final: false, audioS: 2.4, newAudioS: 1.2, computeMs: 500, lagS: 0.6 },
     { kind: "stt", runId: "r", final: true, audioS: 3, newAudioS: 0.6, computeMs: 600, lagS: 0.9 },
     { kind: "vad", runId: "r", audioS: 3, computeMs: 30 },
-    { kind: "degraded", runId: "r", level: 1, reason: "x" },
+    { kind: "degraded", runId: "r", level: 1, reason: { code: "slowed" } },
   ];
   const s = summarizeLiveMetrics(events);
   expect(s.sttCalls).toBe(3);

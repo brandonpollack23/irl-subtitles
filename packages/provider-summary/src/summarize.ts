@@ -190,12 +190,12 @@ export class ChunkedSummaryProvider implements SummaryProvider {
       used += n;
     }
     if (cur.length) chunks.push(cur);
-    input.onProgress?.(0, `summarizing ${chunks.length} part${chunks.length === 1 ? "" : "s"}`);
+    input.onProgress?.(0, { code: "summarizing", parts: chunks.length });
     let partials: CompactSummary[] = [];
     for (let i = 0; i < chunks.length; i++) {
       if (input.signal?.aborted) throw new Error("cancelled");
       partials.push(await generateCompact(this.model, system, transcriptPrompt(p, chunks[i]!), input.signal));
-      input.onProgress?.((i + 1) / (chunks.length + (chunks.length > 1 ? 1 : 0)), `part ${i + 1} of ${chunks.length}`);
+      input.onProgress?.((i + 1) / (chunks.length + (chunks.length > 1 ? 1 : 0)), { code: "summary-part", part: i + 1, parts: chunks.length });
     }
     while (partials.length > 1) {
       const groups: CompactSummary[][] = [];
@@ -222,7 +222,7 @@ export class ChunkedSummaryProvider implements SummaryProvider {
       for (const g of groups) next.push(g.length === 1 ? g[0]! : await generateCompact(this.model, system, reducePrompt(g), input.signal));
       partials = next;
     }
-    input.onProgress?.(1, "validating");
+    input.onProgress?.(1, { code: "validating" });
     return toConversationSummary(partials[0]!, p, { providerId: this.id, transcriptRevision: input.transcriptRevision });
   }
 }
@@ -239,7 +239,7 @@ export class CloudSummaryProvider implements SummaryProvider {
   async summarize(input: SummaryInput): Promise<ConversationSummary> {
     if (!/^https:\/\//.test(this.endpoint) && !/^http:\/\/(localhost|127\.0\.0\.1)/.test(this.endpoint)) throw new Error("cloud summary endpoint must be https");
     const p = prepareTranscript(input.segments, input.speakerNames, true);
-    input.onProgress?.(0.1, "sending transcript");
+    input.onProgress?.(0.1, { code: "sending-transcript" });
     const res = await this.fetchImpl(this.endpoint, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -248,7 +248,7 @@ export class CloudSummaryProvider implements SummaryProvider {
     });
     if (!res.ok) throw new Error(`cloud summary failed: HTTP ${res.status}`);
     const body = (await res.json()) as { summary?: unknown };
-    input.onProgress?.(1, "validating");
+    input.onProgress?.(1, { code: "validating" });
     return toConversationSummary(asCompact(body.summary ?? body), p, { providerId: this.id, transcriptRevision: input.transcriptRevision });
   }
 }

@@ -1,5 +1,6 @@
 import { createSignal, For, onSettled, Show } from "solid-js";
-import { formatClock, recordingLocks, recordingServicesLabel, SAMPLE_RATE, selectionLocks, serviceOption, type AnchoredText, type ClusterId, type ProcessingStage, type TranscriptSegment } from "@irl/domain";
+import { describe } from "@irl/i18n";
+import { formatClock, recordingLocks, recordingServices, SAMPLE_RATE, selectionLocks, serviceOption, type AnchoredText, type ClusterId, type ProcessingStage, type StageNote, type TranscriptSegment } from "@irl/domain";
 import { ALL_STAGES, deleteRecording, deleteRecordingAudio, exportRecording, type PostStage } from "@irl/pipeline";
 import { catalogEntry } from "@irl/provider-local";
 import { app, bumpData, Button, download, duration, go, Sheet, SpanText, speakerColor, SpeakerName, toast, useData, when } from "./lib";
@@ -22,14 +23,14 @@ export function RecordingView(props: { id: string; focus?: string }) {
   const [highlight, setHighlight] = createSignal<Set<string>>(new Set());
   const [query, setQuery] = createSignal("");
   const [audioUrl, setAudioUrl] = createSignal<string | null>(null);
-  const [progress, setProgress] = createSignal<{ stage: string; progress?: number; note?: string } | null>(null);
+  const [progress, setProgress] = createSignal<{ stage: string; progress?: number; note?: StageNote } | null>(null);
   const [deleting, setDeleting] = createSignal(false);
   let player: HTMLAudioElement | undefined;
 
   onSettled(() => {
     const off = app().post.events.on((e) => {
       if (e.recordingId !== props.id) return;
-      setProgress(e.stage === "done" ? null : { stage: e.stage, progress: e.progress, note: e.note });
+      setProgress(e.stage === "done" ? null : { stage: e.stage, progress: e.progress, ...(e.note ? { note: e.note } : {}) });
     });
     return () => {
       off();
@@ -202,7 +203,7 @@ function Header(props: { m: RecordingModel }) {
         </div>
       </Show>
       <p class="muted small num">
-        {when(r().startedAt ?? r().createdAt)} · {duration(r().totalSamples)} · {recordingServicesLabel(r())} · {r().language} ·{" "}
+        {when(r().startedAt ?? r().createdAt)} · {duration(r().totalSamples)} · {describe().recordingServices(recordingServices(r()))} · {r().language} ·{" "}
         {r().audioRetention === "persisted" ? "audio saved" : r().audioRetention === "ephemeral" ? "audio not kept" : "audio deleted"}{" "}
         <span class={["badge", { busy: badge().kind === "busy", bad: badge().kind === "bad" }]}>{badge().text}</span>
       </p>
@@ -213,10 +214,10 @@ function Header(props: { m: RecordingModel }) {
   );
 }
 
-function Processing(props: { m: RecordingModel; progress: { stage: string; progress?: number; note?: string } | null }) {
+function Processing(props: { m: RecordingModel; progress: { stage: string; progress?: number; note?: StageNote } | null }) {
   const r = () => props.m.recording;
   const settings = () => app().settings.get();
-  const failed = () => (Object.entries(r().processing) as [ProcessingStage, { status: string; error?: string }][]).filter(([s, v]) => s !== "liveStt" && v.status === "failed");
+  const failed = () => (Object.entries(r().processing) as [ProcessingStage, { status: string }][]).filter(([s, v]) => s !== "liveStt" && v.status === "failed");
   const outdated = () => {
     const out: { stage: PostStage; label: string; patch: Partial<typeof settings.prototype> }[] = [];
     const cur = settings().models;
@@ -256,18 +257,18 @@ function Processing(props: { m: RecordingModel; progress: { stage: string; progr
                 <span class={["small", { error: st().status === "failed", muted: st().status !== "failed" }]}>
                   {st().status === "running" && props.progress?.stage === stage && props.progress.progress !== undefined ? `${Math.round(props.progress.progress * 100)}%` : st().status}
                 </span>
-                <Show when={st().error}>
-                  <span class="small muted" style={{ "grid-column": "1 / -1" }}>
-                    {st().error}
-                  </span>
+                <Show when={st().status === "failed" ? describe().stageError(st()) : st().note ? describe().stageNote(st().note!) : null}>
+                  {(text) => (
+                    <span class="small muted" style={{ "grid-column": "1 / -1" }}>
+                      {text()}
+                    </span>
+                  )}
                 </Show>
               </div>
             );
           }}
         </For>
-        <Show when={props.progress?.note}>
-          <p class="small muted">{props.progress?.note}</p>
-        </Show>
+        <Show when={props.progress?.note}>{(n) => <p class="small muted">{describe().stageNote(n())}</p>}</Show>
         <div class="row">
           <Show when={r().state === "interrupted"}>
             <Button label="Finish processing" kind="primary" onClick={() => reprocess([...ALL_STAGES])} />

@@ -1,11 +1,15 @@
 import {
   AsyncQueue,
   errorMessage,
+  LIVE_PART_NAMES,
   newId,
   overlap,
   pcmToFloat32,
   SAMPLE_RATE,
+  sameDegraded,
   type AudioFrame,
+  type DegradedReason,
+  type LivePart,
   type ClusterId,
   type LiveSpeechProvider,
   type LiveSpeechRun,
@@ -149,7 +153,7 @@ class LocalLiveRun implements LiveSpeechRun {
   private failure = false;
   private timer: ReturnType<typeof setInterval> | null = null;
   private closed = false;
-  private lastDegraded: string | null = null;
+  private lastDegraded: DegradedReason | null = null;
   private lastTurnCluster: ClusterId | null = null;
   private readonly space: string;
 
@@ -163,28 +167,28 @@ class LocalLiveRun implements LiveSpeechRun {
 
   async boot(): Promise<void> {
     this.timer = setInterval(() => void this.tick(), TICK_MS);
-    const loadIfDownloaded = async (modelId: string, what: string, load: () => Promise<unknown>) => {
+    const loadIfDownloaded = async (modelId: string, part: LivePart, load: () => Promise<unknown>) => {
       if (!(await this.engines.isDownloaded(modelId))) {
-        this.emitDegraded(`${what} model not downloaded — processing later`);
+        this.emitDegraded({ code: "not-downloaded", part });
         return false;
       }
       try {
         await load();
         return true;
       } catch (e) {
-        this.emit({ type: "error", message: `${what}: ${errorMessage(e)}`, fatal: false });
-        this.emitDegraded(`${what} unavailable — processing later`);
+        this.emit({ type: "error", message: `${LIVE_PART_NAMES[part]}: ${errorMessage(e)}`, fatal: false });
+        this.emitDegraded({ code: "unavailable", part });
         return false;
       }
     };
     // All three load at once and each is used as soon as it's ready: captions don't wait on speech detection, and the
     // caption model can take far longer than the speaker model.
     await Promise.all([
-      loadIfDownloaded(this.config.vadModelId, "Speech detection", () => this.engines.ensureVad(this.config.vadModelId)).then((ok) => (this.ready.vad = ok)),
-      loadIfDownloaded(this.config.embeddingModelId, "Speaker", () => this.engines.ensureEmbedding(this.config.embeddingModelId)).then((ok) => (this.ready.embed = ok)),
+      loadIfDownloaded(this.config.vadModelId, "vad", () => this.engines.ensureVad(this.config.vadModelId)).then((ok) => (this.ready.vad = ok)),
+      loadIfDownloaded(this.config.embeddingModelId, "speaker", () => this.engines.ensureEmbedding(this.config.embeddingModelId)).then((ok) => (this.ready.embed = ok)),
       this.config.sttModelId === "off"
         ? null
-        : loadIfDownloaded(this.config.sttModelId, "Captions", () => this.engines.ensureLiveStt(this.config.sttModelId)).then((ok) => (ok ? this.sttBecameReady() : (this.stt = "unavailable"))),
+        : loadIfDownloaded(this.config.sttModelId, "captions", () => this.engines.ensureLiveStt(this.config.sttModelId)).then((ok) => (ok ? this.sttBecameReady() : (this.stt = "unavailable"))),
     ]);
     if (this.ready.vad && this.ready.embed && (this.stt === "ready" || this.config.sttModelId === "off")) this.emitDegraded(null);
   }
@@ -222,8 +226,8 @@ class LocalLiveRun implements LiveSpeechRun {
     if (!this.closed || ev.type !== "degraded") this.events.push(ev);
   }
 
-  private emitDegraded(reason: string | null): void {
-    if (reason === this.lastDegraded) return;
+  private emitDegraded(reason: DegradedReason | null): void {
+    if (sameDegraded(reason, this.lastDegraded)) return;
     this.lastDegraded = reason;
     this.events.push({ type: "degraded", reason });
   }
@@ -288,7 +292,7 @@ class LocalLiveRun implements LiveSpeechRun {
       this.failure = true;
       this.ready.vad = false;
       this.emit({ type: "error", message: `VAD failed: ${errorMessage(e)}`, fatal: false });
-      this.emitDegraded("Speech detection failed — processing later");
+      this.emitDegraded({ code: "vad-failed" });
     } finally {
       this.vadBusy = false;
     }
@@ -390,7 +394,7 @@ class LocalLiveRun implements LiveSpeechRun {
     if (range.startSample < this.ring.start) {
       // Fell too far behind: this utterance is left for the final pass.
       u.transcribed = true;
-      this.emitDegraded("Saving — processing later");
+      this.emitDegraded({ code: "saving-later" });
       return;
     }
     if (job.final && u.lastInterimText !== null && range.endSample - u.lastInterimEnd <= PROMOTE_INTERIM_SAMPLES) {
@@ -422,7 +426,7 @@ class LocalLiveRun implements LiveSpeechRun {
       this.failure = true;
       this.emit({ type: "error", message: `live transcription failed: ${errorMessage(e)}`, fatal: false });
       this.stt = "loading";
-      this.emitDegraded("Captions paused — processing later");
+      this.emitDegraded({ code: "captions-paused" });
       // Try to recover the model (e.g. after a WebGPU device loss) without stopping capture.
       void this.engines.ensureLiveStt(this.config.sttModelId).then(
         () => this.sttBecameReady(),
@@ -450,7 +454,7 @@ class LocalLiveRun implements LiveSpeechRun {
     if (this.stt !== "ready" || (!this.decision.liveStt && !flush)) return;
     if (this.streamFed < this.ring.start) {
       // Fell behind the ring: what was skipped is left for the final pass, and line times restart from here.
-      this.emitDegraded("Saving — processing later");
+      this.emitDegraded({ code: "saving-later" });
       this.stt = "loading";
       this.sttBecameReady();
       return;
@@ -515,7 +519,7 @@ class LocalLiveRun implements LiveSpeechRun {
     this.failure = true;
     this.emit({ type: "error", message: `live transcription failed: ${errorMessage(e)}`, fatal: false });
     this.stt = "loading";
-    this.emitDegraded("Captions paused — processing later");
+    this.emitDegraded({ code: "captions-paused" });
     void this.engines.ensureLiveStt(this.config.sttModelId).then(
       () => this.sttBecameReady(),
       () => (this.stt = "unavailable"),

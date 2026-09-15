@@ -123,9 +123,21 @@ export interface MatchDecision {
   evidenceMs: number;
   agreement: number;
   status: "accepted" | "candidate" | "rejected";
+  /** English, for logs and the evaluation view. The UI renders `failures` / `rejection`. */
   reason: string;
+  /** Criteria a local match missed, with the measured value and the policy threshold. */
+  failures?: MatchFailure[];
+  /** Why nothing could be compared at all. */
+  rejection?: "no-clean-windows" | "no-comparable-profiles";
   /** "service": the speech service recognized an enrolled voice (Speechmatics voice ID); scores don't apply. */
   source?: "local" | "service";
+}
+
+export interface MatchFailure {
+  criterion: "evidence" | "score" | "margin" | "agreement";
+  /** evidence in ms; the others are 0–1 scores or fractions. */
+  value: number;
+  threshold: number;
 }
 
 function personScore(vector: Float32Array, profile: CandidateProfile): number {
@@ -144,7 +156,7 @@ export function decideMatch(evidence: ClusterEvidence, profiles: readonly Candid
   const eligible = profiles.filter((p) => p.embeddingSpace === evidence.embeddingSpace && !p.needsReenrollment && p.prototypes.length > 0);
   const base = { clusterId: evidence.clusterId, evidenceMs };
   if (!usable.length || !eligible.length) {
-    return { ...base, best: null, second: null, agreement: 0, status: "rejected", reason: !usable.length ? "no clean windows" : "no comparable profiles" };
+    return { ...base, best: null, second: null, agreement: 0, status: "rejected", reason: !usable.length ? "no clean windows" : "no comparable profiles", rejection: !usable.length ? "no-clean-windows" : "no-comparable-profiles" };
   }
   const aggregate = meanVector(usable.map((w) => w.vector), usable.map((w) => w.durationMs * w.quality));
   const ranked = eligible
@@ -159,14 +171,27 @@ export function decideMatch(evidence: ClusterEvidence, profiles: readonly Candid
   }
   const agreement = agree / usable.length;
   const margin = best.score - (second?.score ?? 0);
-  const failures: string[] = [];
-  if (evidenceMs < policy.minEvidenceMs) failures.push(`evidence ${Math.round(evidenceMs)}ms < ${policy.minEvidenceMs}ms`);
-  if (best.score < policy.minScore) failures.push(`score ${best.score.toFixed(3)} < ${policy.minScore}`);
-  if (second && margin < policy.minMargin) failures.push(`margin ${margin.toFixed(3)} < ${policy.minMargin}`);
-  if (agreement < policy.minWindowAgreement) failures.push(`agreement ${agreement.toFixed(2)} < ${policy.minWindowAgreement}`);
+  const failures: MatchFailure[] = [];
+  if (evidenceMs < policy.minEvidenceMs) failures.push({ criterion: "evidence", value: evidenceMs, threshold: policy.minEvidenceMs });
+  if (best.score < policy.minScore) failures.push({ criterion: "score", value: best.score, threshold: policy.minScore });
+  if (second && margin < policy.minMargin) failures.push({ criterion: "margin", value: margin, threshold: policy.minMargin });
+  if (agreement < policy.minWindowAgreement) failures.push({ criterion: "agreement", value: agreement, threshold: policy.minWindowAgreement });
   if (!failures.length) return { ...base, best, second, agreement, status: "accepted", reason: "all criteria met" };
   const status = best.score >= policy.candidateScore ? "candidate" : "rejected";
-  return { ...base, best, second, agreement, status, reason: failures.join("; ") };
+  return { ...base, best, second, agreement, status, reason: failures.map(failureText).join("; "), failures };
+}
+
+function failureText(f: MatchFailure): string {
+  switch (f.criterion) {
+    case "evidence":
+      return `evidence ${Math.round(f.value)}ms < ${f.threshold}ms`;
+    case "score":
+      return `score ${f.value.toFixed(3)} < ${f.threshold}`;
+    case "margin":
+      return `margin ${f.value.toFixed(3)} < ${f.threshold}`;
+    case "agreement":
+      return `agreement ${f.value.toFixed(2)} < ${f.threshold}`;
+  }
 }
 
 /** Equal error rate and threshold from same/different-speaker score lists (evaluation harness). */

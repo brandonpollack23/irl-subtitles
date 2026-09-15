@@ -35,7 +35,7 @@ describe("testSonioxKey", () => {
     const bad = await testSonioxKey("k", (async () => new Response("secret detail", { status: 401 })) as unknown as typeof fetch);
     const net = await testSonioxKey("k", (async () => { throw new TypeError("Failed to fetch sk-abc"); }) as unknown as typeof fetch);
     expect(ok.ok).toBe(true);
-    expect(bad).toEqual({ ok: false, message: "Soniox rejected the key" });
+    expect(bad).toEqual({ ok: false, code: "rejected", message: "Soniox rejected the key" });
     expect(net.message).not.toContain("sk-abc");
   });
 });

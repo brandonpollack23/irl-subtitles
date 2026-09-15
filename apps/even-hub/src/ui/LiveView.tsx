@@ -1,6 +1,7 @@
 import type { JSX } from "@solidjs/web";
 import { createMemo, createSignal, For, Show } from "solid-js";
-import { activeAttributions, describeDataFlow, isVoiceIdOption, SERVICE_NAMES, formatClock, policyFor, speakerLabel, type ClusterId, type MatchDecision, type Person, type SpeakerAttribution } from "@irl/domain";
+import { describe } from "@irl/i18n";
+import { activeAttributions, dataFlow, isVoiceIdOption, SERVICE_NAMES, formatClock, policyFor, speakerLabel, type ClusterId, type MatchDecision, type Person, type SpeakerAttribution } from "@irl/domain";
 import { embeddingSpaceOf } from "@irl/provider-local";
 import { app, Button, go, speakerColor, SpeakerName, useData, useSettings } from "./lib";
 import { liveSnapshot, warmupStatus } from "./model";
@@ -39,7 +40,7 @@ export function LiveView() {
           <div class="stack">
             <h1>Record a conversation</h1>
             <p class="muted">
-              {describeDataFlow(settings().models)}{" "}
+              {describe().dataFlow(dataFlow(settings().models))}{" "}
               {settings().persistAudio ? "Audio will be saved." : "Audio won't be saved after processing."}
             </p>
             <Show when={modelsLoading()}>
@@ -48,9 +49,7 @@ export function LiveView() {
               </p>
             </Show>
             <Button label="Start recording" busyLabel="Starting…" kind="record" onClick={() => app().controller.start()} />
-            <Show when={live().error}>
-              <p class="error">{live().error}</p>
-            </Show>
+            <Show when={live().error}>{(e) => <p class="error">{describe().liveProblem(e())}</p>}</Show>
           </div>
         }
       >
@@ -77,18 +76,18 @@ export function LiveView() {
             </p>
           </Show>
           <Show when={live().degraded}>
-            <p class="warn" role="status">
-              {live().degraded}
-            </p>
+            {(r) => (
+              <p class="warn" role="status">
+                {describe().degraded(r())}
+              </p>
+            )}
           </Show>
           <Show when={live().gaps > 0}>
             <p class="small muted">
               {live().gaps} audio gap{live().gaps === 1 ? "" : "s"} from the glasses connection
             </p>
           </Show>
-          <Show when={live().error}>
-            <p class="small error">{live().error}</p>
-          </Show>
+          <Show when={live().error}>{(e) => <p class="small error">{describe().liveProblem(e())}</p>}</Show>
           <div class="row">
             <Show when={live().state === "recording"}>
               <Button label="Pause" onClick={() => app().controller.pause()} />
@@ -203,7 +202,7 @@ function MatchDetails(props: { matches: MatchDecision[]; label: (id: ClusterId) 
               </span>
               </Show>
               <Show when={d.status !== "accepted"}>
-                <span class="small muted">{d.reason}</span>
+                <span class="small muted">{describe().matchReason(d)}</span>
               </Show>
             </div>
           )}

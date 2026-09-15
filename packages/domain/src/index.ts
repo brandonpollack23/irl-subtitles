@@ -1,4 +1,5 @@
 export * from "./audio";
+export * from "./errors";
 export * from "./identity";
 export * from "./models";
 export * from "./people";

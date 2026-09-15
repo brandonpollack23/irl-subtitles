@@ -1,3 +1,5 @@
+import type { KeyTestResult } from "@irl/domain";
+
 export type SpeechmaticsRegion = "eu" | "us" | "au";
 
 export const SPEECHMATICS_REGIONS: readonly SpeechmaticsRegion[] = ["eu", "us", "au"];
@@ -40,13 +42,13 @@ export async function mintRealtimeKey(apiKey: string, ttlSeconds = 3600, fetchIm
 }
 
 /** Smallest authenticated request; the batch API answers 401 with CORS headers, so a rejection is readable. */
-export async function testSpeechmaticsKey(apiKey: string, region: SpeechmaticsRegion = "eu", fetchImpl: typeof fetch = fetch): Promise<{ ok: boolean; message: string }> {
+export async function testSpeechmaticsKey(apiKey: string, region: SpeechmaticsRegion = "eu", fetchImpl: typeof fetch = fetch): Promise<KeyTestResult> {
   try {
     const r = await fetchImpl(`${SPEECHMATICS_ENDPOINTS.batch(region)}/v2/jobs?limit=1`, { headers: { Authorization: `Bearer ${apiKey}` } });
-    if (r.ok) return { ok: true, message: "Key works" };
-    if (r.status === 401 || r.status === 403) return { ok: false, message: "Speechmatics rejected the key (keys only work in the region they were created in)" };
-    return { ok: false, message: `Speechmatics returned HTTP ${r.status}` };
+    if (r.ok) return { ok: true, code: "ok", message: "Key works" };
+    if (r.status === 401 || r.status === 403) return { ok: false, code: "rejected", message: "Speechmatics rejected the key (keys only work in the region they were created in)" };
+    return { ok: false, code: "http", status: r.status, message: `Speechmatics returned HTTP ${r.status}` };
   } catch {
-    return { ok: false, message: "Could not reach Speechmatics (offline, blocked by the network allowlist, or CORS)" };
+    return { ok: false, code: "unreachable", message: "Could not reach Speechmatics (offline, blocked by the network allowlist, or CORS)" };
   }
 }

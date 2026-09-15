@@ -77,6 +77,10 @@ describe("names", () => {
     expect(glassesSpeakerName("c1", withCandidate, new Map(), people)).toBe("Alice Liddell?");
     expect(glassesSpeakerName("c1", withCandidate, active, people)).toBe("Alice Liddell");
     expect(glassesSpeakerName("c1", clusters, new Map(), people)).toBe("Speaker 2");
+    // The UI language supplies the words around names; budgets account for them.
+    const ja = { speaker: (n?: number) => (n ? `話者${n}` : "話者"), possibly: (name: string) => `${name}？`, maybe: (name: string) => `${name}？` };
+    expect(speakerLabel("c1", clusters, new Map(), people, { words: ja })).toMatchObject({ text: "話者2", ordinal: 2 });
+    expect(glassesSpeakerName("c1", withCandidate, new Map(), people, ja)).toBe("Alice Liddell？");
   });
 });
 
@@ -104,6 +108,7 @@ describe("matching policy", () => {
     const d = decideMatch({ clusterId: "c", embeddingSpace: "s1", windows: windows(1, vec(1, 0, 0)) }, [alice, bob], policy);
     expect(d.status).toBe("candidate");
     expect(d.reason).toMatch(/evidence/);
+    expect(d.failures).toEqual([{ criterion: "evidence", value: 2000, threshold: policy.minEvidenceMs }]);
   });
 
   it("rejects ambiguous voices and other embedding spaces", () => {

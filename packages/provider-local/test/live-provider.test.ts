@@ -88,7 +88,7 @@ describe("local live provider", () => {
     // Interims and finals for every utterance, each decoding mostly speech.
     expect(sttLoudness.length).toBeGreaterThanOrEqual(6);
     for (const share of sttLoudness) expect(share).toBeGreaterThan(0.7);
-    expect(events.some((e) => e.type === "degraded" && e.reason?.startsWith("Saving"))).toBe(false);
+    expect(events.some((e) => e.type === "degraded" && e.reason?.code === "saving-later")).toBe(false);
   });
 
   it("captions speech that ended while the caption model was still loading", async () => {

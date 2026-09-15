@@ -18,6 +18,10 @@ import {
   type RecordingState,
   type SpeakerCluster,
   type TranscriptSegment,
+  UserError,
+  problemOf,
+  type DegradedReason,
+  type LiveProblem,
 } from "@irl/domain";
 import { ChunkRecorder, FrameSequencer, type AudioSource } from "@irl/capture";
 import { ephemeralSealer, type BlobStore, type Repository, type Sealer, type SettingsStore } from "@irl/storage";
@@ -39,11 +43,11 @@ export interface LiveSnapshot {
   clusters: SpeakerCluster[];
   /** Latest live match decision per cluster, for the match readout. */
   matches: MatchDecision[];
-  degraded: string | null;
+  degraded: DegradedReason | null;
   gaps: number;
   markers: number;
   pendingChunks: number;
-  error: string | null;
+  error: LiveProblem | null;
   /** Bumped on identity changes so views re-resolve names. */
   labelsVersion: number;
 }
@@ -144,7 +148,7 @@ export class RecordingController {
 
   start(opts: { persistAudio?: boolean; source?: AudioSource } = {}): Promise<string> {
     return this.serial(async () => {
-      if (this.active) throw new Error("A recording is already in progress");
+      if (this.active) throw new UserError("recording-in-progress", "A recording is already in progress");
       const settings = this.deps.settings.get();
       const persist = opts.persistAudio ?? settings.persistAudio;
       const id = newId("rec");
@@ -162,7 +166,7 @@ export class RecordingController {
       const sequencer = new FrameSequencer(id);
       const recorder = new ChunkRecorder({
         repo: this.deps.repo, blobs: this.deps.blobs, sealer, recordingId: id,
-        onError: (m) => this.update({ error: m }),
+        onError: (m) => this.update({ error: { during: "saving", detail: m } }),
         onChunk: (c) => this.update({ pendingChunks: c.pendingChunks }),
       });
       const heartbeat = setInterval(() => void this.heartbeat(), 5000);
@@ -177,7 +181,7 @@ export class RecordingController {
         await this.deps.repo.updateRecording(id, { state: "failed", error: errorMessage(e), endedAt: nowIso() });
         this.deps.ephemeral.drop(id);
         this.active = null;
-        this.update({ ...idleSnapshot(providerKindFor(settings.models), settings.persistAudio), error: `Could not start capture: ${errorMessage(e)}` });
+        this.update({ ...idleSnapshot(providerKindFor(settings.models), settings.persistAudio), error: { during: "start", ...problemOf(e) } });
         throw e;
       }
       void this.startProcessing(recording);
@@ -198,7 +202,7 @@ export class RecordingController {
       await coordinator.start();
       await this.deps.repo.updateRecording(recording.id, (r) => ({ processing: { ...r.processing, liveStt: { status: r.models.sttLive === "off" ? "skipped" : "running", updatedAt: nowIso() } } }));
     } catch (e) {
-      this.update({ degraded: `Saving — processing later (${errorMessage(e)})` });
+      this.update({ degraded: { code: "saving-later", detail: errorMessage(e) } });
       await this.deps.repo.updateRecording(recording.id, { degraded: `live processing unavailable: ${errorMessage(e)}` });
     }
   }
@@ -271,7 +275,7 @@ export class RecordingController {
       clearInterval(a.heartbeat);
       await a.source.stop().catch(() => undefined);
       await a.recorder.flush();
-      await a.coordinator?.finish().catch((e) => this.update({ error: errorMessage(e) }));
+      await a.coordinator?.finish().catch((e) => this.update({ error: { during: "saving", ...problemOf(e) } }));
       const liveStatus = a.coordinator ? "done" : a.recording.models.sttLive === "off" ? "skipped" : "failed";
       await this.setState("finalizing", {
         endedAt: nowIso(), totalSamples: a.sequencer.nextSample, gaps: a.sequencer.gaps,
@@ -287,7 +291,7 @@ export class RecordingController {
 
   /** Glasses "Save audio" toggle: changes the default for the next recording only. */
   async setPersistAudio(persist: boolean): Promise<void> {
-    if (this.active) throw new Error("Audio saving can be changed between recordings");
+    if (this.active) throw new UserError("audio-setting-locked", "Audio saving can be changed between recordings");
     await this.deps.settings.update({ persistAudio: persist });
   }
 }

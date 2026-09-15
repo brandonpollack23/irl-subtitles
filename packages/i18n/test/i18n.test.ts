@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { UI_LOCALES } from "@irl/domain";
-import { en, fmt, formatters, keyPaths, locale, localeChanges, matchLocale, messages, resolveLocale, setLocale, t, withFallback } from "../src";
+import { UI_LOCALES, UserError } from "@irl/domain";
+import { describer, en, fmt, formatters, keyPaths, locale, localeChanges, matchLocale, messages, resolveLocale, setLocale, t, withFallback } from "../src";
 
 describe("locale resolution", () => {
   it("matches the first supported primary language", () => {
@@ -92,5 +92,53 @@ describe("formatters", () => {
     expect(j.language("ja")).toBe("日本語");
     expect(j.language("en")).toBe("英語");
     expect(e.list(["Soniox", "Speechmatics"])).toBe("Soniox & Speechmatics");
+  });
+});
+
+describe("describer", () => {
+  const en = describer("en", messages("en"));
+  const ja = describer("ja", messages("ja"));
+
+  it("says where data goes", () => {
+    expect(en.dataFlow({ live: null, final: null, voiceId: null, summary: false })).toBe("Everything stays on this phone.");
+    expect(en.dataFlow({ live: "soniox", final: null, voiceId: null, summary: false })).toBe("Audio goes to Soniox while recording; voices are matched on this phone.");
+    expect(en.dataFlow({ live: "speechmatics", final: "speechmatics", voiceId: "speechmatics", summary: true })).toBe(
+      "Audio goes to Speechmatics while recording and after you stop; Speechmatics recognizes saved voices and keeps their voiceprints; transcript text goes to the cloud summary service.",
+    );
+    expect(ja.dataFlow({ live: "soniox", final: null, voiceId: null, summary: false })).toBe("録音中は音声が Soniox に送られます。声の照合はこのスマートフォンで行います。");
+  });
+
+  it("explains blocked options", () => {
+    expect(en.blocker({ code: "key", service: "speechmatics" })).toBe("Save a Speechmatics key");
+    expect(en.blocker({ code: "language", language: "auto" })).toBe("Doesn't support Automatic (best effort)");
+    expect(en.blocker({ code: "needs-service", service: "speechmatics", roles: ["stt-live", "stt-final"] })).toBe("Needs Speechmatics live captions or final transcript");
+    expect(ja.blocker({ code: "language", language: "de" })).toBe("ドイツ語には対応していません");
+    expect(ja.lock({ by: "soniox:stt-rt-v5", service: "soniox", kind: "live-stream" }, "stt-final")).toEqual({ label: "Soniox が担当", reason: "Soniox の確定字幕がそのまま文字起こしになります。" });
+  });
+
+  it("names cloud options as the domain registry did", () => {
+    const names = (d: typeof en) => ["soniox:stt-rt-v5", "soniox:stt-rt-v4", "speechmatics:enhanced", "speechmatics-batch:enhanced", "soniox-async:stt-async-v5", "speechmatics:voice-id", "cloud-summary"].map((id) => d.optionName({ id, label: id, group: "cloud" }, "stt-live"));
+    expect(names(en)).toEqual(["Soniox", "Soniox (stt-rt-v4)", "Speechmatics (enhanced)", "Speechmatics (enhanced, after you stop)", "Soniox (after you stop)", "Speechmatics voice identification", "Cloud summary service (sends transcript only)"]);
+    expect(en.optionName({ id: "off", label: "", group: "special" }, "stt-live")).toBe("Off (capture now, process later)");
+    expect(ja.optionName({ id: "same-as-live", label: "", group: "special" }, "stt-final")).toBe("ライブ字幕と同じ");
+  });
+
+  it("renders degraded reasons, errors, notes, and match failures", () => {
+    expect(en.degraded({ code: "reconnecting", service: "soniox" })).toBe("Soniox reconnecting — audio is still saving");
+    expect(ja.degraded({ code: "not-downloaded", part: "captions" })).toBe("字幕モデルが未ダウンロード — 後で処理します");
+    expect(en.error(new UserError("key-missing", "No Soniox API key saved", { service: "soniox" }))).toBe("Save a Soniox key in Settings first.");
+    expect(ja.error(new Error("boom"))).toBe("boom");
+    expect(en.liveProblem({ during: "start", detail: "x", code: "glasses-audio" })).toBe("Could not start capture: Couldn't open the glasses microphones. Are the glasses connected?");
+    expect(en.stageNote({ code: "words", words: 12, speakers: 2, service: "speechmatics", language: "ja" })).toBe("12 words, 2 speakers from Speechmatics, language Japanese");
+    expect(ja.stageNote({ code: "recognized", recognized: 1, total: 3 })).toBe("話者3人中1人を認識");
+    expect(en.matchFailure({ criterion: "evidence", value: 2000, threshold: 8000 })).toBe("speech 2.0 s < 8 s");
+    expect(ja.matchFailure({ criterion: "agreement", value: 0.5, threshold: 0.6 })).toBe("一致率 50% < 60%");
+    expect(en.keyTest({ ok: false, code: "rejected", message: "" }, "speechmatics")).toContain("region");
+  });
+
+  it("describes where a recording was processed", () => {
+    expect(en.recordingServices({ services: [], local: true })).toBe("On-device");
+    expect(en.recordingServices({ services: ["speechmatics"], local: true })).toBe("Speechmatics + on-device");
+    expect(ja.recordingServices({ services: ["soniox"], local: false })).toBe("Soniox");
   });
 });

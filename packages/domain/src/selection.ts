@@ -1,5 +1,4 @@
 import type { ModelRole, ModelSelection } from "./models";
-import { LANGUAGES } from "./settings";
 
 /**
  * One selection model for every role (irl-subt-3xb.1): a role holds either a local catalog id, a special ("off",
@@ -183,10 +182,24 @@ export function roleService(models: ModelSelection, role: ModelRole, locks?: Sel
   return serviceOption(effectiveId(models, role, locks))?.service ?? null;
 }
 
+/** Why an option can't be picked, as a code the UI renders in its language. */
+export type OptionBlocker =
+  | { code: "role" }
+  | { code: "language"; language: string }
+  | { code: "key"; service: CloudService }
+  | { code: "summary-endpoint" }
+  | { code: "needs-service"; service: CloudService; roles: readonly ModelRole[] }
+  /** A stored selection that no longer exists (a retired model id). */
+  | { code: "missing" }
+  /** A local model for another recording language. */
+  | { code: "other-language" }
+  /** The device can't run a local model; `detail` is the catalog's technical reason. */
+  | { code: "device"; detail: string };
+
 export interface LocalOption {
   id: string;
   label: string;
-  disabled: string | null;
+  disabled: OptionBlocker | null;
 }
 
 export interface ResolveContext {
@@ -200,17 +213,17 @@ export interface ResolveContext {
 
 export interface RoleOption {
   id: string;
+  /** English fallback label; the UI names specials and cloud options itself. */
   label: string;
   group: "local" | "cloud" | "special";
-  disabled: string | null;
+  disabled: OptionBlocker | null;
 }
 
+/** A role another role's cloud option provides ("Provided by Soniox"): the option, its service, and its kind. */
 export interface RoleLock {
   by: string;
   service: CloudService;
-  /** "Provided by Soniox" */
-  label: string;
-  reason: string;
+  kind: ServiceOptionKind;
 }
 
 export interface RoleResolution {
@@ -220,7 +233,7 @@ export interface RoleResolution {
   locked: RoleLock | null;
   options: RoleOption[];
   /** Why the stored selection can't run as chosen (e.g. its key was removed), or null. */
-  invalid: string | null;
+  invalid: OptionBlocker | null;
 }
 
 export type ResolvedSelection = Record<ModelRole, RoleResolution>;
@@ -231,28 +244,17 @@ const SPECIALS: Partial<Record<ModelRole, [string, string][]>> = {
   summary: [["off", "Off"]],
 };
 
-function languageName(code: string): string {
-  return LANGUAGES.find((l) => l.code === code)?.name ?? code;
-}
-
-function lockReason(o: ServiceOption, role: ModelRole): string {
-  const name = SERVICE_NAMES[o.service];
-  if (role === "vad") return o.kind === "live-stream" ? `${name} detects speech itself while streaming.` : `${name} finds the speech in the uploaded recording.`;
-  if (role === "stt-final") return `${name}'s final captions are the transcript.`;
-  return `${name} provides this.`;
-}
-
 /** Why a cloud option can't be picked for a role right now, or null. */
-export function cloudOptionBlocker(o: ServiceOption, role: ModelRole, models: ModelSelection, ctx: Pick<ResolveContext, "language" | "hasSecret" | "summaryEndpoint">): string | null {
-  if (!o.roles.includes(role)) return "Not available for this role";
-  if (!optionSupportsLanguage(o, ctx.language)) return `Doesn't support ${languageName(ctx.language)}`;
-  if (o.requires.secret && !ctx.hasSecret(o.requires.secret)) return `Save a ${SERVICE_NAMES[o.service]} key`;
-  if (o.requires.summaryEndpoint && !ctx.summaryEndpoint) return "Set the cloud summary service address";
+export function cloudOptionBlocker(o: ServiceOption, role: ModelRole, models: ModelSelection, ctx: Pick<ResolveContext, "language" | "hasSecret" | "summaryEndpoint">): OptionBlocker | null {
+  if (!o.roles.includes(role)) return { code: "role" };
+  if (!optionSupportsLanguage(o, ctx.language)) return { code: "language", language: ctx.language };
+  if (o.requires.secret && !ctx.hasSecret(o.requires.secret)) return { code: "key", service: o.service };
+  if (o.requires.summaryEndpoint && !ctx.summaryEndpoint) return { code: "summary-endpoint" };
   const need = o.requires.roleService;
   if (need) {
     const locks = selectionLocks(models);
     const ok = need.roles.some((r) => r !== role && roleService(models, r, locks) === need.service);
-    if (!ok) return `Needs ${SERVICE_NAMES[need.service]} ${need.roles.map((r) => (r === "stt-live" ? "live captions" : r === "stt-final" ? "final transcript" : r)).join(" or ")}`;
+    if (!ok) return { code: "needs-service", service: need.service, roles: need.roles };
   }
   return null;
 }
@@ -294,39 +296,37 @@ export function resolveSelection(models: ModelSelection, ctx: ResolveContext): R
     const current = options.find((o) => o.id === selected);
     out[role] = {
       role, selected, effective: locks[role] ?? selected,
-      locked: lockOption ? { by: lockOption.id, service: lockOption.service, label: `Provided by ${SERVICE_NAMES[lockOption.service]}`, reason: lockReason(lockOption, role) } : null,
+      locked: lockOption ? { by: lockOption.id, service: lockOption.service, kind: lockOption.kind } : null,
       options,
-      invalid: lockOption ? null : current ? current.disabled : `${selected} is not available`,
+      invalid: lockOption ? null : current ? current.disabled : { code: "missing" },
     };
   }
   return out;
 }
 
-/** One sentence on where data goes for this selection; shown in Settings, the idle live page, and recording details. */
-export function describeDataFlow(models: ModelSelection): string {
-  const locks = selectionLocks(models);
-  const live = serviceOption(effectiveId(models, "stt-live", locks));
-  const finalId = effectiveId(models, "stt-final", locks);
-  const final = locks["stt-final"] ? null : serviceOption(finalId);
-  const parts: string[] = [];
-  if (live && final && live.service === final.service) parts.push(`audio goes to ${SERVICE_NAMES[live.service]} while recording and after you stop`);
-  else {
-    if (live) parts.push(`audio goes to ${SERVICE_NAMES[live.service]} while recording`);
-    if (final) parts.push(`audio goes to ${SERVICE_NAMES[final.service]} after you stop`);
-  }
-  const voiceId = serviceOption(models.speakerEmbedding)?.kind === "voice-id";
-  if (voiceId) parts.push("Speechmatics recognizes saved voices and keeps their voiceprints");
-  else if (parts.length) parts.push("voices are matched on this phone");
-  if (serviceOption(models.summary)?.kind === "summary") parts.push("transcript text goes to the cloud summary service");
-  if (!parts.length) return "Everything stays on this phone.";
-  const text = parts.join("; ");
-  return `${text[0]!.toUpperCase()}${text.slice(1)}.`;
+/** Where data goes for a selection; the UI says it in one sentence in Settings, the idle live page, and recording details. */
+export interface DataFlow {
+  /** The service live audio streams to. */
+  live: CloudService | null;
+  /** The service the recording is uploaded to after Stop (not when the live stream's final tokens are the transcript). */
+  final: CloudService | null;
+  /** The service that recognizes saved voices and keeps their voiceprints, or null when voices are matched on this phone. */
+  voiceId: CloudService | null;
+  /** Transcript text goes to the cloud summary service. */
+  summary: boolean;
 }
 
-/** Short label for where live captions come from: "On this phone", "Soniox", "Speechmatics". */
-export function liveLabel(models: ModelSelection): string {
-  const o = serviceOption(models.sttLive);
-  return o ? SERVICE_NAMES[o.service] : "On this phone";
+export function dataFlow(models: ModelSelection): DataFlow {
+  const locks = selectionLocks(models);
+  const live = serviceOption(effectiveId(models, "stt-live", locks));
+  const final = locks["stt-final"] ? null : serviceOption(effectiveId(models, "stt-final", locks));
+  const voice = serviceOption(models.speakerEmbedding);
+  return {
+    live: live?.service ?? null,
+    final: final?.service ?? null,
+    voiceId: voice?.kind === "voice-id" ? voice.service : null,
+    summary: serviceOption(models.summary)?.kind === "summary",
+  };
 }
 
 /** Cloud services a selection sends audio or voiceprints to (not the transcript-only summary endpoint). */

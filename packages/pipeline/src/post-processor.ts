@@ -27,7 +27,6 @@ import {
   overlap,
   recordingLiveOption,
   recordingLocks,
-  SERVICE_NAMES,
   serviceOption,
   wavHeader,
   isServiceVoiceSpace,
@@ -36,6 +35,10 @@ import {
   type ServiceSpeaker,
   type FinalTranscriptResult,
   type ServiceOption,
+  UserError,
+  problemOf,
+  type Problem,
+  type StageNote,
 } from "@irl/domain";
 import { chunkPath, encodeOpus, opusEncoderRate, type RecordingAudio } from "@irl/capture";
 import { writeVerified, type BlobStore, type Repository, type Sealer, type SettingsStore } from "@irl/storage";
@@ -52,7 +55,9 @@ export interface StageEvent {
   stage: PostStage | "done";
   status: StageStatus;
   progress?: number;
-  note?: string;
+  note?: StageNote;
+  /** Why a stage failed. */
+  problem?: Problem;
 }
 
 export interface PostProcessorDeps {
@@ -148,9 +153,15 @@ export class PostProcessor {
     while (this.deps.isCapturing() && !signal.aborted) await sleep(CAPTURE_POLL_MS);
   }
 
-  private async setStage(recordingId: string, stage: PostStage, status: StageStatus, error?: string): Promise<void> {
-    await this.deps.repo.updateRecording(recordingId, (r) => ({ processing: { ...r.processing, [stage]: { status, updatedAt: nowIso(), ...(error ? { error } : {}) } } }));
-    this.events.emit({ recordingId, stage, status, ...(error ? { note: error } : {}) });
+  private async setStage(recordingId: string, stage: PostStage, status: StageStatus, outcome: { note?: StageNote; problem?: Problem } = {}): Promise<void> {
+    const { note, problem } = outcome;
+    const stored = {
+      status, updatedAt: nowIso(),
+      ...(note ? { note } : {}),
+      ...(problem ? { error: problem.detail, ...(problem.code ? { errorCode: problem.code } : {}), ...(problem.service ? { errorService: problem.service } : {}) } : {}),
+    };
+    await this.deps.repo.updateRecording(recordingId, (r) => ({ processing: { ...r.processing, [stage]: stored } }));
+    this.events.emit({ recordingId, stage, status, ...(note ? { note } : {}), ...(problem ? { problem } : {}) });
   }
 
   private async transition(recordingId: string, state: Recording["state"]): Promise<void> {
@@ -181,9 +192,9 @@ export class PostProcessor {
       try {
         await this.setStage(recordingId, stage, "running");
         const result = stage === "finalStt" ? await this.finalStt(rec, speech, signal) : stage === "diarization" ? await this.diarize(rec, speech, signal) : await this.identify(rec);
-        await this.setStage(recordingId, stage, result.status, result.note);
+        await this.setStage(recordingId, stage, result.status, result);
       } catch (e) {
-        await this.setStage(recordingId, stage, "failed", errorMessage(e));
+        await this.setStage(recordingId, stage, "failed", { problem: problemOf(e) });
       }
     }
     if (upstream) await this.transition(recordingId, "captured");
@@ -193,9 +204,9 @@ export class PostProcessor {
       try {
         await this.setStage(recordingId, "summary", "running");
         const r = await this.summarize((await repo.getRecording(recordingId))!, signal);
-        await this.setStage(recordingId, "summary", r.status, r.note);
+        await this.setStage(recordingId, "summary", r.status, r);
       } catch (e) {
-        await this.setStage(recordingId, "summary", "failed", errorMessage(e));
+        await this.setStage(recordingId, "summary", "failed", { problem: problemOf(e) });
         await repo.putSummary({ recordingId, status: "failed", summary: (await repo.getSummary(recordingId))?.summary ?? null, providerId: null, transcriptRevision: rec.transcriptRevision, error: errorMessage(e), updatedAt: nowIso() });
       }
     }
@@ -206,9 +217,9 @@ export class PostProcessor {
       try {
         await this.setStage(recordingId, "compression", "running");
         const r = await this.retainAudio((await repo.getRecording(recordingId))!);
-        await this.setStage(recordingId, "compression", r.status, r.note);
+        await this.setStage(recordingId, "compression", r.status, r);
       } catch (e) {
-        await this.setStage(recordingId, "compression", "failed", errorMessage(e));
+        await this.setStage(recordingId, "compression", "failed", { problem: problemOf(e) });
       }
     }
     this.events.emit({ recordingId, stage: "done", status: "done" });
@@ -231,20 +242,20 @@ export class PostProcessor {
         if (last && r.startSample - last.endSample < SAMPLE_RATE / 4) last.endSample = Math.max(last.endSample, r.endSample);
         else regions.push({ ...r });
       }
-      this.events.emit({ recordingId: rec.id, stage: "finalStt", status: "running", progress: end / Math.max(1, total), note: "detecting speech" });
+      this.events.emit({ recordingId: rec.id, stage: "finalStt", status: "running", progress: end / Math.max(1, total), note: { code: "detecting-speech" } });
     }
     return regions;
   }
 
-  private async finalStt(rec: Recording, speech: () => Promise<TimeRange[]>, signal: AbortSignal): Promise<{ status: StageStatus; note?: string }> {
+  private async finalStt(rec: Recording, speech: () => Promise<TimeRange[]>, signal: AbortSignal): Promise<{ status: StageStatus; note?: StageNote }> {
     const lockedBy = recordingLocks(rec)["stt-final"];
-    if (lockedBy) return { status: "skipped", note: `${SERVICE_NAMES[serviceOption(lockedBy)?.service ?? "soniox"]} final tokens are the transcript` };
+    if (lockedBy) return { status: "skipped", note: { code: "final-tokens", service: serviceOption(lockedBy)?.service ?? "soniox" } };
     const cloud = serviceOption(rec.models.sttFinal);
     if (cloud?.kind === "batch-final") return this.cloudFinalStt(rec, cloud, signal);
     const liveOk = rec.processing.liveStt.status === "done" && !rec.degraded;
     const modelId = rec.models.sttFinal === "same-as-live" ? (liveOk ? null : rec.models.sttLive === "off" ? null : rec.models.sttLive) : rec.models.sttFinal;
-    if (!modelId) return { status: "skipped", note: rec.models.sttLive === "off" ? "no STT model selected" : "same as live" };
-    if (!(await this.audioAvailable(rec))) return { status: "skipped", note: "audio unavailable" };
+    if (!modelId) return { status: "skipped", note: rec.models.sttLive === "off" ? { code: "no-model" } : { code: "same-as-live" } };
+    if (!(await this.audioAvailable(rec))) return { status: "skipped", note: { code: "audio-unavailable" } };
     const runId = newId("final");
     await this.deps.repo.putRun({ id: runId, recordingId: rec.id, provider: "local", kind: "final-stt", config: { modelId, language: rec.language }, startedAt: nowIso(), endedAt: null, state: "running", error: null, resume: null });
     const groups = groupRegions(await speech(), MAX_STT_WINDOW);
@@ -252,7 +263,7 @@ export class PostProcessor {
     let detected: string | undefined;
     for (let i = 0; i < groups.length; i++) {
       await this.yieldToCapture(signal);
-      if (signal.aborted) throw new Error("cancelled");
+      if (signal.aborted) throw new UserError("cancelled", "cancelled");
       const g = groups[i]!;
       const samples = await this.deps.audio.readRange(rec.id, g);
       const out = await this.deps.toolkit.transcribe(modelId, samples, g.startSample, rec.language, { wordTimestamps: true });
@@ -268,15 +279,15 @@ export class PostProcessor {
     await this.deps.repo.deleteTokens(rec.id, (t) => t.providerRunId !== runId);
     for (const r of await this.deps.repo.listRuns(rec.id)) if (r.kind === "final-stt" && r.id !== runId && r.state === "finished") await this.deps.repo.updateRun(r.id, { state: "aborted" });
     await this.deps.repo.updateRecording(rec.id, (r) => ({ transcriptRevision: r.transcriptRevision + 1, modelVersions: { ...r.modelVersions, "stt-final": modelId } }));
-    return { status: "done", note: `${tokens.length} words${detected ? `, language ${detected}` : ""}` };
+    return { status: "done", note: { code: "words", words: tokens.length, ...(detected ? { language: detected } : {}) } };
   }
 
   /**
    * Cloud batch final transcript (irl-subt-3xb.3): the recording's audio goes to the service, whose tokens and turns
    * replace the live pass only once they arrived, so a failure leaves the live transcript intact.
    */
-  private async cloudFinalStt(rec: Recording, option: ServiceOption, signal: AbortSignal): Promise<{ status: StageStatus; note?: string }> {
-    if (!(await this.audioAvailable(rec))) return { status: "skipped", note: "audio unavailable" };
+  private async cloudFinalStt(rec: Recording, option: ServiceOption, signal: AbortSignal): Promise<{ status: StageStatus; note?: StageNote }> {
+    if (!(await this.audioAvailable(rec))) return { status: "skipped", note: { code: "audio-unavailable" } };
     const provider = this.deps.cloudFinal?.(option.id);
     if (!provider) throw new Error(`${option.displayName} is not available`);
     const runId = newId("final");
@@ -285,7 +296,7 @@ export class PostProcessor {
     let result: FinalTranscriptResult;
     try {
       const wav = await this.recordingWav(rec, signal);
-      this.events.emit({ recordingId: rec.id, stage: "finalStt", status: "running", note: `sending audio to ${SERVICE_NAMES[option.service]}` });
+      this.events.emit({ recordingId: rec.id, stage: "finalStt", status: "running", note: { code: "uploading", service: option.service } });
       result = await provider.transcribe({
         recordingId: rec.id, providerRunId: runId, optionId: option.id, language: rec.language, wav, signal,
         onProgress: (note) => this.events.emit({ recordingId: rec.id, stage: "finalStt", status: "running", note }),
@@ -297,7 +308,7 @@ export class PostProcessor {
     }
     await this.adoptServiceTranscript(rec, runId, result);
     await repo.updateRecording(rec.id, (r) => ({ transcriptRevision: r.transcriptRevision + 1, modelVersions: { ...r.modelVersions, "stt-final": option.id } }));
-    return { status: "done", note: `${result.tokens.length} words, ${result.clusters.length} speakers from ${SERVICE_NAMES[option.service]}${result.language ? `, language ${result.language}` : ""}` };
+    return { status: "done", note: { code: "words", words: result.tokens.length, speakers: result.clusters.length, service: option.service, ...(result.language ? { language: result.language } : {}) } };
   }
 
   /** Voices to send with a batch job when the recording uses the service's voice identification. */
@@ -314,7 +325,7 @@ export class PostProcessor {
     let bytes = 0;
     for (let start = 0; start < rec.totalSamples; start += BLOCK_SAMPLES) {
       await this.yieldToCapture(signal);
-      if (signal.aborted) throw new Error("cancelled");
+      if (signal.aborted) throw new UserError("cancelled", "cancelled");
       const pcm = float32ToPcm(await this.deps.audio.readRange(rec.id, { startSample: start, endSample: Math.min(rec.totalSamples, start + BLOCK_SAMPLES) }));
       parts.push(pcm);
       bytes += pcm.byteLength;
@@ -386,7 +397,7 @@ export class PostProcessor {
     if (result.speakers?.length) await this.deps.identity.storeServiceIdentifiers(rec.id, result.speakers.map((s) => ({ ...s, clusterId: map(s.clusterId) })));
   }
 
-  private async diarize(rec: Recording, speech: () => Promise<TimeRange[]>, signal: AbortSignal): Promise<{ status: StageStatus; note?: string }> {
+  private async diarize(rec: Recording, speech: () => Promise<TimeRange[]>, signal: AbortSignal): Promise<{ status: StageStatus; note?: StageNote }> {
     const { repo, toolkit, identity } = this.deps;
     const modelId = rec.models.speakerEmbedding;
     const space = toolkit.embeddingSpace(modelId);
@@ -397,7 +408,7 @@ export class PostProcessor {
     // A service's turns (a live stream, or a batch final transcript) stay authoritative.
     const finalRun = (await repo.listRuns(rec.id)).filter((r) => r.kind === "final-stt" && r.state === "finished").at(-1);
     const serviceTurns = recordingLiveOption(rec) !== undefined || (finalRun !== undefined && finalRun.provider !== "local");
-    if (serviceOption(modelId)) return { status: "skipped", note: `speakers from ${SERVICE_NAMES[serviceOption(modelId)!.service]}` };
+    if (serviceOption(modelId)) return { status: "skipped", note: { code: "service-speakers", service: serviceOption(modelId)!.service } };
     if (serviceTurns) return this.fuseServiceTurns(rec, clusters, liveWindows, haveAudio, space, signal);
 
     // Embed speech the live pass missed (degraded, battery saver, or model not ready).
@@ -407,17 +418,17 @@ export class PostProcessor {
       const missing = grid.filter((g) => !liveWindows.some((w) => Math.abs(w.startSample - g.startSample) < SAMPLE_RATE / 2));
       for (let i = 0; i < missing.length; i += 16) {
         await this.yieldToCapture(signal);
-        if (signal.aborted) throw new Error("cancelled");
+        if (signal.aborted) throw new UserError("cancelled", "cancelled");
         const batch = missing.slice(i, i + 16);
         const inputs = await Promise.all(batch.map(async (range) => ({ range, samples: await this.deps.audio.readRange(rec.id, range) })));
         for (const e of await toolkit.embed(modelId, inputs)) {
           newWindows.push({ id: newId("win"), recordingId: rec.id, clusterId: "", startSample: e.startSample, endSample: e.endSample, embeddingSpace: e.embeddingSpace, quality: e.quality, sealedVector: await identity.sealVector(e.vector) });
         }
-        this.events.emit({ recordingId: rec.id, stage: "diarization", status: "running", progress: Math.min(1, (i + 16) / missing.length), note: "embedding voices" });
+        this.events.emit({ recordingId: rec.id, stage: "diarization", status: "running", progress: Math.min(1, (i + 16) / missing.length), note: { code: "embedding-voices" } });
       }
     }
     const windows = [...liveWindows, ...newWindows].sort((a, b) => a.startSample - b.startSample);
-    if (!windows.length) return { status: "skipped", note: haveAudio ? "no speech found" : "no voice windows and audio unavailable" };
+    if (!windows.length) return { status: "skipped", note: haveAudio ? { code: "no-speech" } : { code: "no-voice-windows" } };
     const vectors = await Promise.all(windows.map((w) => identity.openVector(w.sealedVector)));
 
     const liveIds = [...new Set(windows.map((w) => (w.clusterId ? resolveCluster(clusters, w.clusterId) : "")).filter(Boolean))];
@@ -471,7 +482,7 @@ export class PostProcessor {
     const turns = windowsToTurns(rec.id, runId, assigned, haveAudio ? await speech() : null);
     await repo.putTurns(turns);
     await repo.deleteTurns(rec.id, (t) => t.providerRunId !== runId);
-    return { status: "done", note: `${claimed.size} speakers from ${windows.length} windows` };
+    return { status: "done", note: { code: "speakers", speakers: claimed.size, windows: windows.length } };
   }
 
   /**
@@ -479,14 +490,14 @@ export class PostProcessor {
    * over those ranges link its speaker labels across reconnect runs and feed persistent identification. Embeddings
    * stay local.
    */
-  private async fuseServiceTurns(rec: Recording, clusters: Map<ClusterId, SpeakerCluster>, existing: VoiceWindow[], haveAudio: boolean, space: string, signal: AbortSignal): Promise<{ status: StageStatus; note?: string }> {
+  private async fuseServiceTurns(rec: Recording, clusters: Map<ClusterId, SpeakerCluster>, existing: VoiceWindow[], haveAudio: boolean, space: string, signal: AbortSignal): Promise<{ status: StageStatus; note?: StageNote }> {
     const { repo, toolkit, identity } = this.deps;
     const turns = (await repo.listTurns(rec.id)).filter((t) => t.final);
     const windows = [...existing];
     if (haveAudio) {
       for (const t of turns) {
         await this.yieldToCapture(signal);
-        if (signal.aborted) throw new Error("cancelled");
+        if (signal.aborted) throw new UserError("cancelled", "cancelled");
         const grid = toolkit.windowGrid([t]).filter((g) => !windows.some((w) => Math.abs(w.startSample - g.startSample) < SAMPLE_RATE / 2));
         if (!grid.length) continue;
         const inputs = await Promise.all(grid.map(async (range) => ({ range, samples: await this.deps.audio.readRange(rec.id, range) })));
@@ -497,7 +508,7 @@ export class PostProcessor {
         }
       }
     }
-    if (!windows.length) return { status: "skipped", note: "no local voice evidence for the service's speakers" };
+    if (!windows.length) return { status: "skipped", note: { code: "no-local-evidence" } };
     const byCluster = new Map<ClusterId, Float32Array[]>();
     for (const w of windows) byCluster.set(w.clusterId, [...(byCluster.get(w.clusterId) ?? []), await identity.openVector(w.sealedVector)]);
     const centroids = [...byCluster.entries()].map(([id, vs]) => ({ id, c: meanVector(vs), n: vs.length })).sort((a, b) => b.n - a.n);
@@ -526,32 +537,32 @@ export class PostProcessor {
         }
       }
     }
-    return { status: "done", note: `${windows.length} local windows, ${merges} speaker labels linked across runs` };
+    return { status: "done", note: { code: "labels-linked", windows: windows.length, merges } };
   }
 
-  private async identify(rec: Recording): Promise<{ status: StageStatus; note?: string }> {
+  private async identify(rec: Recording): Promise<{ status: StageStatus; note?: StageNote }> {
     if (isVoiceIdOption(rec.models.speakerEmbedding)) {
       const named = await this.deps.identity.identifyByServiceLabels(rec.id);
-      return { status: "done", note: `${named.length} speakers recognized by Speechmatics` };
+      return { status: "done", note: { code: "recognized", recognized: named.length, service: "speechmatics" } };
     }
     const decisions = await this.deps.identity.identifyRecording(rec.id);
     const accepted = decisions.filter((d) => d.status === "accepted").length;
-    return { status: "done", note: `${accepted} of ${decisions.length} speakers recognized` };
+    return { status: "done", note: { code: "recognized", recognized: accepted, total: decisions.length } };
   }
 
-  private async summarize(rec: Recording, signal: AbortSignal): Promise<{ status: StageStatus; note?: string }> {
+  private async summarize(rec: Recording, signal: AbortSignal): Promise<{ status: StageStatus; note?: StageNote }> {
     const { repo, toolkit } = this.deps;
     const choice = rec.models.summary;
     if (choice === "off") {
       await repo.putSummary({ recordingId: rec.id, status: "off", summary: null, providerId: null, transcriptRevision: rec.transcriptRevision, error: null, updatedAt: nowIso() });
-      return { status: "skipped", note: "summary off" };
+      return { status: "skipped", note: { code: "summary-off" } };
     }
     const provider = toolkit.summaryProvider(choice);
     if (!provider) throw new Error(`summary model ${choice} unavailable`);
     const { segments, clusters } = await loadTranscript(repo, rec.id);
     if (!segments.length) {
       await repo.putSummary({ recordingId: rec.id, status: "failed", summary: null, providerId: provider.id, transcriptRevision: rec.transcriptRevision, error: "transcript is empty", updatedAt: nowIso() });
-      return { status: "skipped", note: "empty transcript" };
+      return { status: "skipped", note: { code: "empty-transcript" } };
     }
     const people = new Map<string, Person>((await repo.listPeople()).map((p) => [p.id, p]));
     const attributions = activeAttributions(await repo.listAttributions(rec.id));
@@ -568,15 +579,15 @@ export class PostProcessor {
   }
 
   /** Non-persisted audio is removed; persisted audio is compressed to Opus or deleted per retention settings. */
-  private async retainAudio(rec: Recording): Promise<{ status: StageStatus; note?: string }> {
+  private async retainAudio(rec: Recording): Promise<{ status: StageStatus; note?: StageNote }> {
     const { repo, blobs, settings } = this.deps;
-    if (rec.audioRetention === "deleted") return { status: "skipped", note: "no audio" };
+    if (rec.audioRetention === "deleted") return { status: "skipped", note: { code: "no-audio" } };
     if (rec.audioRetention === "ephemeral" || settings.get().deleteAudioAfterProcessing) {
       await deleteAudio(repo, blobs, rec.id);
       this.deps.ephemeral.drop(rec.id);
-      return { status: "done", note: rec.audioRetention === "ephemeral" ? "non-persisted audio removed" : "audio deleted after processing" };
+      return { status: "done", note: { code: "audio-removed", ephemeral: rec.audioRetention === "ephemeral" } };
     }
-    if (!(await opusEncoderRate())) return { status: "skipped", note: "Opus unavailable; keeping PCM" };
+    if (!(await opusEncoderRate())) return { status: "skipped", note: { code: "keeping-pcm" } };
     let saved = 0;
     for (const c of await repo.listChunks(rec.id)) {
       if (c.codec === "opus") continue;
@@ -590,7 +601,7 @@ export class PostProcessor {
       await blobs.delete(c.path);
       saved += c.byteLength - sealed.byteLength;
     }
-    return { status: "done", note: `saved ${(saved / 2 ** 20).toFixed(1)} MiB` };
+    return { status: "done", note: { code: "compressed", mib: saved / 2 ** 20 } };
   }
 }
 

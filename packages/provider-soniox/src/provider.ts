@@ -14,6 +14,8 @@ import {
   type ProviderCapabilities,
   type SpeechEvent,
   type TranscriptionConfig,
+  UserError,
+  type KeyTestResult,
 } from "@irl/domain";
 import { SonioxNormalizer } from "./normalizer";
 
@@ -21,15 +23,15 @@ export const SONIOX_ENDPOINTS = ["https://api.soniox.com", "wss://stt-rt.soniox.
 
 
 /** Smallest authenticated request; returns only success or a sanitized error (plan.md §10). */
-export async function testSonioxKey(apiKey: string, fetchImpl: typeof fetch = fetch): Promise<{ ok: boolean; message: string }> {
+export async function testSonioxKey(apiKey: string, fetchImpl: typeof fetch = fetch): Promise<KeyTestResult> {
   try {
     const r = await fetchImpl("https://api.soniox.com/v1/models", { headers: { Authorization: `Bearer ${apiKey}` } });
-    if (r.ok) return { ok: true, message: "Key works" };
-    if (r.status === 401 || r.status === 403) return { ok: false, message: "Soniox rejected the key" };
-    return { ok: false, message: `Soniox returned HTTP ${r.status}` };
+    if (r.ok) return { ok: true, code: "ok", message: "Key works" };
+    if (r.status === 401 || r.status === 403) return { ok: false, code: "rejected", message: "Soniox rejected the key" };
+    return { ok: false, code: "http", status: r.status, message: `Soniox returned HTTP ${r.status}` };
   } catch {
     // fetch reports a network whitelist block and a CORS failure identically.
-    return { ok: false, message: "Could not reach Soniox (offline, blocked by the network allowlist, or CORS)" };
+    return { ok: false, code: "unreachable", message: "Could not reach Soniox (offline, blocked by the network allowlist, or CORS)" };
   }
 }
 
@@ -84,7 +86,7 @@ export class SonioxSpeechProvider implements LiveSpeechProvider {
 
   async start(config: TranscriptionConfig): Promise<LiveSpeechRun> {
     const key = await this.opts.apiKey();
-    if (!key) throw new Error("No Soniox API key saved");
+    if (!key) throw new UserError("key-missing", "No Soniox API key saved", { service: "soniox" });
     const run = new SonioxRun(config, key, this.opts);
     run.connect(0);
     return run;
@@ -155,7 +157,7 @@ class SonioxRun implements LiveSpeechRun {
     if (conn.failed || this.closed || this.conn !== conn) return;
     conn.failed = true;
     this.events.push({ type: "error", message: `Soniox: ${message}`, fatal: false });
-    this.events.push({ type: "degraded", reason: "Soniox reconnecting — audio is still saving" });
+    this.events.push({ type: "degraded", reason: { code: "reconnecting", service: "soniox" } });
     void this.reconnect();
   }
 

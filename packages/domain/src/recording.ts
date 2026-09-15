@@ -1,6 +1,7 @@
 import type { RecordingId } from "./audio";
+import type { UserErrorCode } from "./errors";
 import type { ModelSelection } from "./models";
-import { ROLE_KEYS, SERVICE_NAMES, serviceOption, selectionLocks, type SelectionLocks } from "./selection";
+import { ROLE_KEYS, SERVICE_NAMES, serviceOption, selectionLocks, type CloudService, type SelectionLocks } from "./selection";
 import type { Marker } from "./transcript";
 
 /**
@@ -39,7 +40,99 @@ export type StageStatus = "pending" | "running" | "done" | "failed" | "skipped";
 
 export type ProcessingStage = "liveStt" | "finalStt" | "diarization" | "identity" | "summary" | "compression";
 
-export type ProcessingStatus = Record<ProcessingStage, { status: StageStatus; error?: string; updatedAt?: string }>;
+export type ProcessingStatus = Record<
+  ProcessingStage,
+  { status: StageStatus; error?: string; errorCode?: UserErrorCode; errorService?: CloudService; note?: StageNote; updatedAt?: string }
+>;
+
+/** What a processing stage is doing or did, as a code the UI renders; stageNoteText gives English for logs. */
+export type StageNote =
+  | { code: "detecting-speech" }
+  | { code: "embedding-voices" }
+  | { code: "uploading"; service: CloudService }
+  | { code: "waiting"; service: CloudService }
+  | { code: "fetching" }
+  | { code: "summarizing"; parts: number }
+  | { code: "summary-part"; part: number; parts: number }
+  | { code: "sending-transcript" }
+  | { code: "validating" }
+  | { code: "final-tokens"; service: CloudService }
+  | { code: "no-model" }
+  | { code: "same-as-live" }
+  | { code: "audio-unavailable" }
+  | { code: "words"; words: number; speakers?: number; service?: CloudService; language?: string }
+  | { code: "service-speakers"; service: CloudService }
+  | { code: "no-speech" }
+  | { code: "no-voice-windows" }
+  | { code: "speakers"; speakers: number; windows: number }
+  | { code: "no-local-evidence" }
+  | { code: "labels-linked"; windows: number; merges: number }
+  | { code: "recognized"; recognized: number; total?: number; service?: CloudService }
+  | { code: "summary-off" }
+  | { code: "empty-transcript" }
+  | { code: "no-audio" }
+  | { code: "audio-removed"; ephemeral: boolean }
+  | { code: "keeping-pcm" }
+  | { code: "compressed"; mib: number };
+
+export function stageNoteText(n: StageNote): string {
+  switch (n.code) {
+    case "detecting-speech":
+      return "detecting speech";
+    case "embedding-voices":
+      return "embedding voices";
+    case "uploading":
+      return `uploading audio to ${SERVICE_NAMES[n.service]}`;
+    case "waiting":
+      return `waiting for ${SERVICE_NAMES[n.service]}`;
+    case "fetching":
+      return "fetching the transcript";
+    case "summarizing":
+      return `summarizing ${n.parts} part${n.parts === 1 ? "" : "s"}`;
+    case "summary-part":
+      return `part ${n.part} of ${n.parts}`;
+    case "sending-transcript":
+      return "sending transcript";
+    case "validating":
+      return "validating";
+    case "final-tokens":
+      return `${SERVICE_NAMES[n.service]} final tokens are the transcript`;
+    case "no-model":
+      return "no STT model selected";
+    case "same-as-live":
+      return "same as live";
+    case "audio-unavailable":
+      return "audio unavailable";
+    case "words":
+      return `${n.words} words${n.speakers !== undefined ? `, ${n.speakers} speakers` : ""}${n.service ? ` from ${SERVICE_NAMES[n.service]}` : ""}${n.language ? `, language ${n.language}` : ""}`;
+    case "service-speakers":
+      return `speakers from ${SERVICE_NAMES[n.service]}`;
+    case "no-speech":
+      return "no speech found";
+    case "no-voice-windows":
+      return "no voice windows and audio unavailable";
+    case "speakers":
+      return `${n.speakers} speakers from ${n.windows} windows`;
+    case "no-local-evidence":
+      return "no local voice evidence for the service's speakers";
+    case "labels-linked":
+      return `${n.windows} local windows, ${n.merges} speaker labels linked across runs`;
+    case "recognized":
+      return n.service ? `${n.recognized} speakers recognized by ${SERVICE_NAMES[n.service]}` : `${n.recognized} of ${n.total ?? n.recognized} speakers recognized`;
+    case "summary-off":
+      return "summary off";
+    case "empty-transcript":
+      return "empty transcript";
+    case "no-audio":
+      return "no audio";
+    case "audio-removed":
+      return n.ephemeral ? "non-persisted audio removed" : "audio deleted after processing";
+    case "keeping-pcm":
+      return "Opus unavailable; keeping PCM";
+    case "compressed":
+      return `saved ${n.mib.toFixed(1)} MiB`;
+  }
+}
 
 export function emptyProcessing(): ProcessingStatus {
   const s = { status: "pending" as const };
@@ -107,20 +200,19 @@ export function recordingLiveOption(r: Pick<Recording, "models" | "provider">) {
   return serviceOption(r.models.sttLive) ?? (r.provider === "soniox" ? serviceOption("soniox:stt-rt-v5") : undefined);
 }
 
-/** "On-device", "Soniox", "Speechmatics + on-device"...: where a recording was processed, for its details line. */
-export function recordingServicesLabel(r: Pick<Recording, "models" | "provider" | "selection">): string {
+/** Where a recording was processed ("Speechmatics + on-device"), for its details line: cloud services and whether anything ran locally. */
+export function recordingServices(r: Pick<Recording, "models" | "provider" | "selection">): { services: CloudService[]; local: boolean } {
   const locks = recordingLocks(r);
-  const names = new Set<string>();
+  const names = new Set<CloudService>();
   let local = false;
   for (const role of ["vad", "stt-live", "stt-final", "speaker-embedding"] as const) {
     const id = locks[role] ?? r.models[ROLE_KEYS[role]];
     if (id === "off" || id === "same-as-live") continue;
     const o = serviceOption(id) ?? (role === "stt-live" ? recordingLiveOption(r) : undefined);
-    if (o) names.add(SERVICE_NAMES[o.service]);
+    if (o) names.add(o.service);
     else local = true;
   }
-  if (!names.size) return "On-device";
-  return [...names, ...(local ? ["on-device"] : [])].join(" + ");
+  return { services: [...names], local: local || !names.size };
 }
 
 export function recordingDurationSamples(r: Pick<Recording, "totalSamples">): number {

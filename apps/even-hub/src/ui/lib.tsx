@@ -1,6 +1,7 @@
 import type { JSX } from "@solidjs/web";
 import { createEffect, createSignal, onSettled, Show, type Accessor } from "solid-js";
-import { errorMessage, formatClock, SAMPLE_RATE, splitSpeakerSpans, type ClusterId, type Settings, type SpeakerLabel } from "@irl/domain";
+import { formatClock, SAMPLE_RATE, splitSpeakerSpans, type ClusterId, type Settings, type SpeakerLabel } from "@irl/domain";
+import { describe } from "@irl/i18n";
 import type { AppServices } from "../services";
 
 let services: AppServices;
@@ -86,7 +87,7 @@ export function useData<K, T>(key: () => K, load: (k: K) => Promise<T>): { value
         },
         (e) => {
           if (mine !== seq) return;
-          setError(errorMessage(e));
+          setError(describe().error(e));
           setLoading(false);
         },
       );
@@ -142,7 +143,7 @@ export function Button(props: { label: string; busyLabel?: string; onClick: () =
     try {
       await props.onClick();
     } catch (e) {
-      toast(errorMessage(e));
+      toast(describe().error(e));
     } finally {
       setBusy(false);
     }
@@ -232,7 +233,7 @@ export function ToastHost() {
                   try {
                     await a().run();
                   } catch (e) {
-                    toast(errorMessage(e));
+                    toast(describe().error(e));
                   }
                 }}
               >

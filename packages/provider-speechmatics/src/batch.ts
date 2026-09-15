@@ -8,6 +8,7 @@ import {
   type FinalTranscriptResult,
   type SpeakerTurn,
   type TranscriptToken,
+  UserError,
 } from "@irl/domain";
 import { SPEECHMATICS_ENDPOINTS, type SpeechmaticsRegion } from "./auth";
 import { SpeechmaticsNormalizer, type SpeechmaticsResult } from "./normalizer";
@@ -49,7 +50,7 @@ export class SpeechmaticsBatchProvider implements CloudFinalProvider {
 
   async transcribe(job: FinalTranscriptJob): Promise<FinalTranscriptResult> {
     const key = await this.opts.apiKey();
-    if (!key) throw new Error("No Speechmatics API key saved");
+    if (!key) throw new UserError("key-missing", "No Speechmatics API key saved", { service: "speechmatics" });
     const auth = { Authorization: `Bearer ${key}` };
     // A job is only reachable in the region it was created in.
     const api = SPEECHMATICS_ENDPOINTS.batch(this.opts.region?.() ?? "eu");
@@ -66,12 +67,12 @@ export class SpeechmaticsBatchProvider implements CloudFinalProvider {
     form.append("config", JSON.stringify(config));
     form.append("data_file", new Blob([job.wav as BlobPart], { type: "audio/wav" }), `${job.recordingId}.wav`);
 
-    job.onProgress?.("uploading audio to Speechmatics");
+    job.onProgress?.({ code: "uploading", service: "speechmatics" });
     const created = await this.request(`${api}/v2/jobs`, { method: "POST", headers: auth, body: form, signal: job.signal });
     const { id } = (await created.json()) as { id: string };
     try {
       await this.waitForJob(api, id, auth, job);
-      job.onProgress?.("fetching the transcript");
+      job.onProgress?.({ code: "fetching" });
       const transcript = (await (await this.request(`${api}/v2/jobs/${id}/transcript?format=json-v2`, { headers: auth, signal: job.signal })).json()) as JsonV2;
       return normalizeBatch(job, transcript);
     } finally {
@@ -85,7 +86,7 @@ export class SpeechmaticsBatchProvider implements CloudFinalProvider {
     const delay = this.opts.pollDelayMs ?? ((n: number) => Math.min(10_000, 2000 + n * 1000));
     for (let attempt = 0; ; attempt++) {
       await sleep(delay(attempt));
-      if (job.signal.aborted) throw new Error("cancelled");
+      if (job.signal.aborted) throw new UserError("cancelled", "cancelled");
       const status = ((await (await this.request(`${api}/v2/jobs/${id}`, { headers: auth, signal: job.signal })).json()) as JobStatus).job;
       if (status?.status === "done") return;
       if (status?.status && status.status !== "running") {
@@ -93,8 +94,8 @@ export class SpeechmaticsBatchProvider implements CloudFinalProvider {
         if (job.speakers?.length && /identifier/i.test(reason)) this.opts.onIdentifiersRejected?.(reason);
         throw new Error(`Speechmatics job ${status.status}${status.errors?.[0]?.message ? `: ${status.errors[0].message}` : ""}`);
       }
-      job.onProgress?.("waiting for Speechmatics");
-      if (Date.now() - started > (this.opts.timeoutMs ?? 30 * 60_000)) throw new Error("Speechmatics took too long");
+      job.onProgress?.({ code: "waiting", service: "speechmatics" });
+      if (Date.now() - started > (this.opts.timeoutMs ?? 30 * 60_000)) throw new UserError("service-timeout", "Speechmatics took too long", { service: "speechmatics" });
     }
   }
 
@@ -104,10 +105,10 @@ export class SpeechmaticsBatchProvider implements CloudFinalProvider {
     try {
       r = await this.fetch(url, init);
     } catch (e) {
-      if (init.signal?.aborted) throw new Error("cancelled");
-      throw new Error(`Could not reach Speechmatics (${e instanceof TypeError ? "offline, blocked by the network allowlist, or CORS" : errorMessage(e)})`);
+      if (init.signal?.aborted) throw new UserError("cancelled", "cancelled");
+      throw new UserError("service-unreachable", `Could not reach Speechmatics (${e instanceof TypeError ? "offline, blocked by the network allowlist, or CORS" : errorMessage(e)})`, { service: "speechmatics" });
     }
-    if (r.status === 401 || r.status === 403) throw new Error("Speechmatics rejected the key");
+    if (r.status === 401 || r.status === 403) throw new UserError("key-rejected", "Speechmatics rejected the key", { service: "speechmatics" });
     if (!r.ok) throw new Error(`Speechmatics returned HTTP ${r.status}`);
     return r;
   }

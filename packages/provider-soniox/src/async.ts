@@ -1,4 +1,4 @@
-import { errorMessage, serviceOption, sleep, type CloudFinalProvider, type FinalTranscriptJob, type FinalTranscriptResult, type SpeakerTurn, type TranscriptToken } from "@irl/domain";
+import { errorMessage, serviceOption, sleep, type CloudFinalProvider, type FinalTranscriptJob, type FinalTranscriptResult, type SpeakerTurn, type TranscriptToken, UserError } from "@irl/domain";
 import { SonioxNormalizer, type SonioxTokenLike } from "./normalizer";
 
 const API = "https://api.soniox.com";
@@ -25,11 +25,11 @@ export class SonioxAsyncProvider implements CloudFinalProvider {
 
   async transcribe(job: FinalTranscriptJob): Promise<FinalTranscriptResult> {
     const key = await this.opts.apiKey();
-    if (!key) throw new Error("No Soniox API key saved");
+    if (!key) throw new UserError("key-missing", "No Soniox API key saved", { service: "soniox" });
     const auth = { Authorization: `Bearer ${key}` };
     const cleanup: string[] = [];
     try {
-      job.onProgress?.("uploading audio to Soniox");
+      job.onProgress?.({ code: "uploading", service: "soniox" });
       const form = new FormData();
       form.append("file", new Blob([job.wav as BlobPart], { type: "audio/wav" }), `${job.recordingId}.wav`);
       const file = (await (await this.request(`${API}/v1/files`, { method: "POST", headers: auth, body: form, signal: job.signal })).json()) as { id: string };
@@ -45,7 +45,7 @@ export class SonioxAsyncProvider implements CloudFinalProvider {
       // Delete the transcription before the file it references.
       cleanup.unshift(`${API}/v1/transcriptions/${created.id}`);
       await this.waitFor(created.id, auth, job);
-      job.onProgress?.("fetching the transcript");
+      job.onProgress?.({ code: "fetching" });
       const transcript = (await (await this.request(`${API}/v1/transcriptions/${created.id}/transcript`, { headers: auth, signal: job.signal })).json()) as { tokens?: SonioxTokenLike[] };
       return normalizeSonioxAsync(job, transcript.tokens ?? []);
     } finally {
@@ -58,12 +58,12 @@ export class SonioxAsyncProvider implements CloudFinalProvider {
     const delay = this.opts.pollDelayMs ?? ((n: number) => Math.min(10_000, 1500 + n * 1000));
     for (let attempt = 0; ; attempt++) {
       await sleep(delay(attempt));
-      if (job.signal.aborted) throw new Error("cancelled");
+      if (job.signal.aborted) throw new UserError("cancelled", "cancelled");
       const t = (await (await this.request(`${API}/v1/transcriptions/${id}`, { headers: auth, signal: job.signal })).json()) as { status?: string; error_message?: string };
       if (t.status === "completed") return;
       if (t.status === "error") throw new Error(`Soniox transcription failed${t.error_message ? `: ${t.error_message}` : ""}`);
-      job.onProgress?.("waiting for Soniox");
-      if (Date.now() - started > (this.opts.timeoutMs ?? 30 * 60_000)) throw new Error("Soniox took too long");
+      job.onProgress?.({ code: "waiting", service: "soniox" });
+      if (Date.now() - started > (this.opts.timeoutMs ?? 30 * 60_000)) throw new UserError("service-timeout", "Soniox took too long", { service: "soniox" });
     }
   }
 
@@ -72,10 +72,10 @@ export class SonioxAsyncProvider implements CloudFinalProvider {
     try {
       r = await this.fetch(url, init);
     } catch (e) {
-      if (init.signal?.aborted) throw new Error("cancelled");
-      throw new Error(`Could not reach Soniox (${e instanceof TypeError ? "offline, blocked by the network allowlist, or CORS" : errorMessage(e)})`);
+      if (init.signal?.aborted) throw new UserError("cancelled", "cancelled");
+      throw new UserError("service-unreachable", `Could not reach Soniox (${e instanceof TypeError ? "offline, blocked by the network allowlist, or CORS" : errorMessage(e)})`, { service: "soniox" });
     }
-    if (r.status === 401 || r.status === 403) throw new Error("Soniox rejected the key");
+    if (r.status === 401 || r.status === 403) throw new UserError("key-rejected", "Soniox rejected the key", { service: "soniox" });
     if (!r.ok) throw new Error(`Soniox returned HTTP ${r.status}`);
     return r;
   }

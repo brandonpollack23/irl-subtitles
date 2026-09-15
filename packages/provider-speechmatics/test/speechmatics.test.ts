@@ -60,7 +60,7 @@ describe("Speechmatics keys", () => {
     const urls: string[] = [];
     expect((await testSpeechmaticsKey("k", "au", (async (url: string) => (urls.push(url), new Response("{}", { status: 200 }))) as unknown as typeof fetch)).ok).toBe(true);
     expect(urls).toEqual(["https://au1.asr.api.speechmatics.com/v2/jobs?limit=1"]);
-    expect(await testSpeechmaticsKey("k", "eu", (async () => new Response("detail", { status: 401 })) as unknown as typeof fetch)).toEqual({ ok: false, message: "Speechmatics rejected the key (keys only work in the region they were created in)" });
+    expect(await testSpeechmaticsKey("k", "eu", (async () => new Response("detail", { status: 401 })) as unknown as typeof fetch)).toEqual({ ok: false, code: "rejected", message: "Speechmatics rejected the key (keys only work in the region they were created in)" });
   });
 });
 
@@ -163,7 +163,7 @@ describe("SpeechmaticsSpeechProvider", () => {
     await finished;
     const events = await collected;
     expect(finals(events).map((t) => t.text)).toEqual([" こんにちは", " 元気"]);
-    expect(events).toContainEqual({ type: "degraded", reason: "Speechmatics reconnecting — audio is still saving" });
+    expect(events).toContainEqual({ type: "degraded", reason: { code: "reconnecting", service: "speechmatics" } });
     expect(events.find((e) => e.type === "speakers")).toEqual({ type: "speakers", speakers: [{ clusterId: "S1-S1", identifiers: ["id-s1"] }, { clusterId: "SM-p_alice", identifiers: ["id-a2"] }] });
     expect(events.filter((e) => e.type === "cluster").map((e) => e.type === "cluster" && e.clusterId)).toEqual(["SM-p_alice", "S1-S1"]);
   });

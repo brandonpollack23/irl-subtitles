@@ -113,6 +113,9 @@ importers:
       '@irl/domain':
         specifier: workspace:*
         version: link:../domain
+      '@irl/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       '@irl/storage':
         specifier: workspace:*
         version: link:../storage

@@ -1,7 +1,9 @@
 import type { AudioFrame, ClusterId, RecordingId, TimeRange } from "./audio";
 import type { VoiceEmbedding } from "./identity";
 import type { BenchmarkResult, ExecutionTarget, ModelCatalogEntry, ModelManifest, PowerPolicy } from "./models";
+import type { StageNote } from "./recording";
 import type { ConversationSummary } from "./summary";
+import { SERVICE_NAMES, type CloudService } from "./selection";
 import type { SpeakerTurn, TranscriptSegment, TranscriptToken } from "./transcript";
 
 /** plan.md §5 */
@@ -53,7 +55,7 @@ export interface SummaryInput {
   /** Display name per cluster, used only for cloud summaries and prompt readability. */
   speakerNames: ReadonlyMap<ClusterId, string>;
   signal?: AbortSignal;
-  onProgress?: (fraction: number, note: string) => void;
+  onProgress?: (fraction: number, note: StageNote) => void;
 }
 
 export interface SummaryProvider {
@@ -84,7 +86,7 @@ export type SpeechEvent =
   | { type: "speech"; active: boolean; sample: number }
   /** Voiceprint identifiers a service issued for this run's speakers (Speechmatics get_speakers), per cluster. */
   | { type: "speakers"; speakers: { clusterId: ClusterId; identifiers: string[] }[] }
-  | { type: "degraded"; reason: string | null }
+  | { type: "degraded"; reason: DegradedReason | null }
   | { type: "error"; message: string; fatal: boolean };
 
 export interface LiveSpeechRun {
@@ -117,7 +119,7 @@ export interface FinalTranscriptJob {
   /** The whole recording as a 16 kHz mono PCM WAV. */
   wav: Uint8Array;
   signal: AbortSignal;
-  onProgress?: (note: string) => void;
+  onProgress?: (note: StageNote) => void;
   /** Voices to label by token (Speechmatics voice identification). */
   speakers?: readonly ServiceSpeaker[];
   /** Ask the service for voiceprint identifiers of the speakers it found. */
@@ -164,4 +166,54 @@ export interface ComputeRuntime {
 export interface ComputeRuntimeSelector {
   candidates(): Promise<ComputeRuntime[]>;
   select(model: ModelManifest, policy: PowerPolicy): Promise<ComputeRuntime>;
+}
+
+/** Why live processing is behind; rendered by the UI, and as English by degradedText for storage and logs. */
+export type DegradedReason =
+  | { code: "slowed" }
+  | { code: "saving-later"; detail?: string }
+  | { code: "captions-paused" }
+  | { code: "not-downloaded"; part: LivePart }
+  | { code: "unavailable"; part: LivePart }
+  | { code: "vad-failed" }
+  | { code: "restarting"; detail: string }
+  | { code: "reconnecting"; service: CloudService };
+
+/** The local live models: speech detection, the speaker model, and captions. */
+export type LivePart = "vad" | "speaker" | "captions";
+
+/** English part names for logs. */
+export const LIVE_PART_NAMES: Record<LivePart, string> = { vad: "Speech detection", speaker: "Speaker", captions: "Captions" };
+
+export function degradedText(r: DegradedReason): string {
+  switch (r.code) {
+    case "slowed":
+      return "Live captions slowed to keep up";
+    case "saving-later":
+      return r.detail ? `Saving — processing later (${r.detail})` : "Saving — processing later";
+    case "captions-paused":
+      return "Captions paused — processing later";
+    case "not-downloaded":
+      return `${LIVE_PART_NAMES[r.part]} model not downloaded — processing later`;
+    case "unavailable":
+      return `${LIVE_PART_NAMES[r.part]} unavailable — processing later`;
+    case "vad-failed":
+      return "Speech detection failed — processing later";
+    case "restarting":
+      return `Restarting live processing (${r.detail})`;
+    case "reconnecting":
+      return `${SERVICE_NAMES[r.service]} reconnecting — audio is still saving`;
+  }
+}
+
+export function sameDegraded(a: DegradedReason | null, b: DegradedReason | null): boolean {
+  return a === b || (!!a && !!b && degradedText(a) === degradedText(b));
+}
+
+/** A service key check: `code` for the UI, `message` in English for logs. */
+export interface KeyTestResult {
+  ok: boolean;
+  code: "ok" | "rejected" | "http" | "unreachable";
+  status?: number;
+  message: string;
 }

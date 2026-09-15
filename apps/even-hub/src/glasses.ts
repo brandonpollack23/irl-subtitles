@@ -1,6 +1,7 @@
 import { OsEventTypeList, StartUpPageCreateResult, type EvenAppBridge, type EvenHubEvent } from "@evenrealities/even_hub_sdk";
 import { getBridge, onHubEvent } from "@irl/capture";
 import { formatClock, G2_MENU_LABEL_MAX_BYTES, truncateUtf8, utf8ByteLength, errorMessage, SERVICE_NAMES } from "@irl/domain";
+import { describe } from "@irl/i18n";
 import type { LiveSnapshot, RecordingController } from "@irl/pipeline";
 import type { SettingsStore } from "@irl/storage";
 import { logger } from "./log";
@@ -197,7 +198,8 @@ export class GlassesController {
     // enough: hiding someone else's words on a weak match is worse than showing the wearer's own.
     const isOwn = (clusterId: string | null) => settings.hideOwnSpeechOnGlasses && !!settings.selfPersonId && speakerOf(clusterId)?.personId === settings.selfPersonId;
     let body: string;
-    if (s.degraded && !settings.showCaptionsOnGlasses) body = s.degraded;
+    const degraded = s.degraded ? describe().degraded(s.degraded) : "";
+    if (degraded && !settings.showCaptionsOnGlasses) body = degraded;
     else {
       const last = s.segments
         .filter((seg) => !isOwn(seg.clusterId))
@@ -213,7 +215,7 @@ export class GlassesController {
       const hint = mode === "paused" ? "Tap to resume. Double tap to end." : "";
       const captions = settings.showCaptionsOnGlasses;
       const modelsLine = !captions ? "" : line === "loading" ? LOADING_LIVE : line === "ready" ? READY : "";
-      body = [captions ? tail : "", modelsLine, s.degraded ?? "", hint, `(${audio})`].filter(Boolean).join("\n");
+      body = [captions ? tail : "", modelsLine, degraded, hint, `(${audio})`].filter(Boolean).join("\n");
     }
     return { status: truncateUtf8(status, 120), body: truncateUtf8(body || " ", TEXT_LIMIT) };
   }
@@ -371,7 +373,7 @@ export class GlassesController {
       await run();
     } catch (err) {
       log.error("glasses action failed", errorMessage(err));
-      this.notice = errorMessage(err);
+      this.notice = describe().error(err);
       if (this.lastSnapshot) await this.render(this.lastSnapshot, false);
     }
   }

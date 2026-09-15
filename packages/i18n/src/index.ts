@@ -1,11 +1,13 @@
 import { Emitter, UI_LOCALES, type UiLocale } from "@irl/domain";
 import { en, type Messages } from "./catalogs/en";
 import { ja } from "./catalogs/ja";
+import { describer, type Describer } from "./describe";
 import { formatters, type Formatters } from "./format";
 import { withFallback } from "./merge";
 
 export { en, type Messages } from "./catalogs/en";
 export { ja } from "./catalogs/ja";
+export { describer, type Describer } from "./describe";
 export { formatters, type Formatters } from "./format";
 export { matchLocale, resolveLocale, systemLanguages } from "./locale";
 export { keyPaths, withFallback, type DeepPartial } from "./merge";
@@ -21,6 +23,7 @@ export function messages(locale: UiLocale): Messages {
 
 let current: UiLocale = "en";
 let currentFormat = formatters(current, catalogs[current]);
+let currentDescribe = describer(current, catalogs[current]);
 
 /** Fires after the active UI locale changes. */
 export const localeChanges = new Emitter<UiLocale>();
@@ -33,6 +36,7 @@ export function setLocale(next: UiLocale): void {
   if (next === current || !UI_LOCALES.includes(next)) return;
   current = next;
   currentFormat = formatters(next, catalogs[next]);
+  currentDescribe = describer(next, catalogs[next]);
   localeChanges.emit(next);
 }
 
@@ -44,4 +48,9 @@ export function t(): Messages {
 /** Formatters for the active locale. */
 export function fmt(): Formatters {
   return currentFormat;
+}
+
+/** Domain codes as sentences in the active locale. */
+export function describe(): Describer {
+  return currentDescribe;
 }

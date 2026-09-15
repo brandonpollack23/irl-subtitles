@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
 import { IDBFactory } from "fake-indexeddb";
 import { RecordingAudio, WavFileSource } from "@irl/capture";
-import { activeAttributions, defaultSettings, glassesSpeakerName, type ModelSelection, type Person } from "@irl/domain";
+import { activeAttributions, defaultSettings, glassesSpeakerName, type ModelSelection, type Person, degradedText } from "@irl/domain";
 import { EphemeralKeys, IdentityService, RecordingController, type LiveSnapshot } from "@irl/pipeline";
 import { defaultSelection, liveMetrics, LocalEngines, LocalToolkit, ModelWarmup, summarizeLiveMetrics, type LiveMetric, type LiveMetricsSummary } from "@irl/provider-local";
 import { KeyVault, MemoryBlobStore, Repository, SettingsStore, SqlTableStore } from "@irl/storage";
@@ -132,11 +132,12 @@ export async function createLiveApp(opts: LiveAppOptions = {}) {
     const offLive = controller.live.on((s) => {
       const segments = JSON.stringify(s.segments.map((x) => x.text));
       if (s.state !== last.state) add("state", s.state);
-      if (s.degraded !== last.degraded) add("degraded", String(s.degraded));
+      const degraded = s.degraded && degradedText(s.degraded);
+      if (degraded !== last.degraded) add("degraded", String(degraded));
       if (s.speechActive !== last.speech) add("speech", String(s.speechActive));
       if (s.provisionalText !== last.provisional) add("provisional", s.provisionalText);
       if (segments !== last.segments) add("segments", segments);
-      last = { state: s.state, degraded: s.degraded, speech: s.speechActive, provisional: s.provisionalText, segments };
+      last = { state: s.state, degraded, speech: s.speechActive, provisional: s.provisionalText, segments };
     });
     // The live provider reports model errors and scheduler changes on the console.
     const warn = console.warn;

@@ -304,6 +304,11 @@ describe("recording pipeline", () => {
     expect(summary.profiles[0]?.clips).toBeGreaterThan(0);
     const exported = await exportRecording(env.repo, id);
     expect(exported.markdown).toContain("Alice Liddell — confirmed by you");
+    // Markdown follows the UI language; the JSON's keys and kinds don't.
+    const ja = await exportRecording(env.repo, id, "ja");
+    expect(ja.markdown).toContain("Alice Liddell — 確認済み");
+    expect(ja.markdown).toContain("## 文字起こし");
+    expect(ja.json.speakers).toEqual(exported.json.speakers.map((s) => (s.kind === "anonymous" ? { ...s, label: s.label.replace("Speaker ", "話者") } : s)));
     expect(exported.json.speakers.find((s) => s.clusterId === speakerA)?.kind).toBe("confirmed");
 
     // A later recording with Alice speaking enough is recognized automatically; Bob stays unknown.
@@ -456,7 +461,7 @@ describe("cloud options (irl-subt-3xb.3)", () => {
     const rec = (await env.repo.getRecording(id))!;
     expect(rec.provider).toBe("soniox");
     expect(rec.selection?.locks).toMatchObject({ vad: "soniox:stt-rt-v5", "stt-final": "soniox:stt-rt-v5" });
-    expect(rec.processing.finalStt).toMatchObject({ status: "skipped", error: "Soniox final tokens are the transcript" });
+    expect(rec.processing.finalStt).toMatchObject({ status: "skipped", note: { code: "final-tokens", service: "soniox" } });
     expect(rec.processing.diarization.status).toBe("done");
     const t = await loadTranscript(env.repo, id);
     expect(t.segments[0]!.text).toMatch(/^live/);
@@ -520,7 +525,7 @@ describe("Speechmatics voice identification (irl-subt-3xb.7)", () => {
     const first = await record(env, [["A", 6], ["B", 6]], true, { liveReady: true });
     const rec = (await env.repo.getRecording(first))!;
     expect(rec.processing.finalStt.status).toBe("skipped");
-    expect(rec.processing.diarization).toMatchObject({ status: "skipped", error: "speakers from Speechmatics" });
+    expect(rec.processing.diarization).toMatchObject({ status: "skipped", note: { code: "service-speakers", service: "speechmatics" } });
     // Identifiers are kept sealed per speaker, outside the local voice windows.
     const idWindows = (await env.repo.listWindows(first)).filter((w) => w.embeddingSpace === "speechmatics-id@1");
     expect(idWindows.map((w) => w.clusterId).sort()).toEqual(["S0-S1", "S0-S2"]);
@@ -602,7 +607,7 @@ describe("Speechmatics voice identification (irl-subt-3xb.7)", () => {
     const label = `P_${alice.id.replace(/[^A-Za-z0-9]/g, "")}`;
     expect(jobs[0]).toMatchObject({ speakers: [{ label, identifiers: ["id-A"] }], getSpeakers: true, speakersSensitivity: 0.7 });
     const rec = (await env.repo.getRecording(id))!;
-    expect(rec.processing.identity).toMatchObject({ status: "done", error: "1 speakers recognized by Speechmatics" });
+    expect(rec.processing.identity).toMatchObject({ status: "done", note: { code: "recognized", recognized: 1, service: "speechmatics" } });
     const attrs = activeAttributions(await env.repo.listAttributions(id));
     expect(attrs.get("L1")).toMatchObject({ personId: alice.id, source: "auto" });
     expect(attrs.has("L2")).toBe(false);
@@ -627,7 +632,7 @@ describe("Speechmatics speakers stay authoritative (diarization and attribution)
     const id = await record(env, [["A", 14], ["B", 12]], true, { liveReady: true });
     const rec = (await env.repo.getRecording(id))!;
     expect(rec.provider).toBe("speechmatics");
-    expect(rec.processing.finalStt).toMatchObject({ status: "skipped", error: "Speechmatics final tokens are the transcript" });
+    expect(rec.processing.finalStt).toMatchObject({ status: "skipped", note: { code: "final-tokens", service: "speechmatics" } });
     expect(rec.processing.diarization, JSON.stringify(rec.processing.diarization)).toMatchObject({ status: "done" });
 
     const clusters = new Map((await env.repo.listClusters(id)).map((c) => [c.clusterId, c]));
@@ -655,7 +660,7 @@ describe("Speechmatics speakers stay authoritative (diarization and attribution)
     const rec = (await env.repo.getRecording(id))!;
     expect(rec.processing.finalStt.status).toBe("done");
     expect(rec.processing.diarization).toMatchObject({ status: "done" });
-    expect(rec.processing.diarization.error).toMatch(/local windows/);
+    expect(rec.processing.diarization.note).toMatchObject({ code: "labels-linked" });
     const runs = await env.repo.listRuns(id);
     expect(runs.some((r) => r.kind === "diarization-refine")).toBe(false);
     const turns = await env.repo.listTurns(id);

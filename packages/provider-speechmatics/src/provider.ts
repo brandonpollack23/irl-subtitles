@@ -15,6 +15,7 @@ import {
   type ServiceSpeaker,
   type SpeechEvent,
   type TranscriptionConfig,
+  UserError,
 } from "@irl/domain";
 import { mintRealtimeKey, SPEECHMATICS_ENDPOINTS, SpeechmaticsAuthError, type SpeechmaticsRegion } from "./auth";
 import { SpeechmaticsNormalizer, type SpeechmaticsResult } from "./normalizer";
@@ -72,7 +73,7 @@ export class SpeechmaticsSpeechProvider implements LiveSpeechProvider {
 
   async start(config: TranscriptionConfig & { embeddingModelId: string; sttModelId: string; vadModelId: string }): Promise<LiveSpeechRun> {
     const key = await this.opts.apiKey();
-    if (!key) throw new Error("No Speechmatics API key saved");
+    if (!key) throw new UserError("key-missing", "No Speechmatics API key saved", { service: "speechmatics" });
     const language = SPEECHMATICS_LANGUAGES[config.language];
     if (!language) throw new Error(`Speechmatics live captions don't support ${config.language}`);
     const session = (await this.opts.speakerSession?.(config)) ?? { speakers: [], getSpeakers: false };
@@ -231,7 +232,7 @@ class SpeechmaticsRun implements LiveSpeechRun {
     if (conn.failed || this.closed || this.conn !== conn) return;
     conn.failed = true;
     this.events.push({ type: "error", message: message.startsWith("Speechmatics") ? message : `Speechmatics: ${message}`, fatal: false });
-    this.events.push({ type: "degraded", reason: "Speechmatics reconnecting — audio is still saving" });
+    this.events.push({ type: "degraded", reason: { code: "reconnecting", service: "speechmatics" } });
     void this.reconnect();
   }
 

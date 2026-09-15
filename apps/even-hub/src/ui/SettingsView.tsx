@@ -1,6 +1,6 @@
 import { createMemo, createSignal, For, onSettled, Show } from "solid-js";
 import {
-  describeDataFlow,
+  dataFlow,
   errorMessage,
   LANGUAGES,
   parseWav,
@@ -12,6 +12,7 @@ import {
   serviceOption,
   tierForSelection,
   type CloudConsentKey,
+  type KeyTestResult,
   type ModelCatalogEntry,
   type ModelRole,
   type ModelSelection,
@@ -23,7 +24,7 @@ import {
 import { availabilityOnDevice, catalogEntry, clearModelCache, defaultSelection, embeddingSpaceOf, entriesForRole, firstRunBenchmark, ROLE_KEYS, supportsLanguage, type LoadProgress } from "@irl/provider-local";
 import { testSonioxKey } from "@irl/provider-soniox";
 import { testSpeechmaticsKey } from "@irl/provider-speechmatics";
-import { LOCALE_NAMES, resolveLocale, t } from "@irl/i18n";
+import { describe, LOCALE_NAMES, resolveLocale, t } from "@irl/i18n";
 import { app, bumpData, Button, bytes, toast, useData, useSettings } from "./lib";
 
 const ROLE_TITLES: Record<ModelRole, { title: string; hint: string }> = {
@@ -204,7 +205,7 @@ async function changeLanguage(props: SectionProps, language: string, keys: Parti
 interface ServiceInfo {
   service: "soniox" | "speechmatics";
   privacy: string;
-  test: ((key: string, s: Settings) => Promise<{ ok: boolean; message: string }>) | null;
+  test: ((key: string, s: Settings) => Promise<KeyTestResult>) | null;
 }
 
 const SERVICES: readonly ServiceInfo[] = [
@@ -279,7 +280,7 @@ function ServiceKey(props: SectionProps & { info: ServiceInfo; saved: boolean; k
               onClick={async () => {
                 const k = key().trim() || (await app().storage.secrets.get(secret()));
                 if (!k) return;
-                toast((await test()(k, props.s)).message);
+                toast(describe().keyTest(await test()(k, props.s), props.info.service));
               }}
             />
           )}
@@ -344,7 +345,7 @@ function ModelsSection(props: SectionProps & { keys: Partial<Record<SecretName, 
       local: (role) =>
         entriesForRole(role).map((e) => {
           const a = availabilityOnDevice(e, app().caps);
-          return { id: e.id, label: describeEntry(e, props.s.language, downloaded.value() ?? {}), disabled: a.status === "unavailable" ? a.reason : !supportsLanguage(e, props.s.language) ? "Other language" : null };
+          return { id: e.id, label: describeEntry(e, props.s.language, downloaded.value() ?? {}), disabled: a.status === "unavailable" ? { code: "device", detail: a.reason } : !supportsLanguage(e, props.s.language) ? { code: "other-language" } : null };
         }),
     }),
   );
@@ -457,7 +458,7 @@ function ModelsSection(props: SectionProps & { keys: Partial<Record<SecretName, 
     <section class="panel">
       <h2>Models</h2>
       <p class="small" role="status">
-        <strong>{describeDataFlow(props.s.models)}</strong>
+        <strong>{describe().dataFlow(dataFlow(props.s.models))}</strong>
       </p>
       <p class="small muted">
         Performance: {tier() === "battery-saver" ? "Battery saver (no live captions)" : "Live captions"}. Models on this phone download once, are checked against pinned fingerprints, and stay on the phone.
@@ -552,8 +553,14 @@ function describeEntry(e: ModelCatalogEntry, language: string, downloaded: Recor
 function ModelPicker(props: { role: ModelRole; resolution: RoleResolution; progress: Record<string, LoadProgress>; onChange: (id: string) => void }) {
   const r = () => props.resolution;
   const group = (g: RoleOption["group"]) => r().options.filter((o) => o.group === g);
-  const label = (o: RoleOption) => (o.disabled && o.group === "cloud" ? `${o.label} — ${o.disabled}` : o.label);
-  const note = () => serviceOption(r().selected)?.notes ?? catalogEntry(r().selected)?.notes;
+  const label = (o: RoleOption) => {
+    const name = describe().optionName(o, props.role);
+    return o.disabled && o.group === "cloud" ? `${name} — ${describe().blocker(o.disabled)}` : name;
+  };
+  const note = () => {
+    const cloud = serviceOption(r().selected);
+    return cloud ? describe().serviceOptionNote(cloud) : catalogEntry(r().selected)?.notes;
+  };
   const p = () => props.progress[r().selected];
   return (
     <div class="stack" style={{ gap: "4px" }}>
@@ -589,20 +596,20 @@ function ModelPicker(props: { role: ModelRole; resolution: RoleResolution; progr
         >
           {(lock) => (
             <select disabled aria-describedby={`lock-${props.role}`}>
-              <option>{lock().label}</option>
+              <option>{describe().lock(lock(), props.role).label}</option>
             </select>
           )}
         </Show>
       </label>
-      <Show when={r().locked}>{(lock) => <span class="small muted" id={`lock-${props.role}`}>{lock().reason}</span>}</Show>
+      <Show when={r().locked}>{(lock) => <span class="small muted" id={`lock-${props.role}`}>{describe().lock(lock(), props.role).reason}</span>}</Show>
       <Show when={!r().locked && r().invalid}>
-        <span class="small warn">Can't use the selected option: {r().invalid}.</span>
+        <span class="small warn">Can't use the selected option: {describe().blocker(r().invalid!)}.</span>
       </Show>
       <Show when={!r().locked}>
-        <For each={group("local").filter((o) => o.disabled && o.disabled !== "Other language")}>
+        <For each={group("local").filter((o) => o.disabled && o.disabled.code !== "other-language")}>
           {(o) => (
             <span class="small muted">
-              {catalogEntry(o.id)?.displayName ?? o.label}: {o.disabled}
+              {catalogEntry(o.id)?.displayName ?? o.label}: {describe().blocker(o.disabled!)}
             </span>
           )}
         </For>

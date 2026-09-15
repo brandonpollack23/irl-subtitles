@@ -35,6 +35,7 @@ import {
   type VoiceProfile,
   type VoiceSample,
   type VoiceWindow,
+  UserError,
 } from "@irl/domain";
 import type { RecordingAudio } from "@irl/capture";
 import type { BlobStore, OperationRow, Repository, Sealer } from "@irl/storage";
@@ -308,7 +309,7 @@ export class IdentityService {
   async createPerson(fullName: string, shortName?: string): Promise<Person> {
     const now = nowIso();
     const person: Person = { id: newId("person"), fullName: fullName.trim(), ...(shortName?.trim() ? { shortName: shortName.trim() } : {}), createdAt: now, updatedAt: now };
-    if (!person.fullName) throw new Error("A full name is required");
+    if (!person.fullName) throw new UserError("full-name-required", "A full name is required");
     await this.repo.putPerson(person);
     this.changes.emit({ personId: person.id });
     return person;
@@ -319,7 +320,7 @@ export class IdentityService {
     if (!cur) throw new Error("person not found");
     const next: Person = { ...cur, updatedAt: nowIso() };
     if (patch.fullName !== undefined) {
-      if (!patch.fullName.trim()) throw new Error("A full name is required");
+      if (!patch.fullName.trim()) throw new UserError("full-name-required", "A full name is required");
       next.fullName = patch.fullName.trim();
     }
     if (patch.shortName !== undefined) {

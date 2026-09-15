@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { wavHeader, type FinalTranscriptJob } from "@irl/domain";
+import { wavHeader, type FinalTranscriptJob, stageNoteText } from "@irl/domain";
 import { SpeechmaticsBatchProvider } from "../src/batch";
 
 type Call = { method: string; url: string; body?: unknown };
@@ -33,7 +33,7 @@ describe("SpeechmaticsBatchProvider", () => {
     });
     const notes: string[] = [];
     const provider = new SpeechmaticsBatchProvider({ apiKey: async () => "sk", region: () => "au", fetch: api.impl, pollDelayMs: () => 0 });
-    const out = await provider.transcribe(job({ speakers: [{ label: "p_bob", identifiers: ["id-bob"] }], getSpeakers: true, onProgress: (n) => notes.push(n) }));
+    const out = await provider.transcribe(job({ speakers: [{ label: "p_bob", identifiers: ["id-bob"] }], getSpeakers: true, onProgress: (n) => void notes.push(stageNoteText(n)) }));
 
     const post = api.calls[0]!;
     expect(post.url).toBe("https://au1.asr.api.speechmatics.com/v2/jobs");
