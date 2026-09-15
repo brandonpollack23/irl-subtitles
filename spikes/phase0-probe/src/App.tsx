@@ -6,6 +6,7 @@ import { CapturePanel } from "./panels/CapturePanel";
 import { StoragePanel } from "./panels/StoragePanel";
 import { SecretsPanel } from "./panels/SecretsPanel";
 import { SonioxPanel } from "./panels/SonioxPanel";
+import { SpeechmaticsPanel } from "./panels/SpeechmaticsPanel";
 import { ModelsPanel } from "./panels/ModelsPanel";
 import { OverviewPanel } from "./panels/OverviewPanel";
 
@@ -22,6 +23,7 @@ const tabs: Tab[] = [
   { id: "storage", title: "Storage", Panel: StoragePanel },
   { id: "secrets", title: "Secrets", Panel: SecretsPanel },
   { id: "soniox", title: "Soniox", Panel: SonioxPanel },
+  { id: "speechmatics", title: "Speechmatics", Panel: SpeechmaticsPanel },
   { id: "models", title: "Models", Panel: ModelsPanel },
 ];
 

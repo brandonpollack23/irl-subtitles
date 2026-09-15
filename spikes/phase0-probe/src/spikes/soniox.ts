@@ -32,7 +32,7 @@ export async function mintTemporaryKey(apiKey: string, log: Log) {
 export type SonioxAudio = "glasses" | "phone" | "silence";
 
 /** Feeds Even bridge PCM (or silence) into the SDK's pluggable audio source interface. */
-class EvenAudioSource implements AudioSource {
+export class EvenAudioSource implements AudioSource {
   sentBytes = 0;
   private dispose: (() => void) | null = null;
   private silence: ReturnType<typeof setInterval> | null = null;

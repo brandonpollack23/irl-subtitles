@@ -8,9 +8,18 @@
   "permissions": [
     {
       "name": "network",
-      "desc": "Phase 0 feasibility probe: Soniox real-time transcription test and API key validation.",
-      "whitelist": ["https://api.soniox.com", "wss://stt-rt.soniox.com"]
+      "desc": "Phase 0 feasibility probe: Soniox and Speechmatics real-time and batch transcription tests and API key validation.",
+      "whitelist": [
+        "https://api.soniox.com",
+        "wss://stt-rt.soniox.com",
+        "https://mp.speechmatics.com",
+        "https://asr.api.speechmatics.com",
+        "wss://eu.rt.speechmatics.com",
+        "wss://us.rt.speechmatics.com"
+      ]
     }
   ],
-  "supported_languages": ["en"]
+  "supported_languages": [
+    "en"
+  ]
 }

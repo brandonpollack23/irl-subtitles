@@ -9,7 +9,7 @@ MVP app.
 
 | Path | What |
 | --- | --- |
-| `src/spikes/` | Framework-free spike logic (capabilities, capture, storage, secrets, Soniox, WebGPU benchmarks) |
+| `src/spikes/` | Framework-free spike logic (capabilities, capture, storage, secrets, Soniox, Speechmatics, WebGPU benchmarks) |
 | `src/panels/` | SolidJS 2 panels, one per spike |
 | `src/models/registry.json` | Benchmark registry: every plan.md §6.1 catalog option, its ONNX source, and static dims |
 | `scripts/models.py` | `pnpm models fetch\|inspect\|fixtures --all`: downloads, graph metadata, CPU reference fixtures |
