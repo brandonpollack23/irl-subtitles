@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Brandon Pollack",
   "blocked_by": [
     "irl-subt-3xb.3"
   ],
@@ -10,8 +10,8 @@
   "labels": [],
   "parent": "irl-subt-3xb",
   "priority": 3,
-  "status": "open",
+  "status": "in_progress",
   "title": "Soniox async final transcript option",
   "type": "task",
-  "updated_at": "2026-09-15T03:51:06Z"
+  "updated_at": "2026-09-15T04:40:25Z"
 }
