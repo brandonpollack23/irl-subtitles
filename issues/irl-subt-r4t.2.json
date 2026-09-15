@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Brandon Pollack",
   "blocked_by": [
     "irl-subt-r4t.1"
   ],
@@ -10,8 +10,8 @@
   "labels": [],
   "parent": "irl-subt-r4t",
   "priority": 2,
-  "status": "open",
+  "status": "in_progress",
   "title": "Phone UI: Profiles section in Settings and a quick switcher on the idle Live page",
   "type": "task",
-  "updated_at": "2026-09-15T09:09:38Z"
+  "updated_at": "2026-09-15T09:15:29Z"
 }
