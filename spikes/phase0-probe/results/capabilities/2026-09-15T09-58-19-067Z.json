@@ -1,0 +1,488 @@
+{
+  "spike": "capabilities",
+  "appVersion": "0.1.0",
+  "buildId": "2026-09-15T09:52:21.804Z",
+  "createdAt": "2026-09-15T09:58:18.997Z",
+  "environment": {
+    "origin": "http://localhost:5173",
+    "userAgent": "Mozilla/5.0 (Linux; Android 16; SM-F966Q Build/BP4A.251205.006; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/151.0.7922.199 Mobile Safari/537.36",
+    "inEvenApp": true,
+    "glasses": {
+      "model": "g2",
+      "snSuffix": "0471",
+      "battery": 92
+    },
+    "servedWithCoiHeaders": true,
+    "crossOriginIsolated": false,
+    "hardwareConcurrency": 8,
+    "deviceMemoryGb": 8,
+    "tester": "fold7-even-A"
+  },
+  "data": {
+    "documentHeaders": {
+      "cross-origin-opener-policy": "same-origin",
+      "cross-origin-embedder-policy": "require-corp",
+      "content-security-policy": null,
+      "server": null,
+      "content-type": "text/html"
+    },
+    "platform": {
+      "location": {
+        "protocol": "http:",
+        "origin": "http://localhost:5173",
+        "isSecureContext": true
+      },
+      "crossOriginIsolated": false,
+      "sharedArrayBuffer": false,
+      "sharedWasmMemory": true,
+      "wasm": {
+        "simd": true,
+        "relaxedSimd": true,
+        "threads": true,
+        "jspi": true
+      },
+      "workers": {
+        "dedicated": true,
+        "shared": false,
+        "serviceWorker": true,
+        "serviceWorkerController": false
+      },
+      "storage": {
+        "opfsGetDirectory": true,
+        "estimate": {
+          "quotaMiB": 10240,
+          "usageMiB": 0
+        },
+        "persistedBefore": false,
+        "persistRequest": false,
+        "indexedDb": true,
+        "webLocks": true
+      },
+      "crypto": {
+        "subtle": true,
+        "nonExtractableAesGcm": true
+      },
+      "audio": {
+        "audioContext": true,
+        "audioWorklet": true
+      },
+      "network": {
+        "webSocket": true,
+        "webTransport": true
+      },
+      "battery": {
+        "level": 0.36,
+        "charging": false
+      },
+      "memory": {
+        "deviceMemoryGb": 8,
+        "measureUserAgentSpecificMemory": false,
+        "performanceMemory": {
+          "jsHeapSizeLimitMiB": 2995
+        }
+      },
+      "hardwareConcurrency": 8,
+      "userAgentData": {
+        "architecture": "",
+        "brands": [
+          {
+            "brand": "Not=A?Brand",
+            "version": "99"
+          },
+          {
+            "brand": "Android WebView",
+            "version": "151"
+          },
+          {
+            "brand": "Chromium",
+            "version": "151"
+          }
+        ],
+        "fullVersionList": [
+          {
+            "brand": "Not=A?Brand",
+            "version": "99.0.0.0"
+          },
+          {
+            "brand": "Android WebView",
+            "version": "151.0.7922.199"
+          },
+          {
+            "brand": "Chromium",
+            "version": "151.0.7922.199"
+          }
+        ],
+        "mobile": true,
+        "model": "SM-F966Q",
+        "platform": "Android",
+        "platformVersion": "16.0.0"
+      },
+      "coiServiceWorkerAttempted": null
+    },
+    "webgpuMain": {
+      "secureContext": true,
+      "navigatorGpu": true,
+      "adapters": [
+        {
+          "powerPreference": "high-performance",
+          "found": true,
+          "info": {
+            "vendor": "qualcomm",
+            "architecture": "adreno-8xx",
+            "subgroupMinSize": 64,
+            "subgroupMaxSize": 64,
+            "isFallbackAdapter": false
+          },
+          "isFallbackAdapter": false,
+          "features": [
+            "bgra8unorm-storage",
+            "clip-distances",
+            "core-features-and-limits",
+            "depth-clip-control",
+            "depth32float-stencil8",
+            "dual-source-blending",
+            "float32-blendable",
+            "float32-filterable",
+            "indirect-first-instance",
+            "primitive-index",
+            "rg11b10ufloat-renderable",
+            "shader-f16",
+            "subgroups",
+            "texture-component-swizzle",
+            "texture-compression-astc",
+            "texture-compression-astc-sliced-3d",
+            "texture-compression-bc",
+            "texture-compression-bc-sliced-3d",
+            "texture-compression-etc2",
+            "texture-formats-tier1",
+            "texture-formats-tier2",
+            "timestamp-query"
+          ],
+          "limits": {
+            "maxBufferSize": 2147483648,
+            "maxStorageBufferBindingSize": 2147483644,
+            "maxStorageBuffersPerShaderStage": 16,
+            "maxComputeWorkgroupStorageSize": 32768,
+            "maxComputeInvocationsPerWorkgroup": 1024,
+            "maxComputeWorkgroupSizeX": 1024,
+            "maxComputeWorkgroupsPerDimension": 65535
+          },
+          "device": {
+            "created": true,
+            "requestedFeatures": [
+              "shader-f16"
+            ],
+            "knownAnswer": {
+              "ok": true,
+              "got": [
+                2,
+                0,
+                3.5,
+                0
+              ]
+            },
+            "knownAnswerF16": {
+              "ok": true,
+              "got": [
+                2,
+                0,
+                3.5,
+                0
+              ]
+            },
+            "matmul256": {
+              "pipelineMs": 10,
+              "firstMs": 4,
+              "p50Ms": 3.1,
+              "iterations": 30,
+              "maxAbsError": 6.948340667278785e-7
+            }
+          }
+        },
+        {
+          "powerPreference": "low-power",
+          "found": true,
+          "info": {
+            "vendor": "qualcomm",
+            "architecture": "adreno-8xx",
+            "subgroupMinSize": 64,
+            "subgroupMaxSize": 64,
+            "isFallbackAdapter": false
+          },
+          "isFallbackAdapter": false,
+          "features": [
+            "bgra8unorm-storage",
+            "clip-distances",
+            "core-features-and-limits",
+            "depth-clip-control",
+            "depth32float-stencil8",
+            "dual-source-blending",
+            "float32-blendable",
+            "float32-filterable",
+            "indirect-first-instance",
+            "primitive-index",
+            "rg11b10ufloat-renderable",
+            "shader-f16",
+            "subgroups",
+            "texture-component-swizzle",
+            "texture-compression-astc",
+            "texture-compression-astc-sliced-3d",
+            "texture-compression-bc",
+            "texture-compression-bc-sliced-3d",
+            "texture-compression-etc2",
+            "texture-formats-tier1",
+            "texture-formats-tier2",
+            "timestamp-query"
+          ],
+          "limits": {
+            "maxBufferSize": 2147483648,
+            "maxStorageBufferBindingSize": 2147483644,
+            "maxStorageBuffersPerShaderStage": 16,
+            "maxComputeWorkgroupStorageSize": 32768,
+            "maxComputeInvocationsPerWorkgroup": 1024,
+            "maxComputeWorkgroupSizeX": 1024,
+            "maxComputeWorkgroupsPerDimension": 65535
+          },
+          "device": {
+            "created": true,
+            "requestedFeatures": [
+              "shader-f16"
+            ],
+            "knownAnswer": {
+              "ok": true,
+              "got": [
+                2,
+                0,
+                3.5,
+                0
+              ]
+            },
+            "knownAnswerF16": {
+              "ok": true,
+              "got": [
+                2,
+                0,
+                3.5,
+                0
+              ]
+            },
+            "matmul256": {
+              "pipelineMs": 2,
+              "firstMs": 4,
+              "p50Ms": 4.5,
+              "iterations": 30,
+              "maxAbsError": 6.948340667278785e-7
+            }
+          }
+        }
+      ],
+      "preferredCanvasFormat": "rgba8unorm",
+      "wgslLanguageFeatures": [
+        "immediate_address_space",
+        "linear_indexing",
+        "packed_4x8_integer_dot_product",
+        "pointer_composite_access",
+        "readonly_and_readwrite_storage_textures",
+        "subgroup_id",
+        "subgroup_uniformity",
+        "texture_and_sampler_let",
+        "uniform_buffer_standard_layout",
+        "unrestricted_pointer_parameters"
+      ]
+    },
+    "worker": {
+      "crossOriginIsolated": false,
+      "sharedArrayBuffer": false,
+      "opfsSyncAccessHandle": {
+        "ok": true,
+        "writeFlush1MiBMs": 3.4
+      },
+      "webgpu": {
+        "secureContext": true,
+        "navigatorGpu": true,
+        "adapters": [
+          {
+            "powerPreference": "high-performance",
+            "found": true,
+            "info": {
+              "vendor": "qualcomm",
+              "architecture": "adreno-8xx",
+              "subgroupMinSize": 64,
+              "subgroupMaxSize": 64,
+              "isFallbackAdapter": false
+            },
+            "isFallbackAdapter": false,
+            "features": [
+              "bgra8unorm-storage",
+              "clip-distances",
+              "core-features-and-limits",
+              "depth-clip-control",
+              "depth32float-stencil8",
+              "dual-source-blending",
+              "float32-blendable",
+              "float32-filterable",
+              "indirect-first-instance",
+              "primitive-index",
+              "rg11b10ufloat-renderable",
+              "shader-f16",
+              "subgroups",
+              "texture-component-swizzle",
+              "texture-compression-astc",
+              "texture-compression-astc-sliced-3d",
+              "texture-compression-bc",
+              "texture-compression-bc-sliced-3d",
+              "texture-compression-etc2",
+              "texture-formats-tier1",
+              "texture-formats-tier2",
+              "timestamp-query"
+            ],
+            "limits": {
+              "maxBufferSize": 2147483648,
+              "maxStorageBufferBindingSize": 2147483644,
+              "maxStorageBuffersPerShaderStage": 16,
+              "maxComputeWorkgroupStorageSize": 32768,
+              "maxComputeInvocationsPerWorkgroup": 1024,
+              "maxComputeWorkgroupSizeX": 1024,
+              "maxComputeWorkgroupsPerDimension": 65535
+            },
+            "device": {
+              "created": true,
+              "requestedFeatures": [
+                "shader-f16"
+              ],
+              "knownAnswer": {
+                "ok": true,
+                "got": [
+                  2,
+                  0,
+                  3.5,
+                  0
+                ]
+              },
+              "knownAnswerF16": {
+                "ok": true,
+                "got": [
+                  2,
+                  0,
+                  3.5,
+                  0
+                ]
+              },
+              "matmul256": {
+                "pipelineMs": 8,
+                "firstMs": 4,
+                "p50Ms": 4.3,
+                "iterations": 30,
+                "maxAbsError": 6.948340667278785e-7
+              }
+            }
+          },
+          {
+            "powerPreference": "low-power",
+            "found": true,
+            "info": {
+              "vendor": "qualcomm",
+              "architecture": "adreno-8xx",
+              "subgroupMinSize": 64,
+              "subgroupMaxSize": 64,
+              "isFallbackAdapter": false
+            },
+            "isFallbackAdapter": false,
+            "features": [
+              "bgra8unorm-storage",
+              "clip-distances",
+              "core-features-and-limits",
+              "depth-clip-control",
+              "depth32float-stencil8",
+              "dual-source-blending",
+              "float32-blendable",
+              "float32-filterable",
+              "indirect-first-instance",
+              "primitive-index",
+              "rg11b10ufloat-renderable",
+              "shader-f16",
+              "subgroups",
+              "texture-component-swizzle",
+              "texture-compression-astc",
+              "texture-compression-astc-sliced-3d",
+              "texture-compression-bc",
+              "texture-compression-bc-sliced-3d",
+              "texture-compression-etc2",
+              "texture-formats-tier1",
+              "texture-formats-tier2",
+              "timestamp-query"
+            ],
+            "limits": {
+              "maxBufferSize": 2147483648,
+              "maxStorageBufferBindingSize": 2147483644,
+              "maxStorageBuffersPerShaderStage": 16,
+              "maxComputeWorkgroupStorageSize": 32768,
+              "maxComputeInvocationsPerWorkgroup": 1024,
+              "maxComputeWorkgroupSizeX": 1024,
+              "maxComputeWorkgroupsPerDimension": 65535
+            },
+            "device": {
+              "created": true,
+              "requestedFeatures": [
+                "shader-f16"
+              ],
+              "knownAnswer": {
+                "ok": true,
+                "got": [
+                  2,
+                  0,
+                  3.5,
+                  0
+                ]
+              },
+              "knownAnswerF16": {
+                "ok": true,
+                "got": [
+                  2,
+                  0,
+                  3.5,
+                  0
+                ]
+              },
+              "matmul256": {
+                "pipelineMs": 1,
+                "firstMs": 3,
+                "p50Ms": 4.3,
+                "iterations": 30,
+                "maxAbsError": 6.948340667278785e-7
+              }
+            }
+          }
+        ],
+        "preferredCanvasFormat": "rgba8unorm",
+        "wgslLanguageFeatures": [
+          "immediate_address_space",
+          "linear_indexing",
+          "packed_4x8_integer_dot_product",
+          "pointer_composite_access",
+          "readonly_and_readwrite_storage_textures",
+          "subgroup_id",
+          "subgroup_uniformity",
+          "texture_and_sampler_let",
+          "uniform_buffer_standard_layout",
+          "unrestricted_pointer_parameters"
+        ]
+      }
+    },
+    "evenApp": {
+      "user": true,
+      "device": {
+        "model": "g2",
+        "sn": "…0471",
+        "status": {
+          "sn": "…0471",
+          "connectType": "connected",
+          "isWearing": false,
+          "batteryLevel": 92,
+          "isCharging": false,
+          "isInCase": false
+        }
+      }
+    }
+  }
+}
