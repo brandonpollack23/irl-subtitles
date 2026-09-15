@@ -1,8 +1,7 @@
-import type { DeepPartial } from "../merge";
 import type { Messages } from "./en";
 
-/** Japanese. Missing keys fall back to English until the catalog is complete. */
-export const ja: DeepPartial<Messages> = {
+/** Japanese. Terms follow the glossary in docs/i18n.md; a missing key fails typecheck. */
+export const ja: Messages = {
   common: {
     appName: "IRL Subtitles",
     close: "閉じる",

@@ -3,16 +3,15 @@ import { en, type Messages } from "./catalogs/en";
 import { ja } from "./catalogs/ja";
 import { describer, type Describer } from "./describe";
 import { formatters, type Formatters } from "./format";
-import { withFallback } from "./merge";
 
 export { en, type Messages } from "./catalogs/en";
 export { ja } from "./catalogs/ja";
 export { describer, type Describer } from "./describe";
 export { formatters, type Formatters } from "./format";
 export { matchLocale, resolveLocale, systemLanguages } from "./locale";
-export { keyPaths, withFallback, type DeepPartial } from "./merge";
+export { keyPaths } from "./merge";
 
-const catalogs: Record<UiLocale, Messages> = { en, ja: withFallback(en, ja) };
+const catalogs: Record<UiLocale, Messages> = { en, ja };
 
 /** Each UI locale's name in its own language, for the language picker. */
 export const LOCALE_NAMES: Record<UiLocale, string> = { en: "English", ja: "日本語" };

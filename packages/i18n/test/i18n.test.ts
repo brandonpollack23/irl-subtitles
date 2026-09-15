@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { G2_MENU_LABEL_MAX_BYTES, UI_LOCALES, UserError, utf8ByteLength } from "@irl/domain";
-import { describer, en, fmt, formatters, keyPaths, locale, localeChanges, matchLocale, messages, resolveLocale, setLocale, t, withFallback } from "../src";
+import { describer, en, fmt, formatters, ja, keyPaths, locale, localeChanges, matchLocale, messages, resolveLocale, setLocale, t } from "../src";
 
 describe("locale resolution", () => {
   it("matches the first supported primary language", () => {
@@ -39,10 +39,21 @@ describe("catalogs", () => {
     }
   });
 
-  it("fills missing strings from the base catalog", () => {
-    const merged = withFallback({ a: "A", g: { b: "B", c: (n: number) => `C${n}` } }, { g: { b: "ビー" } });
-    expect(merged).toMatchObject({ a: "A", g: { b: "ビー" } });
-    expect(merged.g.c(2)).toBe("C2");
+  it("leaves no English in Japanese beyond names and technical terms", () => {
+    // Brand and product names, units, and tokens that stay Latin in Japanese UI text.
+    const allowed = new Set([
+      "common.appName", "settings.version", "glasses.rec", "diagnostics.webgpu",
+      // Punctuation-only templates around values.
+      "boot.step", "settings.downloadCount", "settings.bytesOf", "glasses.audioTag", "speakers.maybe", "selection.withModel", "stages.fromService", "dataFlow.sentence",
+    ]);
+    const get = (o: object, path: string) => path.split(".").reduce<unknown>((x, k) => (x as Record<string, unknown>)[k], o);
+    const sample = (v: unknown): string => (typeof v === "function" ? String((v as (...a: unknown[]) => unknown)(...Array.from({ length: v.length }, () => "x"))) : String(v));
+    for (const path of keyPaths(en)) {
+      if (allowed.has(path)) continue;
+      const text = sample(get(ja, path));
+      expect(/[\u3040-\u30ff\u3400-\u9fff]/.test(text), `ja:${path} "${text}"`).toBe(true);
+      expect(text, `ja:${path} copies English`).not.toBe(sample(get(en, path)));
+    }
   });
 });
 
