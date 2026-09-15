@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-3xb.3"
+  ],
   "blocks": [],
   "created": "2026-09-15T03:51:05Z",
   "description": "Make Soniox selectable for the final transcript on its own (live local, final Soniox), using the Soniox async file API through the cloud final-provider interface from the pipeline dispatch ticket.\n\n- Upload recording WAV, create transcription with speaker diarization, poll, normalize to final tokens + turns (reuse SonioxNormalizer token mapping), delete the remote file/transcription after fetching.\n- Whitelist/CORS for the async endpoints on api.soniox.com (already whitelisted host; confirm endpoints).\n- Resolver: provides stt-final; vad locked only if live is off.\n\nLower priority than Speechmatics; it rounds out \"every role can pick any service\".",
@@ -11,5 +13,5 @@
   "status": "open",
   "title": "Soniox async final transcript option",
   "type": "task",
-  "updated_at": "2026-09-15T03:51:05Z"
+  "updated_at": "2026-09-15T03:51:06Z"
 }
