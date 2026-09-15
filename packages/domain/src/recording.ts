@@ -1,5 +1,6 @@
 import type { RecordingId } from "./audio";
 import type { ModelSelection } from "./models";
+import { serviceOption, selectionLocks, type SelectionLocks } from "./selection";
 import type { Marker } from "./transcript";
 
 /**
@@ -53,7 +54,8 @@ export function emptyProcessing(): ProcessingStatus {
  */
 export type AudioRetention = "persisted" | "ephemeral" | "deleted";
 
-export type ProviderKind = "local" | "soniox";
+/** Where live captions came from, for history labels; derived from the live option when the recording starts. */
+export type ProviderKind = "local" | "soniox" | "speechmatics";
 
 export interface Recording {
   id: RecordingId;
@@ -66,6 +68,8 @@ export interface Recording {
   provider: ProviderKind;
   /** Snapshot of the model selection used; applies for the life of the recording. */
   models: ModelSelection;
+  /** Roles provided by another role's cloud option, resolved when the recording started (absent on older recordings). */
+  selection?: { locks: SelectionLocks };
   /** Pinned model revisions/manifests actually loaded, keyed by role. */
   modelVersions: Record<string, string>;
   /** Samples captured (monotonic sample clock). */
@@ -81,6 +85,26 @@ export interface Recording {
   degraded: string | null;
   gaps: number;
   error: string | null;
+}
+
+export function providerKindFor(models: ModelSelection): ProviderKind {
+  const s = serviceOption(models.sttLive)?.service;
+  return s === "soniox" || s === "speechmatics" ? s : "local";
+}
+
+/**
+ * The recording's locks: its snapshot, or for recordings made before the snapshot existed, the rules applied to
+ * their models, with provider "soniox" meaning Soniox streamed the live captions.
+ */
+export function recordingLocks(r: Pick<Recording, "models" | "provider" | "selection">): SelectionLocks {
+  if (r.selection) return r.selection.locks;
+  if (r.provider === "soniox" && !serviceOption(r.models.sttLive)) return selectionLocks({ ...r.models, sttLive: "soniox:stt-rt-v5" });
+  return selectionLocks(r.models);
+}
+
+/** The cloud live option a recording streamed to, if any (older Soniox recordings stored a local id). */
+export function recordingLiveOption(r: Pick<Recording, "models" | "provider">) {
+  return serviceOption(r.models.sttLive) ?? (r.provider === "soniox" ? serviceOption("soniox:stt-rt-v5") : undefined);
 }
 
 export function recordingDurationSamples(r: Pick<Recording, "totalSamples">): number {

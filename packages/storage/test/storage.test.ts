@@ -1,13 +1,15 @@
 import "fake-indexeddb/auto";
 import { IDBFactory } from "fake-indexeddb";
 import { describe, expect, it } from "vitest";
-import { emptyProcessing, type Recording, type TranscriptToken } from "@irl/domain";
+import { defaultSettings, emptyProcessing, selectionLocks, type Recording, type TranscriptToken } from "@irl/domain";
 import { IdbTableStore } from "../src/idb-store";
 import { KeyVault, ephemeralSealer } from "../src/crypto";
 import { MemoryBlobStore, writeVerified, IdbBlobStore } from "../src/blobs";
 import { Repository } from "../src/repository";
 import { VaultSecretStore } from "../src/secrets";
 import { SqlTableStore } from "../src/sql-store";
+import { SQL_MIGRATIONS } from "../src/schema";
+import { SettingsStore } from "../src/settings-store";
 import { nodeSqliteDriver } from "./node-sqlite-driver";
 
 function recording(id: string, createdAt = "2026-09-13T10:00:00Z"): Recording {
@@ -121,6 +123,38 @@ describe("crypto and secrets", () => {
     expect(await secrets.get("soniox_api_key")).toBe("sk-test-123");
     await secrets.delete("soniox_api_key");
     expect(await secrets.get("soniox_api_key")).toBeNull();
+  });
+
+  it("keeps each service's key separately", async () => {
+    const secrets = await VaultSecretStore.open(await KeyVault.open(new IDBFactory()));
+    await secrets.put("speechmatics_api_key", "sm-1");
+    expect(await secrets.has("soniox_api_key")).toBe(false);
+    expect(await secrets.get("speechmatics_api_key")).toBe("sm-1");
+  });
+
+  it("adds the selection snapshot column to a version 1 database and reads older rows without it", async () => {
+    const driver = nodeSqliteDriver();
+    await driver.exec("CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL)");
+    for (const stmt of SQL_MIGRATIONS[0]!.statements) await driver.exec(stmt);
+    await driver.run("INSERT INTO schema_migrations (version, applied_at) VALUES (1, 'then')", []);
+    expect(SQL_MIGRATIONS[0]!.statements.some((x) => x.includes("selection"))).toBe(false);
+    const repo = new Repository(await SqlTableStore.open(driver));
+    const models = { ...recording("x").models, sttLive: "soniox:stt-rt-v5" };
+    await repo.putRecording({ ...recording("r1"), models, selection: { locks: selectionLocks(models) } });
+    await repo.putRecording(recording("r2"));
+    expect((await repo.getRecording("r1"))?.selection?.locks.vad).toBe("soniox:stt-rt-v5");
+    expect(await repo.getRecording("r2")).not.toHaveProperty("selection");
+  });
+
+  it("migrates saved provider settings to per-role options", async () => {
+    const repo = new Repository(await SqlTableStore.open(nodeSqliteDriver()));
+    const models = recording("x").models;
+    await repo.putSetting("settings.v1", { provider: "soniox", sonioxModel: "stt-rt-v5", language: "de", models: { ...models, summary: "cloud" } });
+    const store = await SettingsStore.open(repo, defaultSettings(models));
+    expect(store.get()).not.toHaveProperty("provider");
+    expect(store.get()).not.toHaveProperty("sonioxModel");
+    expect(store.get().models).toEqual({ ...models, sttLive: "soniox:stt-rt-v5", summary: "cloud-summary" });
+    expect(store.get().language).toBe("de");
   });
 
   it("verifies blob writes", async () => {

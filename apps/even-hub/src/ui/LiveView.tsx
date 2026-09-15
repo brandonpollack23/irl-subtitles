@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web";
 import { createMemo, createSignal, For, Show } from "solid-js";
-import { activeAttributions, formatClock, policyFor, speakerLabel, type ClusterId, type MatchDecision, type Person, type SpeakerAttribution } from "@irl/domain";
+import { activeAttributions, describeDataFlow, formatClock, policyFor, speakerLabel, type ClusterId, type MatchDecision, type Person, type SpeakerAttribution } from "@irl/domain";
 import { embeddingSpaceOf } from "@irl/provider-local";
 import { app, Button, go, speakerColor, SpeakerName, useData, useSettings } from "./lib";
 import { liveSnapshot, warmupStatus } from "./model";
@@ -39,7 +39,7 @@ export function LiveView() {
           <div class="stack">
             <h1>Record a conversation</h1>
             <p class="muted">
-              {settings().provider === "soniox" ? "Soniox transcribes in the cloud: audio is sent to Soniox while recording." : "Everything is processed on this phone."}{" "}
+              {describeDataFlow(settings().models)}{" "}
               {settings().persistAudio ? "Audio will be saved." : "Audio won't be saved after processing."}
             </p>
             <Show when={modelsLoading()}>

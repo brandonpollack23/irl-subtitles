@@ -31,6 +31,7 @@ export const SCHEMA_V1: readonly TableDef[] = [
     language: "text",
     provider: "text",
     models: "json",
+    selection: "json?",
     modelVersions: "json",
     totalSamples: "int",
     recoveryCursor: "int",
@@ -184,6 +185,9 @@ export const SCHEMA_V1: readonly TableDef[] = [
 
 export const SCHEMA_VERSION = 1;
 
+/** Columns added after version 1, by migration version; SQL version 1 creates tables without them. */
+const ADDED_COLUMNS: readonly { version: number; table: string; column: string }[] = [{ version: 2, table: "recordings", column: "selection" }];
+
 export function snake(name: string): string {
   return name.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`);
 }
@@ -211,8 +215,22 @@ export function createTableSql(def: TableDef): string[] {
 
 /** Versioned SQL migrations. Append new versions; never edit an applied one. */
 export const SQL_MIGRATIONS: readonly { version: number; statements: readonly string[] }[] = [
-  { version: 1, statements: SCHEMA_V1.flatMap(createTableSql) },
+  { version: 1, statements: SCHEMA_V1.map((def) => withoutAddedColumns(def)).flatMap(createTableSql) },
+  { version: 2, statements: addColumnSql(2) },
 ];
+
+function withoutAddedColumns(def: TableDef): TableDef {
+  const columns = Object.fromEntries(Object.entries(def.columns).filter(([c]) => !ADDED_COLUMNS.some((a) => a.table === def.name && a.column === c)));
+  return { ...def, columns };
+}
+
+function addColumnSql(version: number): string[] {
+  return ADDED_COLUMNS.filter((a) => a.version === version).map((a) => {
+    const { type } = parseSpec(tableDef(a.table).columns[a.column]!);
+    // Added columns are always optional, so existing rows read back without them.
+    return `ALTER TABLE ${a.table} ADD COLUMN ${snake(a.column)} ${SQL_TYPES[type]}`;
+  });
+}
 
 export function tableDef(name: string): TableDef {
   const def = SCHEMA_V1.find((t) => t.name === name);

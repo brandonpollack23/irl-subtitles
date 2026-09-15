@@ -1,4 +1,4 @@
-import { Emitter, type Settings } from "@irl/domain";
+import { Emitter, migrateSettings, type Settings } from "@irl/domain";
 import type { Repository } from "./repository";
 
 const KEY = "settings.v1";
@@ -13,7 +13,7 @@ export class SettingsStore {
   }
 
   static async open(repo: Repository, defaults: Settings): Promise<SettingsStore> {
-    const saved = (await repo.getSetting<Partial<Settings>>(KEY)) ?? {};
+    const saved = migrateSettings((await repo.getSetting<Record<string, unknown>>(KEY)) ?? {}) as Partial<Settings>;
     const merged: Settings = { ...defaults, ...saved, models: { ...defaults.models, ...(saved.models ?? {}) } };
     for (const k of Object.keys(merged) as (keyof Settings)[]) {
       if (/key|secret|token/i.test(k)) delete (merged as unknown as Record<string, unknown>)[k];

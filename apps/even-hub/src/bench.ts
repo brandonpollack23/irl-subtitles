@@ -1,6 +1,6 @@
 import { WavFileSource } from "@irl/capture";
-import { errorMessage } from "@irl/domain";
-import { catalogEntry, liveMetrics, summarizeLiveMetrics, type LiveMetric } from "@irl/provider-local";
+import { errorMessage, isCloudOption } from "@irl/domain";
+import { catalogEntry, defaultSelection, liveMetrics, summarizeLiveMetrics, type LiveMetric } from "@irl/provider-local";
 import { platformReport } from "./platform";
 import type { AppServices } from "./services";
 
@@ -28,9 +28,12 @@ export async function runBench(services: AppServices, params: URLSearchParams): 
     });
     post.events.on((ev) => ev.progress === undefined && out("post", { t: pageMs(), ...ev }));
     const bootedAtMs = pageMs();
-    const models = { ...settings.get().models, summary: "off", ...(params.get("stt") ? { sttLive: params.get("stt")! } : {}), ...(params.get("final") ? { sttFinal: params.get("final")! } : {}) };
+    // Benchmarks measure the phone: any cloud option falls back to the local default for its role.
+    const local = defaultSelection(settings.get().language);
+    const current = settings.get().models;
+    const models = { ...current, ...(isCloudOption(current.sttLive) ? { sttLive: local.sttLive } : {}), ...(isCloudOption(current.sttFinal) ? { sttFinal: local.sttFinal } : {}), ...(isCloudOption(current.speakerEmbedding) ? { speakerEmbedding: local.speakerEmbedding } : {}), summary: "off", ...(params.get("stt") ? { sttLive: params.get("stt")! } : {}), ...(params.get("final") ? { sttFinal: params.get("final")! } : {}) };
     const bridgeMic = params.get("source") === "glasses";
-    await settings.update({ provider: "local", captureSource: bridgeMic ? "glasses" : "wav-file", models });
+    await settings.update({ captureSource: bridgeMic ? "glasses" : "wav-file", models });
     const live = [models.vad, models.speakerEmbedding, models.sttLive].filter((id) => id !== "off");
     const downloadStart = pageMs();
     // The final-pass model too, so post-processing between runs does real work.

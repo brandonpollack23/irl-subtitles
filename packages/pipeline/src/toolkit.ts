@@ -45,7 +45,7 @@ export interface ProcessingToolkit {
   /** Centroid cosine above which two speaker labels are the same voice. */
   mergeThreshold(embeddingSpace: string): number;
   liveProvider(kind: "local"): LiveSpeechProvider;
-  summaryProvider(modelId: string | "cloud"): SummaryProvider | null;
+  summaryProvider(modelId: string): SummaryProvider | null;
   /** Release model sessions (after post-processing, on memory pressure). */
   release(roles?: readonly string[]): Promise<void>;
 }

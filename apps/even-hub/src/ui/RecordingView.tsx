@@ -1,5 +1,5 @@
 import { createSignal, For, onSettled, Show } from "solid-js";
-import { formatClock, SAMPLE_RATE, type AnchoredText, type ClusterId, type ProcessingStage, type TranscriptSegment } from "@irl/domain";
+import { formatClock, SAMPLE_RATE, serviceOption, type AnchoredText, type ClusterId, type ProcessingStage, type TranscriptSegment } from "@irl/domain";
 import { ALL_STAGES, deleteRecording, deleteRecordingAudio, exportRecording, type PostStage } from "@irl/pipeline";
 import { catalogEntry } from "@irl/provider-local";
 import { app, bumpData, Button, download, duration, go, Sheet, SpanText, speakerColor, SpeakerName, toast, useData, when } from "./lib";
@@ -221,7 +221,7 @@ function Processing(props: { m: RecordingModel; progress: { stage: string; progr
     const out: { stage: PostStage; label: string; patch: Partial<typeof settings.prototype> }[] = [];
     const cur = settings().models;
     if (r().provider === "local" && cur.sttFinal !== r().models.sttFinal) out.push({ stage: "finalStt", label: `Re-transcribe with ${catalogEntry(cur.sttFinal)?.displayName ?? cur.sttFinal}`, patch: {} });
-    if (cur.summary !== r().models.summary && cur.summary !== "off") out.push({ stage: "summary", label: `Re-summarize with ${cur.summary === "cloud" ? "the cloud endpoint" : (catalogEntry(cur.summary)?.displayName ?? cur.summary)}`, patch: {} });
+    if (cur.summary !== r().models.summary && cur.summary !== "off") out.push({ stage: "summary", label: `Re-summarize with ${serviceOption(cur.summary) ? "the cloud endpoint" : (catalogEntry(cur.summary)?.displayName ?? cur.summary)}`, patch: {} });
     return out;
   };
   const busy = () => r().state === "finalizing" || r().state === "captured" || app().post.currentRecordingId === r().id;

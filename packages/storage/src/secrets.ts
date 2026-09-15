@@ -1,4 +1,4 @@
-import type { SecretStore } from "@irl/domain";
+import type { SecretName, SecretStore } from "@irl/domain";
 import { idbTx, type KeyVault, type Sealer } from "./crypto";
 
 interface SecretRecord {
@@ -18,23 +18,23 @@ export class VaultSecretStore implements SecretStore {
     return new VaultSecretStore(vault, await vault.durableSealer("secrets-v1"));
   }
 
-  async put(name: "soniox_api_key", value: string): Promise<void> {
+  async put(name: SecretName, value: string): Promise<void> {
     const sealed = await this.sealer.seal(new TextEncoder().encode(value));
     await idbTx(this.vault.database, "records", "readwrite", (s) => s.put({ name, sealed, updatedAt: new Date().toISOString() } satisfies SecretRecord));
   }
 
-  async get(name: "soniox_api_key"): Promise<string | null> {
+  async get(name: SecretName): Promise<string | null> {
     const rec = await idbTx<SecretRecord | undefined>(this.vault.database, "records", "readonly", (s) => s.get(name) as IDBRequest<SecretRecord | undefined>);
     if (!rec) return null;
     return new TextDecoder().decode(await this.sealer.open(new Uint8Array(rec.sealed)));
   }
 
-  async has(name: "soniox_api_key"): Promise<boolean> {
+  async has(name: SecretName): Promise<boolean> {
     const rec = await idbTx<SecretRecord | undefined>(this.vault.database, "records", "readonly", (s) => s.get(name) as IDBRequest<SecretRecord | undefined>);
     return !!rec;
   }
 
-  async delete(name: "soniox_api_key"): Promise<void> {
+  async delete(name: SecretName): Promise<void> {
     await idbTx(this.vault.database, "records", "readwrite", (s) => s.delete(name));
   }
 }

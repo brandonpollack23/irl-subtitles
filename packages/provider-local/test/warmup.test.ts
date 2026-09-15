@@ -108,7 +108,7 @@ describe("model warmup", () => {
     expect(t.warmup.current.loading).toEqual(["Moonshine Tiny (en)"]);
 
     // A newer selection supersedes the pass still waiting on Moonshine Tiny.
-    t.update({ provider: "soniox" });
+    t.update({ models: { ...t.settings().models, sttLive: "soniox:stt-rt-v5" } });
     const soniox = t.warmup.selectionChanged();
     await t.flush();
     t.loads.get("moonshine-tiny-en")!.resolve();

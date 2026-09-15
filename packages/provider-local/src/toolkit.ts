@@ -1,4 +1,4 @@
-import { SAMPLE_RATE, type LiveSpeechProvider, type ModelCatalogEntry, type Settings, type SummaryProvider, type TimeRange, type VoiceEmbedding } from "@irl/domain";
+import { CLOUD_SUMMARY, SAMPLE_RATE, type LiveSpeechProvider, type ModelCatalogEntry, type Settings, type SummaryProvider, type TimeRange, type VoiceEmbedding } from "@irl/domain";
 import type { ClusterAssignment, FinalWord, ProcessingToolkit } from "@irl/pipeline";
 import { ChunkedSummaryProvider, CloudSummaryProvider, type ChatModel } from "@irl/provider-summary";
 import { CATALOG, catalogEntry, embeddingSpaceOf, isStreamingStt } from "./catalog";
@@ -88,8 +88,9 @@ export class LocalToolkit implements ProcessingToolkit {
     return this.live;
   }
 
-  summaryProvider(modelId: string | "cloud"): SummaryProvider | null {
-    if (modelId === "cloud") {
+  summaryProvider(modelId: string): SummaryProvider | null {
+    // "cloud" is how recordings made before cloud-summary became an option stored it.
+    if (modelId === "cloud" || modelId === CLOUD_SUMMARY) {
       const endpoint = this.settings().cloudSummaryEndpoint;
       return endpoint ? new CloudSummaryProvider(endpoint) : null;
     }

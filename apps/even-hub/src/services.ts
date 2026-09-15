@@ -5,6 +5,7 @@ import {
   Emitter,
   errorMessage,
   glassesSpeakerName,
+  serviceOption,
   type BenchmarkResult,
   type Person,
   type Settings,
@@ -120,7 +121,7 @@ export async function boot(onStep: (step: string) => void = () => undefined): Pr
 
   const soniox = new SonioxSpeechProvider({
     apiKey: () => storage.secrets.get("soniox_api_key"),
-    model: () => settings.get().sonioxModel,
+    model: () => serviceOption(settings.get().models.sttLive)?.model ?? "stt-rt-v5",
     replay: (id, s, e) => audio.readRange(id, { startSample: s, endSample: e }),
   });
 

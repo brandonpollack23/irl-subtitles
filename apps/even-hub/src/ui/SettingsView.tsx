@@ -1,6 +1,6 @@
 import { createSignal, For, onSettled, Show } from "solid-js";
-import { errorMessage, LANGUAGES, parseWav, resampleLinear, tierForSelection, type ModelCatalogEntry, type ModelRole, type ModelSelection, type Settings } from "@irl/domain";
-import { availabilityOnDevice, catalogEntry, clearModelCache, embeddingSpaceOf, entriesForRole, firstRunBenchmark, ROLE_KEYS, supportsLanguage, type LoadProgress } from "@irl/provider-local";
+import { errorMessage, LANGUAGES, serviceOption, parseWav, resampleLinear, tierForSelection, type ModelCatalogEntry, type ModelRole, type ModelSelection, type Settings } from "@irl/domain";
+import { availabilityOnDevice, catalogEntry, clearModelCache, defaultSelection, embeddingSpaceOf, entriesForRole, firstRunBenchmark, ROLE_KEYS, supportsLanguage, type LoadProgress } from "@irl/provider-local";
 import { testSonioxKey } from "@irl/provider-soniox";
 import { app, bumpData, Button, bytes, toast, useData, useSettings } from "./lib";
 
@@ -144,11 +144,12 @@ function ProviderSection(props: SectionProps) {
     () => 0,
     () => app().storage.secrets.has("soniox_api_key"),
   );
+  const isSoniox = () => serviceOption(props.s.models.sttLive)?.service === "soniox";
   return (
     <section class="panel">
       <h2>Transcription service</h2>
       <label class="check">
-        <input type="radio" name="provider" checked={props.s.provider === "local"} onChange={() => void props.update({ provider: "local" })} />
+        <input type="radio" name="provider" checked={!isSoniox()} onChange={() => void props.update({ models: { ...props.s.models, sttLive: defaultSelection(props.s.language).sttLive } })} />
         <span>
           On this phone
           <span class="small muted" style={{ display: "block" }}>
@@ -160,9 +161,9 @@ function ProviderSection(props: SectionProps) {
         <input
           type="radio"
           name="provider"
-          checked={props.s.provider === "soniox"}
+          checked={isSoniox()}
           disabled={!status.value()}
-          onChange={() => void props.update({ provider: "soniox" })}
+          onChange={() => void props.update({ models: { ...props.s.models, sttLive: "soniox:stt-rt-v5" } })}
         />
         <span>
           Soniox
@@ -209,7 +210,7 @@ function ProviderSection(props: SectionProps) {
             kind="danger"
             onClick={async () => {
               await app().storage.secrets.delete("soniox_api_key");
-              if (props.s.provider === "soniox") await props.update({ provider: "local" });
+              if (isSoniox()) await props.update({ models: { ...props.s.models, sttLive: defaultSelection(props.s.language).sttLive } });
               status.reload();
               toast("Soniox key removed. Existing transcripts are unchanged.");
             }}
@@ -421,7 +422,7 @@ function ModelPicker(props: { role: ModelRole; s: Settings; value: string; downl
     return parts.join(" · ");
   };
   const current = () => catalogEntry(props.value);
-  const specials = () => (props.role === "stt-live" ? [["off", "Off (capture now, process later)"]] : props.role === "stt-final" ? [["same-as-live", "Same as live captions"]] : props.role === "summary" ? [["cloud", "Cloud summary service (sends transcript only)"], ["off", "Off"]] : []);
+  const specials = () => (props.role === "stt-live" ? [["off", "Off (capture now, process later)"]] : props.role === "stt-final" ? [["same-as-live", "Same as live captions"]] : props.role === "summary" ? [["cloud-summary", "Cloud summary service (sends transcript only)"], ["off", "Off"]] : []);
   const p = () => props.progress[props.value];
   return (
     <div class="stack" style={{ gap: "4px" }}>

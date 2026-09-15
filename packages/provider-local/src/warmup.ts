@@ -1,4 +1,4 @@
-import { errorMessage, Emitter, type Settings } from "@irl/domain";
+import { errorMessage, Emitter, selectionLocks, type ModelSelection, type Settings } from "@irl/domain";
 import { catalogEntry, isStreamingStt } from "./catalog";
 import type { EngineKind, LocalEngines } from "./engines";
 
@@ -21,7 +21,7 @@ interface WarmTarget {
 }
 
 export interface WarmupDeps {
-  settings: () => Pick<Settings, "provider" | "models" | "powerPolicy">;
+  settings: () => Pick<Settings, "models" | "powerPolicy">;
   /** A recording is capturing: its live run is loading the same models, so a new pass would only compete. */
   recording: () => boolean;
   /** Post-processing owns the workers and loads other models into them. */
@@ -77,11 +77,11 @@ export class ModelWarmup {
     const s = this.deps.settings();
     this.key = keyOf(s);
     const m = s.models;
-    const targets: WarmTarget[] = [
-      { id: m.vad, engine: "audio", load: () => this.engines.ensureVad(m.vad) },
-      { id: m.speakerEmbedding, engine: "audio", load: () => this.engines.ensureEmbedding(m.speakerEmbedding) },
-    ];
-    if (s.provider === "local" && m.sttLive !== "off") targets.push({ id: m.sttLive, engine: isStreamingStt(m.sttLive) ? "stream" : "asr", load: () => this.engines.ensureLiveStt(m.sttLive) });
+    const ids = liveIds(s);
+    const targets: WarmTarget[] = [];
+    if (ids.includes(m.vad)) targets.push({ id: m.vad, engine: "audio", load: () => this.engines.ensureVad(m.vad) });
+    if (ids.includes(m.speakerEmbedding)) targets.push({ id: m.speakerEmbedding, engine: "audio", load: () => this.engines.ensureEmbedding(m.speakerEmbedding) });
+    if (ids.includes(m.sttLive)) targets.push({ id: m.sttLive, engine: isStreamingStt(m.sttLive) ? "stream" : "asr", load: () => this.engines.ensureLiveStt(m.sttLive) });
 
     const downloaded = await Promise.all(targets.map((t) => this.engines.isDownloaded(t.id).catch(() => false)));
     if (gen !== this.generation) return;
@@ -123,12 +123,17 @@ export class ModelWarmup {
   }
 }
 
-function liveIds(s: Pick<Settings, "provider" | "models">): string[] {
+/**
+ * Local models the live path uses: roles a cloud option provides (speech detection under a live stream) and cloud
+ * options themselves (a Soniox live stream, Speechmatics voice ID) load nothing here.
+ */
+export function liveIds(s: { models: ModelSelection }): string[] {
   const m = s.models;
-  return [m.vad, m.speakerEmbedding, ...(s.provider === "local" && m.sttLive !== "off" ? [m.sttLive] : [])];
+  const locks = selectionLocks(m);
+  return [locks.vad ? null : m.vad, m.speakerEmbedding, m.sttLive === "off" ? null : m.sttLive].filter((id): id is string => !!id && !!catalogEntry(id));
 }
 
-function keyOf(s: Pick<Settings, "provider" | "models" | "powerPolicy">): string {
+function keyOf(s: Pick<Settings, "models" | "powerPolicy">): string {
   // Power policy picks the execution target, and a different target is a different load.
-  return JSON.stringify([s.provider, s.powerPolicy, s.models.vad, s.models.speakerEmbedding, s.models.sttLive]);
+  return JSON.stringify([s.powerPolicy, ...liveIds(s)]);
 }

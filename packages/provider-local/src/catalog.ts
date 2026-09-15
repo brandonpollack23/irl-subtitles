@@ -240,13 +240,7 @@ export const CATALOG: readonly ModelCatalogEntry[] = [
   }),
 ];
 
-export const ROLE_KEYS: Record<ModelRole, keyof ModelSelection> = {
-  vad: "vad",
-  "stt-live": "sttLive",
-  "stt-final": "sttFinal",
-  "speaker-embedding": "speakerEmbedding",
-  summary: "summary",
-};
+export { ROLE_KEYS } from "@irl/domain";
 
 export function catalogEntry(id: string): ModelCatalogEntry | undefined {
   return CATALOG.find((e) => e.id === id);

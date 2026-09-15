@@ -4,6 +4,7 @@ export * from "./models";
 export * from "./people";
 export * from "./providers";
 export * from "./recording";
+export * from "./selection";
 export * from "./settings";
 export * from "./summary";
 export * from "./transcript";

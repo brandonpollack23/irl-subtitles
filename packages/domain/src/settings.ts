@@ -1,16 +1,15 @@
 import type { PersonId } from "./audio";
 import type { MatchPolicy } from "./identity";
 import type { ModelSelection, PowerPolicy } from "./models";
-import type { ProviderKind } from "./recording";
+import type { SecretName } from "./selection";
 
 export type CaptureSourceKind = "glasses" | "phone-mic" | "wav-file";
 
 /**
  * Non-secret settings (plan.md §10). Changes apply to the next recording: a recording snapshots
- * provider, language, and model selection when it starts.
+ * language and model selection (local models and cloud service options) when it starts.
  */
 export interface Settings {
-  provider: ProviderKind;
   language: string;
   models: ModelSelection;
   powerPolicy: PowerPolicy;
@@ -35,9 +34,11 @@ export interface Settings {
   /** Diagnostics include transcript text only when explicitly enabled. */
   diagnosticsIncludeContent: boolean;
   firstRunBenchmarkAt: string | null;
-  /** Soniox model name; kept here so it can be pinned without a release. */
-  sonioxModel: string;
+  /** When the user agreed to send data to each cloud service (audio; for Speechmatics voice ID also voiceprints). */
+  cloudConsent: Partial<Record<CloudConsentKey, string>>;
 }
+
+export type CloudConsentKey = "soniox" | "speechmatics" | "speechmatics-voiceprints" | "summary-endpoint";
 
 export interface LanguageOption {
   code: string;
@@ -60,7 +61,6 @@ export const LANGUAGES: readonly LanguageOption[] = [
 
 export function defaultSettings(models: ModelSelection): Settings {
   return {
-    provider: "local",
     language: "en",
     models,
     powerPolicy: "balanced",
@@ -78,13 +78,38 @@ export function defaultSettings(models: ModelSelection): Settings {
     showMatchDetails: false,
     diagnosticsIncludeContent: false,
     firstRunBenchmarkAt: null,
-    sonioxModel: "stt-rt-v5",
+    cloudConsent: {},
   };
 }
 
 export interface SecretStore {
-  put(name: "soniox_api_key", value: string): Promise<void>;
-  get(name: "soniox_api_key"): Promise<string | null>;
-  delete(name: "soniox_api_key"): Promise<void>;
-  has(name: "soniox_api_key"): Promise<boolean>;
+  put(name: SecretName, value: string): Promise<void>;
+  get(name: SecretName): Promise<string | null>;
+  delete(name: SecretName): Promise<void>;
+  has(name: SecretName): Promise<boolean>;
+}
+
+/**
+ * Settings saved before cloud services became per-role options (irl-subt-3xb.1): `provider: "soniox"` picked the
+ * live path and `sonioxModel` its model; now live captions select "soniox:<model>". The summary special "cloud"
+ * is the "cloud-summary" option. Returns a copy without the retired fields.
+ */
+export function migrateSettings(saved: Record<string, unknown>): Record<string, unknown> {
+  const { provider, sonioxModel, ...rest } = saved;
+  const models = { ...((rest.models as Record<string, unknown> | undefined) ?? {}) };
+  let changed = false;
+  if (provider === "soniox") {
+    models.sttLive = `soniox:${typeof sonioxModel === "string" && sonioxModel ? sonioxModel : "stt-rt-v5"}`;
+    changed = true;
+  }
+  if (models.summary === "cloud") {
+    models.summary = "cloud-summary";
+    changed = true;
+  }
+  if (changed || rest.models) rest.models = models;
+  if (provider === "soniox" && !(rest.cloudConsent as Record<string, unknown> | undefined)?.soniox) {
+    // Choosing Soniox as the provider was the consent to stream audio to it.
+    rest.cloudConsent = { ...((rest.cloudConsent as Record<string, unknown> | undefined) ?? {}), soniox: new Date(0).toISOString() };
+  }
+  return rest;
 }

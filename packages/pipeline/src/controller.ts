@@ -6,6 +6,8 @@ import {
   newId,
   nowIso,
   pcmToFloat32,
+  providerKindFor,
+  selectionLocks,
   rmsDbfs,
   type ClusterId,
   type LiveSpeechProvider,
@@ -103,9 +105,9 @@ export class RecordingController {
 
   constructor(private readonly deps: ControllerDeps) {
     const s = deps.settings.get();
-    this.snapshot = idleSnapshot(s.provider, s.persistAudio);
+    this.snapshot = idleSnapshot(providerKindFor(s.models), s.persistAudio);
     deps.settings.changes.on((next) => {
-      if (!this.active) this.update({ provider: next.provider, persistAudio: next.persistAudio });
+      if (!this.active) this.update({ provider: providerKindFor(next.models), persistAudio: next.persistAudio });
     });
     deps.identity.changes.on(() => this.update({ labelsVersion: this.snapshot.labelsVersion + 1 }));
   }
@@ -148,7 +150,7 @@ export class RecordingController {
       if (!persist) this.deps.ephemeral.set(id, sealer);
       const recording: Recording = {
         id, createdAt: nowIso(), startedAt: null, endedAt: null, state: "starting", audioRetention: persist ? "persisted" : "ephemeral",
-        language: settings.language, provider: settings.provider, models: { ...settings.models }, modelVersions: this.deps.modelVersions?.() ?? {},
+        language: settings.language, provider: providerKindFor(settings.models), models: { ...settings.models }, selection: { locks: selectionLocks(settings.models) }, modelVersions: this.deps.modelVersions?.() ?? {},
         totalSamples: 0, recoveryCursor: 0, title: null, markers: [], processing: emptyProcessing(), transcriptRevision: 0, degraded: null, gaps: 0, error: null,
       };
       if (recording.models.sttLive === "off") recording.processing.liveStt = { status: "skipped" };
@@ -173,7 +175,7 @@ export class RecordingController {
         await this.deps.repo.updateRecording(id, { state: "failed", error: errorMessage(e), endedAt: nowIso() });
         this.deps.ephemeral.drop(id);
         this.active = null;
-        this.update({ ...idleSnapshot(settings.provider, settings.persistAudio), error: `Could not start capture: ${errorMessage(e)}` });
+        this.update({ ...idleSnapshot(providerKindFor(settings.models), settings.persistAudio), error: `Could not start capture: ${errorMessage(e)}` });
         throw e;
       }
       void this.startProcessing(recording);
@@ -275,7 +277,7 @@ export class RecordingController {
       });
       this.active = null;
       const s = this.deps.settings.get();
-      this.update({ ...idleSnapshot(s.provider, s.persistAudio), labelsVersion: this.snapshot.labelsVersion });
+      this.update({ ...idleSnapshot(providerKindFor(s.models), s.persistAudio), labelsVersion: this.snapshot.labelsVersion });
       this.deps.onCaptured(id);
       return id;
     });
