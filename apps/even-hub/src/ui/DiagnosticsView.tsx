@@ -1,4 +1,5 @@
 import { createSignal, For, onSettled, Show } from "solid-js";
+import { t } from "@irl/i18n";
 import { storageEstimate } from "@irl/storage";
 import { clearModelCache } from "@irl/provider-local";
 import { diagnosticsText, logEvents, logLines, type LogLine } from "../log";
@@ -26,47 +27,47 @@ export function DiagnosticsView() {
   return (
     <>
       <a href="#/settings" class="small">
-        Settings
+        {t().nav.settings}
       </a>
-      <h1>Diagnostics</h1>
+      <h1>{t().diagnostics.title}</h1>
       <Show when={info.value()}>
         {(i) => (
           <div class="panel">
-            <h2>This device</h2>
+            <h2>{t().diagnostics.device}</h2>
             <table class="kv">
               <tbody>
-                <tr><th>Even app</th><td>{i().inEvenApp ? "yes" : "no (browser)"}</td></tr>
-                <tr><th>Database</th><td>{i().storage.database}{i().storage.fallbackReasons.length ? ` (${i().storage.fallbackReasons.join("; ")})` : ""}</td></tr>
-                <tr><th>Audio files</th><td>{i().storage.blobs}</td></tr>
-                <tr><th>Storage used</th><td>{i().storage.usageBytes !== null ? bytes(i().storage.usageBytes!) : "?"} of {i().storage.quotaBytes !== null ? bytes(i().storage.quotaBytes!) : "?"}, persistent: {String(i().storage.persisted)}</td></tr>
-                <tr><th>WebGPU</th><td>{i().capabilities.webgpu.available ? `${i().capabilities.webgpu.vendor ?? ""} ${i().capabilities.webgpu.architecture ?? ""}, shader-f16: ${i().capabilities.webgpu.shaderF16}, max buffer ${bytes(i().capabilities.webgpu.maxBufferSize ?? 0)}` : `unavailable (${i().capabilities.webgpu.error})`}</td></tr>
+                <tr><th>{t().diagnostics.evenApp}</th><td>{i().inEvenApp ? t().diagnostics.yes : t().diagnostics.noBrowser}</td></tr>
+                <tr><th>{t().diagnostics.database}</th><td>{i().storage.database}{i().storage.fallbackReasons.length ? ` (${i().storage.fallbackReasons.join("; ")})` : ""}</td></tr>
+                <tr><th>{t().diagnostics.audioFiles}</th><td>{i().storage.blobs}</td></tr>
+                <tr><th>{t().diagnostics.storageUsed}</th><td>{t().diagnostics.storage(i().storage.usageBytes !== null ? bytes(i().storage.usageBytes!) : "?", i().storage.quotaBytes !== null ? bytes(i().storage.quotaBytes!) : "?", String(i().storage.persisted))}</td></tr>
+                <tr><th>WebGPU</th><td>{i().capabilities.webgpu.available ? `${i().capabilities.webgpu.vendor ?? ""} ${i().capabilities.webgpu.architecture ?? ""}, shader-f16: ${i().capabilities.webgpu.shaderF16}, max buffer ${bytes(i().capabilities.webgpu.maxBufferSize ?? 0)}` : t().diagnostics.unavailable(i().capabilities.webgpu.error ?? "")}</td></tr>
                 <tr><th>WASM</th><td>SIMD {String(i().capabilities.wasmSimd)}, threads {String(i().capabilities.wasmThreads)}</td></tr>
                 <tr><th>Isolation</th><td>secure {String(i().capabilities.secureContext)}, cross-origin isolated {String(i().capabilities.crossOriginIsolated)}</td></tr>
                 <tr><th>Opus</th><td>{String(i().capabilities.webCodecsOpus)}</td></tr>
-                <tr><th>Platform</th><td>{i().capabilities.platform}, {i().capabilities.hardwareConcurrency} cores, {i().capabilities.deviceMemoryGb ?? "?"} GB</td></tr>
-                <tr><th>Glasses UI errors</th><td>{i().glassesUiFailures}</td></tr>
+                <tr><th>{t().diagnostics.platform}</th><td>{i().capabilities.platform}, {i().capabilities.hardwareConcurrency} cores, {i().capabilities.deviceMemoryGb ?? "?"} GB</td></tr>
+                <tr><th>{t().diagnostics.glassesErrors}</th><td>{i().glassesUiFailures}</td></tr>
               </tbody>
             </table>
           </div>
         )}
       </Show>
       <div class="panel">
-        <h2>Logs</h2>
-        <p class="small muted">Secrets are always removed. Transcript text is removed unless you allow it in Settings.</p>
+        <h2>{t().diagnostics.logs}</h2>
+        <p class="small muted">{t().diagnostics.logsNote}</p>
         <pre class="diag">{lines().map((l) => `${l.t.slice(11, 23)} ${l.level} [${l.scope}] ${l.message}`).join("\n")}</pre>
         <div class="row">
-          <Button label="Download diagnostics" onClick={() => download(`irl-diagnostics-${Date.now()}.json`, new Blob([diagnosticsText({ info: info.value() })], { type: "application/json" }))} />
+          <Button label={t().diagnostics.download} onClick={() => download(`irl-diagnostics-${Date.now()}.json`, new Blob([diagnosticsText({ info: info.value() })], { type: "application/json" }))} />
           <Button
-            label="Copy diagnostics"
+            label={t().diagnostics.copy}
             onClick={async () => {
               await navigator.clipboard.writeText(diagnosticsText({ info: info.value() }));
-              toast("Copied");
+              toast(t().diagnostics.copied);
             }}
           />
         </div>
       </div>
       <div class="panel">
-        <h2>Developer</h2>
+        <h2>{t().diagnostics.developer}</h2>
         <label class="check">
           <input
             type="checkbox"
@@ -74,27 +75,27 @@ export function DiagnosticsView() {
             onChange={(e) => {
               localStorage.setItem("irl.storage.preferTurso", e.currentTarget.checked ? "1" : "0");
               setPreferTurso(e.currentTarget.checked);
-              toast("Applies after restarting the app. Data in the other backend isn't migrated.");
+              toast(t().diagnostics.preferTursoToast);
             }}
           />
-          <span>Use Turso database when the page is cross-origin isolated</span>
+          <span>{t().diagnostics.preferTurso}</span>
         </label>
         <div class="row">
           <Button
-            label="Delete downloaded models"
+            label={t().diagnostics.deleteModels}
             kind="danger"
             onClick={async () => {
-              if (!confirm("Delete all downloaded models? They download again when needed.")) return;
+              if (!confirm(t().diagnostics.deleteModelsConfirm)) return;
               await app().engines.release(["audio", "asr", "llm", "stream"]);
               await clearModelCache();
               app().engines.forgetDownloads();
-              toast("Models deleted");
+              toast(t().diagnostics.modelsDeleted);
             }}
           />
-          <Button label="Reload app" onClick={() => location.reload()} />
+          <Button label={t().diagnostics.reload} onClick={() => location.reload()} />
         </div>
         <details>
-          <summary>Benchmark results</summary>
+          <summary>{t().diagnostics.benchmarks}</summary>
           <pre class="diag">
             <For each={app().engines.benchmarks}>{(b) => `${b.modelId} ${b.target} ok=${b.ok} rtf=${b.realTimeFactor?.toFixed(3) ?? "-"} tps=${b.tokensPerSecond?.toFixed(1) ?? "-"} ${b.knownAnswer?.detail ?? b.error ?? ""}\n`}</For>
           </pre>

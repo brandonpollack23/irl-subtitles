@@ -11,6 +11,7 @@ import {
   type SummaryRecord,
   type TranscriptSegment,
 } from "@irl/domain";
+import { t } from "@irl/i18n";
 import { loadTranscript } from "@irl/pipeline";
 import { createSignal } from "solid-js";
 import type { LiveSnapshot } from "@irl/pipeline";
@@ -42,7 +43,7 @@ export async function loadRecording(id: string): Promise<RecordingModel | null> 
     label: (cid) => {
       const resolved = resolveCluster(clusters, cid);
       const c = clusters.get(resolved);
-      return speakerLabel(resolved, clusters, attributions, peopleMap, { candidate: c?.candidatePersonId ? { personId: c.candidatePersonId } : null });
+      return speakerLabel(resolved, clusters, attributions, peopleMap, { candidate: c?.candidatePersonId ? { personId: c.candidatePersonId } : null, words: t().speakers });
     },
     ordinal: (cid) => clusters.get(resolveCluster(clusters, cid))?.ordinal,
   };
@@ -67,21 +68,22 @@ export async function loadHistory(): Promise<HistoryRow[]> {
 }
 
 export function stateLabel(r: Recording): { text: string; kind: "busy" | "bad" | "plain" } {
+  const s = t().states;
   switch (r.state) {
     case "starting":
     case "recording":
-      return { text: "Recording", kind: "busy" };
+      return { text: s.recording, kind: "busy" };
     case "paused":
-      return { text: "Paused", kind: "busy" };
+      return { text: s.paused, kind: "busy" };
     case "finalizing":
     case "captured":
-      return { text: "Processing", kind: "busy" };
+      return { text: s.processing, kind: "busy" };
     case "interrupted":
-      return { text: "Interrupted", kind: "bad" };
+      return { text: s.interrupted, kind: "bad" };
     case "failed":
-      return { text: "Failed", kind: "bad" };
+      return { text: s.failed, kind: "bad" };
     case "ready":
-      return r.processing.summary.status === "failed" ? { text: "Summary failed", kind: "bad" } : { text: "Ready", kind: "plain" };
+      return r.processing.summary.status === "failed" ? { text: s.summaryFailed, kind: "bad" } : { text: s.ready, kind: "plain" };
   }
 }
 

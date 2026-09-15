@@ -42,7 +42,7 @@ import {
 } from "@irl/provider-local";
 import { SonioxAsyncProvider, SonioxSpeechProvider } from "@irl/provider-soniox";
 import { SpeechmaticsBatchProvider, SpeechmaticsSpeechProvider } from "@irl/provider-speechmatics";
-import { openStorage, SettingsStore, type StorageHandles } from "@irl/storage";
+import { openStorage, SettingsStore, type StorageHandles, type StorageStep } from "@irl/storage";
 import workletUrl from "@irl/capture/worklet?worker&url";
 import { GlassesController } from "./glasses";
 import { installConsoleCapture, logger, setLogContent } from "./log";
@@ -70,15 +70,18 @@ export interface AppServices {
   dataChanged: Emitter<{ recordingId?: string }>;
   devWav: { name: string; bytes: Uint8Array } | null;
   setDevWav(file: { name: string; bytes: Uint8Array } | null): void;
-  sourceNote: string | null;
+  /** Why the recording isn't using the chosen microphone. */
+  sourceNote: "glasses-fallback" | null;
   saveBenchmarks(results: BenchmarkResult[]): Promise<void>;
 }
 
 const BENCH_KEY = "benchmarks.v1";
 
-export async function boot(onStep: (step: string) => void = () => undefined): Promise<AppServices> {
+export type BootStep = StorageStep | "bridge" | "device" | "glasses" | "recovery";
+
+export async function boot(onStep: (step: BootStep) => void = () => undefined): Promise<AppServices> {
   installConsoleCapture();
-  onStep("Connecting to the Even app");
+  onStep("bridge");
   const inEvenApp = (await getBridge(2500)) !== null;
   const preferTurso = localStorage.getItem("irl.storage.preferTurso") !== "0";
   const storage = await openStorage({ preferTurso, onStep });
@@ -86,7 +89,7 @@ export async function boot(onStep: (step: string) => void = () => undefined): Pr
   const settings = await SettingsStore.open(storage.repo, defaultSettings(defaultSelection("en")));
   setLogContent(settings.get().diagnosticsIncludeContent);
 
-  onStep("Checking this device");
+  onStep("device");
   const engines = new LocalEngines(defaultWorkers());
   engines.policy = settings.get().powerPolicy;
   engines.benchmarks = (await storage.repo.getSetting<BenchmarkResult[]>(BENCH_KEY)) ?? [];
@@ -191,7 +194,7 @@ export async function boot(onStep: (step: string) => void = () => undefined): Pr
       return new WavFileSource(async () => bytes, wav ? `WAV: ${wav.name}` : "WAV: sample clip");
     }
     if (kind === "glasses" && inEvenApp) return new G2AudioSource(() => glassesRef.current!.ensurePage());
-    if (kind === "glasses") services.sourceNote = "Glasses aren't available outside the Even app, so the phone microphone is recording.";
+    if (kind === "glasses") services.sourceNote = "glasses-fallback";
     return new PhoneMicSource(workletUrl);
   };
 
@@ -263,9 +266,9 @@ export async function boot(onStep: (step: string) => void = () => undefined): Pr
       void storage.repo.getRecording(e.recordingId).then((r) => glasses.showNotice(r?.title ? `Ready on your phone: ${r.title}` : "Ready on your phone."));
     }
   });
-  onStep("Setting up the glasses");
+  onStep("glasses");
   if (inEvenApp) await glasses.init().catch((e) => log.error("glasses init failed", errorMessage(e)));
-  onStep("Checking for interrupted recordings");
+  onStep("recovery");
 
   // Every launch is crash recovery (plan.md §9); capture never resumes on its own.
   const recovered = await recoverInterrupted(storage.repo, storage.blobs, audio, null).catch((e) => {

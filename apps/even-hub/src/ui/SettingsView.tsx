@@ -24,42 +24,37 @@ import {
 import { availabilityOnDevice, catalogEntry, clearModelCache, defaultSelection, embeddingSpaceOf, entriesForRole, firstRunBenchmark, ROLE_KEYS, supportsLanguage, type LoadProgress } from "@irl/provider-local";
 import { testSonioxKey } from "@irl/provider-soniox";
 import { testSpeechmaticsKey } from "@irl/provider-speechmatics";
-import { describe, LOCALE_NAMES, resolveLocale, t } from "@irl/i18n";
+import { describe, fmt, LOCALE_NAMES, resolveLocale, t } from "@irl/i18n";
 import { app, bumpData, Button, bytes, toast, useData, useSettings } from "./lib";
 
-const ROLE_TITLES: Record<ModelRole, { title: string; hint: string }> = {
-  vad: { title: "Speech detection", hint: "Finds speech so silence isn't transcribed." },
-  "stt-live": { title: "Live captions", hint: "Captions while you record. Off saves battery; the transcript is made after you stop." },
-  "stt-final": { title: "Final transcript", hint: "Transcribes again after you stop, with word timing and speakers." },
-  "speaker-embedding": { title: "Voice model", hint: "Recognizes saved voices (and tells speakers apart on this phone). Changing it re-enrolls saved voices." },
-  summary: { title: "Summary", hint: "Writes the summary after you stop." },
-};
+const ROLES: readonly ModelRole[] = ["vad", "stt-live", "stt-final", "speaker-embedding", "summary"];
+const roleTitles = (roles: readonly ModelRole[]) => fmt().list(roles.map((r) => t().settings.roles[r].title));
 
 export function SettingsView() {
   const [s, update] = useSettings();
   const keys = useKeys();
   return (
     <>
-      <h1>Settings</h1>
+      <h1>{t().settings.title}</h1>
       <DisplaySection s={s()} update={update} />
       <RecordingSection s={s()} update={update} keys={keys.value() ?? {}} />
       <ServicesSection s={s()} update={update} keys={keys.value() ?? {}} />
       <ModelsSection s={s()} update={update} keys={keys.value() ?? {}} />
       <PrivacySection s={s()} update={update} />
       <div class="panel">
-        <h2>Diagnostics</h2>
-        <p class="small muted">Device capabilities, storage, logs, and speaker recognition calibration and tuning.</p>
+        <h2>{t().settings.diagnosticsTitle}</h2>
+        <p class="small muted">{t().settings.diagnosticsIntro}</p>
         <div class="row">
           <a class="btn" href="#/diagnostics">
-            Diagnostics
+            {t().settings.diagnosticsTitle}
           </a>
           <a class="btn" href="#/evaluation">
-            Tune voice recognition
+            {t().settings.tuneVoices}
           </a>
         </div>
       </div>
       <p class="small muted">
-        IRL Subtitles {__APP_VERSION__} ({__BUILD_ID__.slice(0, 16)})
+        {t().settings.version(__APP_VERSION__, __BUILD_ID__.slice(0, 16))}
       </p>
     </>
   );
@@ -87,39 +82,39 @@ function RecordingSection(props: SectionProps & { keys: Partial<Record<SecretNam
   const [wavName, setWavName] = createSignal(app().devWav?.name ?? null);
   return (
     <section class="panel">
-      <h2>Recording</h2>
-      <p class="small muted">Changes apply to your next recording.</p>
+      <h2>{t().settings.recordingTitle}</h2>
+      <p class="small muted">{t().settings.appliesNext}</p>
       <label class="field">
-        Language
+        {t().settings.language}
         <select value={props.s.language} onChange={(e) => void changeLanguage(props, e.currentTarget.value, props.keys)}>
-          <For each={LANGUAGES}>{(l) => <option value={l.code}>{l.name}</option>}</For>
+          <For each={LANGUAGES}>{(l) => <option value={l.code}>{l.code === "auto" ? t().languages.auto : fmt().language(l.code)}</option>}</For>
         </select>
       </label>
       <label class="check">
         <input type="checkbox" checked={props.s.persistAudio} onChange={(e) => void props.update({ persistAudio: e.currentTarget.checked })} />
         <span>
-          Save audio
+          {t().settings.saveAudio}
           <span class="small muted" style={{ display: "block" }}>
-            Off: audio is only kept, encrypted with a key that never leaves memory, until processing finishes. You can also switch this from the glasses menu.
+            {t().settings.saveAudioHint}
           </span>
         </span>
       </label>
       <label class="check">
         <input type="checkbox" checked={props.s.showCaptionsOnGlasses} onChange={(e) => void props.update({ showCaptionsOnGlasses: e.currentTarget.checked })} />
-        <span>Show captions on the glasses</span>
+        <span>{t().settings.showCaptions}</span>
       </label>
       <HideOwnSpeech s={props.s} update={props.update} />
       <label class="field">
-        Microphone
+        {t().settings.microphone}
         <select value={props.s.captureSource} onChange={(e) => void props.update({ captureSource: e.currentTarget.value as Settings["captureSource"] })}>
-          <option value="glasses">Glasses (G2 microphones)</option>
-          <option value="phone-mic">Phone microphone</option>
-          <option value="wav-file">Audio file (testing)</option>
+          <option value="glasses">{t().settings.micGlasses}</option>
+          <option value="phone-mic">{t().settings.micPhone}</option>
+          <option value="wav-file">{t().settings.micFile}</option>
         </select>
       </label>
       <Show when={props.s.captureSource === "wav-file"}>
         <label class="field">
-          Test audio file <span class="hint">A WAV file played as if it were live. Without one, a short sample clip is used.</span>
+          {t().settings.testFile} <span class="hint">{t().settings.testFileHint}</span>
           <input
             type="file"
             accept="audio/wav,.wav"
@@ -132,12 +127,12 @@ function RecordingSection(props: SectionProps & { keys: Partial<Record<SecretNam
                 app().setDevWav({ name: f.name, bytes: data });
                 setWavName(f.name);
               } catch (err) {
-                toast(`That file can't be used: ${errorMessage(err)}`);
+                toast(t().settings.fileUnusable(errorMessage(err)));
               }
             }}
           />
           <Show when={wavName()}>
-            <span class="hint">Using {wavName()} (kept until the app closes).</span>
+            <span class="hint">{t().settings.usingFile(wavName()!)}</span>
           </Show>
         </label>
       </Show>
@@ -154,13 +149,9 @@ function HideOwnSpeech(props: SectionProps) {
     <label class="check">
       <input type="checkbox" checked={props.s.hideOwnSpeechOnGlasses} onChange={(e) => void props.update({ hideOwnSpeechOnGlasses: e.currentTarget.checked })} />
       <span>
-        Hide my speech on the glasses
+        {t().settings.hideOwn}
         <span class="small muted" style={{ display: "block" }}>
-          {me.value()
-            ? `Leaves out what ${me.value()!.fullName} says once their voice is recognized. The phone transcript keeps everything.`
-            : me.loading()
-              ? ""
-              : "Open yourself in People and check \"This is me\" first. The phone transcript keeps everything."}
+          {me.value() ? t().settings.hideOwnMe(me.value()!.fullName) : me.loading() ? "" : t().settings.hideOwnNone}
         </span>
       </span>
     </label>
@@ -193,30 +184,30 @@ async function changeLanguage(props: SectionProps, language: string, keys: Parti
   if (live && !supportsLanguage(live, language)) {
     const next = entriesForRole("stt-live").find((e) => e.availability.status === "available" && supportsLanguage(e, language));
     models = { ...models, sttLive: next?.id ?? "off" };
-    toast(next ? `Live captions switched to ${next.displayName}` : "No live caption model for that language; captions will be made after you stop");
+    toast(next ? t().settings.liveSwitched(next.displayName) : t().settings.noLiveModel);
   }
   // Cloud options that support the language stay; the rest fall back to this phone.
   const repaired = repairSelection(models, { language, hasSecret: (n) => !!keys[n] }, localFallback(language));
-  if (repaired.reset.length) toast(`${repaired.reset.map((r) => ROLE_TITLES[r].title).join(", ")} switched to this phone: the cloud option doesn't support that language`);
+  if (repaired.reset.length) toast(t().settings.languageToPhone(roleTitles(repaired.reset)));
   if (repaired.reset.length || models !== props.s.models) patch.models = repaired.models;
   await props.update(patch);
 }
 
 interface ServiceInfo {
   service: "soniox" | "speechmatics";
-  privacy: string;
+  privacy: () => string;
   test: ((key: string, s: Settings) => Promise<KeyTestResult>) | null;
 }
 
 const SERVICES: readonly ServiceInfo[] = [
   {
     service: "soniox",
-    privacy: "Receives audio only for the options you pick below (live captions, or the final transcript after you stop). Voice profiles stay on this phone.",
+    privacy: () => t().settings.privacySoniox,
     test: (k) => testSonioxKey(k),
   },
   {
     service: "speechmatics",
-    privacy: "Receives audio only for the options you pick below. With voice identification it also keeps voiceprints of the people you name.",
+    privacy: () => t().settings.privacySpeechmatics,
     test: (k, s) => testSpeechmaticsKey(k, s.speechmaticsRegion),
   },
 ];
@@ -224,10 +215,8 @@ const SERVICES: readonly ServiceInfo[] = [
 function ServicesSection(props: SectionProps & { keys: Partial<Record<SecretName, boolean>> }) {
   return (
     <section class="panel">
-      <h2>Services</h2>
-      <p class="small muted">
-        API keys for cloud services. A saved key only makes its options selectable below; nothing is sent until you pick one. Keys are encrypted on this phone and never shown again.
-      </p>
+      <h2>{t().settings.servicesTitle}</h2>
+      <p class="small muted">{t().settings.servicesIntro}</p>
       <For each={SERVICES}>{(info) => <ServiceKey info={info} s={props.s} update={props.update} saved={!!props.keys[SERVICE_SECRETS[info.service]]} keys={props.keys} />}</For>
     </section>
   );
@@ -240,42 +229,42 @@ function ServiceKey(props: SectionProps & { info: ServiceInfo; saved: boolean; k
   return (
     <div class="stack" style={{ gap: "6px" }}>
       <h3>{name()}</h3>
-      <p class="small muted">{props.info.privacy}</p>
-      <Show when={props.saved} fallback={<p class="small muted">No key saved.</p>}>
-        <p class="small">A key is saved.</p>
+      <p class="small muted">{props.info.privacy()}</p>
+      <Show when={props.saved} fallback={<p class="small muted">{t().settings.noKey}</p>}>
+        <p class="small">{t().settings.keySaved}</p>
       </Show>
       <Show when={props.info.service === "speechmatics"}>
         <label class="field">
-          Region
-          <span class="hint">Where Speechmatics processes audio, live and after you stop. Use the region your key was created in.</span>
+          {t().settings.region}
+          <span class="hint">{t().settings.regionHint}</span>
           <select value={props.s.speechmaticsRegion} onChange={(e) => void props.update({ speechmaticsRegion: e.currentTarget.value as Settings["speechmaticsRegion"] })}>
-            <option value="eu">Europe</option>
-            <option value="us">United States</option>
-            <option value="au">Australia</option>
+            <option value="eu">{t().settings.regions.eu}</option>
+            <option value="us">{t().settings.regions.us}</option>
+            <option value="au">{t().settings.regions.au}</option>
           </select>
         </label>
       </Show>
       <label class="field">
-        {props.saved ? "Replace key" : "Key"}
+        {props.saved ? t().settings.replaceKey : t().settings.key}
         <input type="password" autocomplete="off" spellcheck={false} value={key()} onInput={(e) => setKey(e.currentTarget.value)} />
       </label>
       <div class="row">
         <Button
-          label={props.saved ? "Replace" : "Save"}
+          label={props.saved ? t().settings.replace : t().common.save}
           kind="primary"
           disabled={!key().trim()}
           onClick={async () => {
             await app().storage.secrets.put(secret(), key().trim());
             setKey("");
             setKeysVersion((v) => v + 1);
-            toast(`${name()} key saved`);
+            toast(t().settings.keySavedToast(name()));
           }}
         />
         <Show when={props.info.test}>
           {(test) => (
             <Button
-              label="Test"
-              busyLabel="Testing…"
+              label={t().settings.test}
+              busyLabel={t().settings.testing}
               disabled={!key().trim() && !props.saved}
               onClick={async () => {
                 const k = key().trim() || (await app().storage.secrets.get(secret()));
@@ -287,15 +276,14 @@ function ServiceKey(props: SectionProps & { info: ServiceInfo; saved: boolean; k
         </Show>
         <Show when={props.saved}>
           <Button
-            label="Remove"
+            label={t().settings.remove}
             kind="danger"
             onClick={async () => {
               await app().storage.secrets.delete(secret());
               setKeysVersion((v) => v + 1);
               const repaired = repairSelection(props.s.models, { language: props.s.language, hasSecret: (n) => n !== secret() && !!props.keys[n] }, localFallback(props.s.language));
               if (repaired.reset.length) await props.update({ models: repaired.models });
-              const moved = repaired.reset.map((r) => ROLE_TITLES[r].title);
-              toast(`${name()} key removed.${moved.length ? ` Switched to this phone: ${moved.join(", ")}.` : ""} Existing transcripts are unchanged.`);
+              toast(`${t().settings.keyRemoved(name())}${repaired.reset.length ? t().settings.movedToPhone(roleTitles(repaired.reset)) : ""}${t().settings.transcriptsUnchanged}`);
             }}
           />
         </Show>
@@ -310,13 +298,13 @@ function consentFor(s: Settings, id: string): { key: CloudConsentKey; text: stri
   if (!o) return [];
   const out: { key: CloudConsentKey; text: string }[] = [];
   if (o.sends !== "transcript" && !s.cloudConsent[o.service as CloudConsentKey]) {
-    out.push({ key: o.service as CloudConsentKey, text: `${SERVICE_NAMES[o.service]} will receive the audio of your conversations for this option (the people around you too). It's sent over an encrypted connection and processed under ${SERVICE_NAMES[o.service]}'s terms.` });
+    out.push({ key: o.service as CloudConsentKey, text: t().settings.consentAudio(SERVICE_NAMES[o.service]) });
   }
   if (o.sends === "audio-and-voiceprints" && !s.cloudConsent["speechmatics-voiceprints"]) {
-    out.push({ key: "speechmatics-voiceprints", text: "Speechmatics will create voiceprints (speaker identifiers) of the people you name and recognize them in later conversations. The identifiers are stored by Speechmatics for your account and on this phone; Forget voice removes them from this phone so they're never sent again. Only ask for this with the consent of the people you name." });
+    out.push({ key: "speechmatics-voiceprints", text: t().settings.consentVoiceprints });
   }
   if (o.sends === "transcript" && !s.cloudConsent["summary-endpoint"]) {
-    out.push({ key: "summary-endpoint", text: "Transcript text and speaker names will be sent to your cloud summary service after each conversation. Audio and voice profiles never are." });
+    out.push({ key: "summary-endpoint", text: t().settings.consentSummary });
   }
   return out;
 }
@@ -332,7 +320,7 @@ function ModelsSection(props: SectionProps & { keys: Partial<Record<SecretName, 
     () => version(),
     async () => {
       const out: Record<string, boolean> = {};
-      for (const role of Object.keys(ROLE_TITLES) as ModelRole[]) for (const e of entriesForRole(role)) out[e.id] = await app().engines.isDownloaded(e.id);
+      for (const role of ROLES) for (const e of entriesForRole(role)) out[e.id] = await app().engines.isDownloaded(e.id);
       return out;
     },
   );
@@ -354,7 +342,7 @@ function ModelsSection(props: SectionProps & { keys: Partial<Record<SecretName, 
     const key = ROLE_KEYS[role];
     const asks = consentFor(props.s, id);
     if (asks.length) {
-      if (!confirm(`${asks.map((a) => a.text).join("\n\n")}\n\nContinue?`)) {
+      if (!confirm(`${asks.map((a) => a.text).join("\n\n")}\n\n${t().settings.consentContinue}`)) {
         bumpData();
         return;
       }
@@ -367,28 +355,26 @@ function ModelsSection(props: SectionProps & { keys: Partial<Record<SecretName, 
     const stranded = repaired.reset.filter((r) => r !== role);
     if (stranded.length) {
       models = repaired.models;
-      toast(`${stranded.map((r) => ROLE_TITLES[r].title).join(", ")} switched to this phone: it needs the option you changed`);
+      toast(t().settings.strandedToPhone(roleTitles(stranded)));
     }
     if (role === "speaker-embedding" && id !== props.s.models.speakerEmbedding) {
       const profiles = await app().storage.repo.listProfiles();
       const toService = !!serviceOption(id);
-      const question = toService
-        ? "Speechmatics will recognize saved voices instead of this phone. Saved voices are enrolled with Speechmatics by sending their kept audio clips; people without clips need to be named again before they're recognized. Continue?"
-        : "Switching the voice model changes how voices are compared. Saved voices are re-enrolled from their kept audio clips; people without clips need to be named again before they're recognized. Continue?";
+      const question = toService ? t().settings.voiceToService : t().settings.voiceSwitch;
       if (profiles.length && !confirm(question)) {
         bumpData();
         return;
       }
       await props.update({ models });
       if (profiles.length) {
-        toast(toService ? "Enrolling saved voices with Speechmatics…" : "Re-enrolling saved voices…");
+        toast(toService ? t().settings.enrollingService : t().settings.reenrolling);
         const r = await app().identity.migrateEmbeddingSpace(id, embeddingSpaceOf(id));
-        toast(`${r.reembedded} voice${r.reembedded === 1 ? "" : "s"} re-enrolled, ${r.needsReenrollment} need${r.needsReenrollment === 1 ? "s" : ""} naming again`);
+        toast(t().settings.reenrolled(r.reembedded, r.needsReenrollment));
       }
       return;
     }
     await props.update({ models });
-    if (role === "stt-final" || role === "summary") toast("Applies to new recordings. Open a conversation to reprocess it.");
+    if (role === "stt-final" || role === "summary") toast(t().settings.appliesToNew);
   };
 
   /** Local models the selection runs: cloud options and roles they provide need no download. */
@@ -400,7 +386,7 @@ function ModelsSection(props: SectionProps & { keys: Partial<Record<SecretName, 
     const ids: string[] = [];
     for (const id of localIds()) if (!(await e.isDownloaded(id))) ids.push(id);
     if (!ids.length) {
-      toast("Selected models are already downloaded");
+      toast(t().settings.alreadyDownloaded);
       return;
     }
     setDownload({ ids, index: 0, percent: 0, current: null });
@@ -420,24 +406,24 @@ function ModelsSection(props: SectionProps & { keys: Partial<Record<SecretName, 
       setDownload(null);
     }
     setVersion((v) => v + 1);
-    toast(failures.length ? `Some models failed: ${failures.join("; ")}` : "Models downloaded and verified");
+    toast(failures.length ? t().settings.downloadFailed(failures.join("; ")) : t().settings.downloadDone);
   };
 
   const clearCache = async () => {
-    if (!confirm("Delete all downloaded models? They download again when you tap Download or record.")) return;
+    if (!confirm(t().settings.clearConfirm)) return;
     await app().engines.release(["audio", "asr", "llm", "stream"]);
     await clearModelCache();
     app().engines.forgetDownloads();
     setProgress({});
     setVersion((v) => v + 1);
-    toast("Model cache cleared");
+    toast(t().settings.cacheCleared);
   };
 
   const benchmark = async () => {
     const bytesWav = new Uint8Array(await (await fetch("/fixtures/jfk.wav")).arrayBuffer());
     const wav = parseWav(bytesWav);
     const clip = resampleLinear(wav.samples, wav.sampleRate);
-    const report = await firstRunBenchmark(app().engines, clip, props.s.language, (note) => setBenchNote(`Measuring ${note}…`));
+    const report = await firstRunBenchmark(app().engines, clip, props.s.language, (note) => setBenchNote(t().settings.measuringModel(note)));
     await app().saveBenchmarks(report.results);
     setBenchNote(null);
     // The best local picks only replace local, unlocked roles; cloud choices stay.
@@ -449,36 +435,35 @@ function ModelsSection(props: SectionProps & { keys: Partial<Record<SecretName, 
     }
     await props.update({ models, firstRunBenchmarkAt: new Date().toISOString() });
     setVersion((v) => v + 1);
-    toast(`Measured ${report.results.length} model runs. Best options selected.`);
+    toast(t().settings.measured(report.results.length));
   };
 
   const tier = () => tierForSelection(props.s.models);
 
   return (
     <section class="panel">
-      <h2>Models</h2>
+      <h2>{t().settings.modelsTitle}</h2>
       <p class="small" role="status">
         <strong>{describe().dataFlow(dataFlow(props.s.models))}</strong>
       </p>
       <p class="small muted">
-        Performance: {tier() === "battery-saver" ? "Battery saver (no live captions)" : "Live captions"}. Models on this phone download once, are checked against pinned fingerprints, and stay on the phone.
-        Recording never waits for a download: anything missing is processed after you stop.
+        {t().settings.performance(tier() === "battery-saver" ? t().settings.batterySaver : t().settings.liveCaptions)} {t().settings.modelsIntro}
       </p>
       <label class="field">
-        Power
+        {t().settings.power}
         <select value={props.s.powerPolicy} onChange={(e) => void props.update({ powerPolicy: e.currentTarget.value as Settings["powerPolicy"] })}>
-          <option value="low-power">Save battery</option>
-          <option value="balanced">Balanced</option>
-          <option value="fast">Fastest</option>
+          <option value="low-power">{t().settings.powerLow}</option>
+          <option value="balanced">{t().settings.powerBalanced}</option>
+          <option value="fast">{t().settings.powerFast}</option>
         </select>
       </label>
-      <For each={Object.keys(ROLE_TITLES) as ModelRole[]}>
+      <For each={ROLES}>
         {(role) => <ModelPicker role={role} resolution={resolved()[role]} progress={progress()} onChange={(id) => void setModel(role, id)} />}
       </For>
       <div class="row">
-        <Button label="Download selected models" busyLabel="Downloading…" kind="primary" onClick={downloadSelected} />
-        <Button label={props.s.firstRunBenchmarkAt ? "Measure again" : "Measure this phone"} busyLabel="Measuring…" onClick={benchmark} />
-        <Button label="Clear model cache" busyLabel="Clearing…" kind="danger" onClick={clearCache} />
+        <Button label={t().settings.download} busyLabel={t().settings.downloading} kind="primary" onClick={downloadSelected} />
+        <Button label={props.s.firstRunBenchmarkAt ? t().settings.measureAgain : t().settings.measure} busyLabel={t().settings.measuring} onClick={benchmark} />
+        <Button label={t().settings.clearCache} busyLabel={t().settings.clearing} kind="danger" onClick={clearCache} />
       </div>
       <Show when={download()}>{(d) => <DownloadProgress run={d()} />}</Show>
       <Show when={benchNote()}>
@@ -514,15 +499,15 @@ function DownloadProgress(props: { run: DownloadRun }) {
   const name = () => catalogEntry(props.run.ids[props.run.index]!)?.displayName ?? props.run.ids[props.run.index];
   const detail = () => {
     const p = props.run.current;
-    if (p?.status === "downloading" && p.loaded !== undefined) return `${bytes(p.loaded)} of ${bytes(expectedBytes(p))}`;
-    return p?.status === "ready" ? "Verified" : "Checking…";
+    if (p?.status === "downloading" && p.loaded !== undefined) return t().settings.bytesOf(bytes(p.loaded), bytes(expectedBytes(p)));
+    return p?.status === "ready" ? t().settings.verified : t().settings.checking;
   };
   return (
     <div class="stack" style={{ gap: "6px" }}>
       <div
         class="progress large"
         role="progressbar"
-        aria-label="Model download"
+        aria-label={t().settings.downloadLabel}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(props.run.percent)}
@@ -531,9 +516,9 @@ function DownloadProgress(props: { run: DownloadRun }) {
       </div>
       <div class="spread small">
         <span>
-          {name()} <span class="muted">({props.run.index + 1} of {props.run.ids.length}) · {detail()}</span>
+          {name()} <span class="muted">{t().settings.downloadCount(props.run.index + 1, props.run.ids.length)} · {detail()}</span>
         </span>
-        <span class="num">{Math.round(props.run.percent)}%</span>
+        <span class="num">{fmt().percent(props.run.percent / 100)}</span>
       </div>
     </div>
   );
@@ -542,11 +527,11 @@ function DownloadProgress(props: { run: DownloadRun }) {
 function describeEntry(e: ModelCatalogEntry, language: string, downloaded: Record<string, boolean>): string {
   const a = availabilityOnDevice(e, app().caps);
   const parts = [e.displayName, bytes(e.downloadBytes)];
-  if (a.status === "unavailable") parts.push("unavailable");
-  else if (!supportsLanguage(e, language)) parts.push("other language");
-  else if (downloaded[e.id]) parts.push("downloaded");
+  if (a.status === "unavailable") parts.push(t().settings.entryUnavailable);
+  else if (!supportsLanguage(e, language)) parts.push(t().settings.entryOtherLanguage);
+  else if (downloaded[e.id]) parts.push(t().settings.entryDownloaded);
   const b = app().engines.benchmarks.filter((x) => x.modelId === e.id && x.ok);
-  if (b.length) parts.push(b.map((x) => (x.realTimeFactor !== undefined ? `${x.target} ${x.realTimeFactor.toFixed(2)}× real time` : `${Math.round(x.tokensPerSecond ?? 0)} tok/s`)).join(", "));
+  if (b.length) parts.push(b.map((x) => (x.realTimeFactor !== undefined ? t().settings.realTime(x.target, fmt().number(x.realTimeFactor, 2)) : t().settings.tokensPerSecond(fmt().number(x.tokensPerSecond ?? 0)))).join(", "));
   return parts.join(" · ");
 }
 
@@ -565,13 +550,13 @@ function ModelPicker(props: { role: ModelRole; resolution: RoleResolution; progr
   return (
     <div class="stack" style={{ gap: "4px" }}>
       <label class="field">
-        {ROLE_TITLES[props.role].title}
-        <span class="hint">{ROLE_TITLES[props.role].hint}</span>
+        {t().settings.roles[props.role].title}
+        <span class="hint">{t().settings.roles[props.role].hint}</span>
         <Show
           when={r().locked}
           fallback={
             <select value={r().selected} onChange={(e) => props.onChange(e.currentTarget.value)}>
-              <optgroup label="On this phone">
+              <optgroup label={t().settings.groupPhone}>
                 <For each={[...group("local"), ...group("special")]}>
                   {(o) => (
                     <option value={o.id} disabled={!!o.disabled && o.id !== r().selected}>
@@ -581,7 +566,7 @@ function ModelPicker(props: { role: ModelRole; resolution: RoleResolution; progr
                 </For>
               </optgroup>
               <Show when={group("cloud").length}>
-                <optgroup label="Cloud">
+                <optgroup label={t().settings.groupCloud}>
                   <For each={group("cloud")}>
                     {(o) => (
                       <option value={o.id} disabled={!!o.disabled && o.id !== r().selected}>
@@ -603,7 +588,7 @@ function ModelPicker(props: { role: ModelRole; resolution: RoleResolution; progr
       </label>
       <Show when={r().locked}>{(lock) => <span class="small muted" id={`lock-${props.role}`}>{describe().lock(lock(), props.role).reason}</span>}</Show>
       <Show when={!r().locked && r().invalid}>
-        <span class="small warn">Can't use the selected option: {describe().blocker(r().invalid!)}.</span>
+        <span class="small warn">{t().settings.cantUse(describe().blocker(r().invalid!))}</span>
       </Show>
       <Show when={!r().locked}>
         <For each={group("local").filter((o) => o.disabled && o.disabled.code !== "other-language")}>
@@ -619,7 +604,11 @@ function ModelPicker(props: { role: ModelRole; resolution: RoleResolution; progr
       </Show>
       <Show when={!r().locked && p() && p()!.status !== "ready"}>
         <span class={["small", { error: p()!.status === "failed" }]}>
-          {p()!.status === "downloading" && p()!.total ? `Downloading ${Math.round(((p()!.loaded ?? 0) / p()!.total!) * 100)}%` : p()!.status === "failed" ? `Failed: ${p()!.error}` : "Loading…"}
+          {p()!.status === "downloading" && p()!.total
+            ? t().settings.downloadingPercent(fmt().percent((p()!.loaded ?? 0) / p()!.total!))
+            : p()!.status === "failed"
+              ? t().settings.loadFailed(p()!.error ?? "")
+              : t().settings.loadingModel}
         </span>
       </Show>
     </div>
@@ -629,7 +618,7 @@ function ModelPicker(props: { role: ModelRole; resolution: RoleResolution; progr
 function PrivacySection(props: SectionProps) {
   return (
     <section class="panel">
-      <h2>Privacy and storage</h2>
+      <h2>{t().settings.privacyTitle}</h2>
       <label class="check">
         <input
           type="checkbox"
@@ -638,35 +627,33 @@ function PrivacySection(props: SectionProps) {
           onChange={(e) => void props.update({ deleteAudioAfterProcessing: e.currentTarget.checked })}
         />
         <span>
-          Delete audio after processing
+          {t().settings.deleteAfter}
           <span class="small muted" style={{ display: "block" }}>
-            {props.s.persistAudio
-              ? "Keeps transcripts, summaries, names, and voice profiles."
-              : "Always on while Save audio is off. Keeps transcripts, summaries, names, and voice profiles."}
+            {props.s.persistAudio ? t().settings.deleteAfterHint : t().settings.deleteAfterForced}
           </span>
         </span>
       </label>
       <label class="check">
         <input type="checkbox" checked={props.s.learnVoiceDefault} onChange={(e) => void props.update({ learnVoiceDefault: e.currentTarget.checked })} />
-        <span>Turn on "Learn this voice" by default when naming speakers</span>
+        <span>{t().settings.learnDefault}</span>
       </label>
       <label class="check">
         <input type="checkbox" checked={props.s.keepVoiceClips} onChange={(e) => void props.update({ keepVoiceClips: e.currentTarget.checked })} />
         <span>
-          Keep short voice clips with voice profiles
+          {t().settings.keepClips}
           <span class="small muted" style={{ display: "block" }}>
-            Encrypted. Lets saved voices move to a new voice model without naming people again.
+            {t().settings.keepClipsHint}
           </span>
         </span>
       </label>
       <label class="field">
-        Cloud summary service address
-        <span class="hint">Only used when Summary is set to the cloud service. It receives transcript text and speaker names, never audio or voice profiles.</span>
+        {t().settings.summaryAddress}
+        <span class="hint">{t().settings.summaryAddressHint}</span>
         <input type="url" placeholder="https://" value={props.s.cloudSummaryEndpoint} onChange={(e) => void props.update({ cloudSummaryEndpoint: e.currentTarget.value.trim() })} />
       </label>
       <label class="check">
         <input type="checkbox" checked={props.s.diagnosticsIncludeContent} onChange={(e) => void props.update({ diagnosticsIncludeContent: e.currentTarget.checked })} />
-        <span>Include transcript text in diagnostics</span>
+        <span>{t().settings.includeTranscript}</span>
       </label>
     </section>
   );

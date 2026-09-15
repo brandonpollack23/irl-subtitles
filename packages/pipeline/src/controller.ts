@@ -22,6 +22,7 @@ import {
   problemOf,
   type DegradedReason,
   type LiveProblem,
+  type CaptureSourceKind,
 } from "@irl/domain";
 import { ChunkRecorder, FrameSequencer, type AudioSource } from "@irl/capture";
 import { ephemeralSealer, type BlobStore, type Repository, type Sealer, type SettingsStore } from "@irl/storage";
@@ -34,6 +35,7 @@ export interface LiveSnapshot {
   provider: ProviderKind;
   persistAudio: boolean;
   sourceLabel: string;
+  sourceKind: CaptureSourceKind | null;
   capturedSamples: number;
   levelDbfs: number;
   speechActive: boolean;
@@ -54,7 +56,7 @@ export interface LiveSnapshot {
 
 export function idleSnapshot(provider: ProviderKind, persistAudio: boolean): LiveSnapshot {
   return {
-    recordingId: null, state: "idle", provider, persistAudio, sourceLabel: "", capturedSamples: 0, levelDbfs: -Infinity, speechActive: false, segments: [],
+    recordingId: null, state: "idle", provider, persistAudio, sourceLabel: "", sourceKind: null, capturedSamples: 0, levelDbfs: -Infinity, speechActive: false, segments: [],
     provisionalText: "", currentClusterId: null, clusters: [], matches: [], degraded: null, gaps: 0, markers: 0, pendingChunks: 0, error: null, labelsVersion: 0,
   };
 }
@@ -171,7 +173,7 @@ export class RecordingController {
       });
       const heartbeat = setInterval(() => void this.heartbeat(), 5000);
       this.active = { recording, source, sequencer, recorder, coordinator: null, sawAudio: false, heartbeat };
-      this.update({ ...idleSnapshot(recording.provider, persist), recordingId: id, state: "starting", sourceLabel: source.label, labelsVersion: this.snapshot.labelsVersion });
+      this.update({ ...idleSnapshot(recording.provider, persist), recordingId: id, state: "starting", sourceLabel: source.label, sourceKind: source.kind, labelsVersion: this.snapshot.labelsVersion });
 
       // The chunk recorder is live before any provider connection (plan.md §9 step 4).
       try {

@@ -13,7 +13,7 @@ document.documentElement.lang = locale();
 root.textContent = t().boot.step(t().boot.starting);
 
 boot((step) => {
-  root.textContent = `${step}…`;
+  root.textContent = t().boot.step(t().boot.steps[step]);
   console.info(`[boot] ${step}`);
 }).then(
   (services) => {

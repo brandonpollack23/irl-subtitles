@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web";
 import { createEffect, createSignal, onSettled, Show, type Accessor } from "solid-js";
 import { formatClock, SAMPLE_RATE, splitSpeakerSpans, type ClusterId, type Settings, type SpeakerLabel } from "@irl/domain";
-import { describe } from "@irl/i18n";
+import { describe, t } from "@irl/i18n";
 import type { AppServices } from "../services";
 
 let services: AppServices;
@@ -162,7 +162,7 @@ export function SpeakerName(props: { label: SpeakerLabel; ordinal?: number; onOp
       class={["speaker", { possible: props.label.kind === "possible" }]}
       style={{ "--spk-color": speakerColor(props.ordinal) }}
       onClick={() => props.onOpen(props.label.clusterId)}
-      title={props.label.kind === "auto" ? "Recognized automatically. Tap to correct." : props.label.kind === "confirmed" ? "Confirmed by you" : "Tap to name this speaker"}
+      title={props.label.kind === "auto" ? t().speakerSheet.autoTitle : props.label.kind === "confirmed" ? t().speakerSheet.confirmedTitle : t().speakerSheet.anonymousTitle}
     >
       {props.label.text}
     </button>
@@ -194,12 +194,23 @@ export function Sheet(props: { title: string; onClose: () => void; children: JSX
         <div class="spread">
           <h2>{props.title}</h2>
           <button type="button" class="btn quiet" onClick={() => props.onClose()}>
-            Close
+            {t().common.close}
           </button>
         </div>
         {props.children}
       </div>
     </div>
+  );
+}
+
+/** Catalog text with **strong** and _emphasis_ spans, so translations can move the markup with the words. */
+export function Rich(props: { text: string }) {
+  return (
+    <>
+      {props.text.split(/(\*\*[^*]+\*\*|_[^_]+_)/).map((part) =>
+        part.startsWith("**") ? <strong>{part.slice(2, -2)}</strong> : part.startsWith("_") && part.endsWith("_") && part.length > 2 ? <em>{part.slice(1, -1)}</em> : part,
+      )}
+    </>
   );
 }
 

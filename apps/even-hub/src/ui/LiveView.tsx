@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web";
 import { createMemo, createSignal, For, Show } from "solid-js";
-import { describe } from "@irl/i18n";
+import { describe, fmt, t } from "@irl/i18n";
 import { activeAttributions, dataFlow, isVoiceIdOption, SERVICE_NAMES, formatClock, policyFor, speakerLabel, type ClusterId, type MatchDecision, type Person, type SpeakerAttribution } from "@irl/domain";
 import { embeddingSpaceOf } from "@irl/provider-local";
 import { app, Button, go, speakerColor, SpeakerName, useData, useSettings } from "./lib";
@@ -29,6 +29,7 @@ export function LiveView() {
   const label = (id: ClusterId) =>
     speakerLabel(id, clusters(), names.value()?.attrs ?? new Map(), names.value()?.people ?? new Map(), {
       candidate: clusters().get(id)?.candidatePersonId ? { personId: clusters().get(id)!.candidatePersonId! } : null,
+      words: t().speakers,
     });
   const level = () => Math.max(0, Math.min(100, ((live().levelDbfs + 60) / 60) * 100));
 
@@ -38,17 +39,17 @@ export function LiveView() {
         when={!idle()}
         fallback={
           <div class="stack">
-            <h1>Record a conversation</h1>
+            <h1>{t().live.idleTitle}</h1>
             <p class="muted">
               {describe().dataFlow(dataFlow(settings().models))}{" "}
-              {settings().persistAudio ? "Audio will be saved." : "Audio won't be saved after processing."}
+              {settings().persistAudio ? t().live.audioWillSave : t().live.audioWontSave}
             </p>
             <Show when={modelsLoading()}>
               <p class="small muted" role="status">
-                Loading {warmup().loading.join(", ")}. You can start now; captions follow once they're ready.
+                {t().live.loadingModels(warmup().loading.join(", "))}
               </p>
             </Show>
-            <Button label="Start recording" busyLabel="Starting…" kind="record" onClick={() => app().controller.start()} />
+            <Button label={t().history.startRecording} busyLabel={t().history.starting} kind="record" onClick={() => app().controller.start()} />
             <Show when={live().error}>{(e) => <p class="error">{describe().liveProblem(e())}</p>}</Show>
           </div>
         }
@@ -56,9 +57,10 @@ export function LiveView() {
         <div class="stack">
           <div class="row">
             <span class="rec-dot" aria-hidden="true" />
-            <span class="rec-label">{live().state === "paused" ? "Paused" : live().state === "finalizing" ? "Saving" : live().state === "starting" ? "Starting" : "Recording"}</span>
+            <span class="rec-label">{live().state === "paused" ? t().states.paused : live().state === "finalizing" ? t().states.saving : live().state === "starting" ? t().states.starting : t().states.recording}</span>
             <span class="muted small">
-              {live().sourceLabel} · {live().provider === "local" ? "On this phone" : SERVICE_NAMES[live().provider as "soniox"]} · {live().persistAudio ? "saving audio" : "audio not saved"}
+              {live().sourceKind === "glasses" ? t().live.sourceGlasses : live().sourceKind === "phone-mic" ? t().live.sourcePhone : live().sourceLabel} ·{" "}
+              {live().provider === "local" ? t().services.onPhone : SERVICE_NAMES[live().provider as "soniox"]} · {live().persistAudio ? t().live.savingAudio : t().live.audioNotSaved}
             </span>
           </div>
           <div class="clock" aria-live="off">
@@ -68,11 +70,11 @@ export function LiveView() {
             <div style={{ width: `${level()}%` }} />
           </div>
           <Show when={app().sourceNote}>
-            <p class="small warn">{app().sourceNote}</p>
+            <p class="small warn">{t().live.glassesFallback}</p>
           </Show>
           <Show when={modelsLoading()}>
             <p class="small muted" role="status">
-              Captions loading, they'll start shortly.
+              {t().live.captionsLoading}
             </p>
           </Show>
           <Show when={live().degraded}>
@@ -84,21 +86,21 @@ export function LiveView() {
           </Show>
           <Show when={live().gaps > 0}>
             <p class="small muted">
-              {live().gaps} audio gap{live().gaps === 1 ? "" : "s"} from the glasses connection
+              {t().live.gaps(live().gaps)}
             </p>
           </Show>
           <Show when={live().error}>{(e) => <p class="small error">{describe().liveProblem(e())}</p>}</Show>
           <div class="row">
             <Show when={live().state === "recording"}>
-              <Button label="Pause" onClick={() => app().controller.pause()} />
+              <Button label={t().live.pause} onClick={() => app().controller.pause()} />
             </Show>
             <Show when={live().state === "paused"}>
-              <Button label="Resume" kind="primary" onClick={() => app().controller.resume()} />
+              <Button label={t().live.resume} kind="primary" onClick={() => app().controller.resume()} />
             </Show>
-            <Button label={`Add marker${live().markers ? ` (${live().markers})` : ""}`} disabled={live().state !== "recording"} onClick={() => app().controller.addMarker("Marker")} />
+            <Button label={live().markers ? t().live.addMarkerCount(live().markers) : t().live.addMarker} disabled={live().state !== "recording"} onClick={() => app().controller.addMarker(t().live.marker)} />
             <Button
-              label="Stop and summarize"
-              busyLabel="Saving…"
+              label={t().live.stop}
+              busyLabel={t().live.saving}
               kind="danger"
               disabled={live().state === "finalizing"}
               onClick={async () => {
@@ -113,14 +115,14 @@ export function LiveView() {
           <MatchDetails
             matches={live().matches}
             label={(id) => <SpeakerName label={label(id)} ordinal={clusters().get(id)?.ordinal} onOpen={setSheet} />}
-            name={(personId) => names.value()?.people.get(personId)?.fullName ?? "Unknown person"}
+            name={(personId) => names.value()?.people.get(personId)?.fullName ?? t().live.unknownPerson}
           />
         </Show>
 
-        <section class="stack" aria-label="Live captions">
-          <h2>Captions</h2>
+        <section class="stack" aria-label={t().live.captionsLabel}>
+          <h2>{t().live.captions}</h2>
           <Show when={live().segments.length === 0 && !live().provisionalText}>
-            <p class="muted">{live().speechActive ? "Listening…" : "Captions appear when someone speaks."}</p>
+            <p class="muted">{live().speechActive ? t().live.listening : t().live.captionsAppear}</p>
           </Show>
           <div>
             <For each={live().segments}>
@@ -128,7 +130,7 @@ export function LiveView() {
                 <div class="turn" style={{ "--spk-color": seg.clusterId ? speakerColor(clusters().get(seg.clusterId)?.ordinal) : "var(--line)" }}>
                   <div>
                     <div class="meta">
-                      <Show when={seg.clusterId} fallback={<span class="muted small">Speaker</span>}>
+                      <Show when={seg.clusterId} fallback={<span class="muted small">{t().speakers.speaker()}</span>}>
                         {(cid) => <SpeakerName label={label(cid())} ordinal={clusters().get(cid())?.ordinal} onOpen={setSheet} />}
                       </Show>
                       <span class="small muted num">{formatClock(seg.startSample)}</span>
@@ -162,29 +164,29 @@ export function LiveView() {
 function MatchDetails(props: { matches: MatchDecision[]; label: (id: ClusterId) => JSX.Element; name: (personId: string) => string }) {
   const [s] = useSettings();
   const policy = () => policyFor(embeddingSpaceOf(s().models.speakerEmbedding), s().matchPolicies);
-  const outcome = (d: MatchDecision) => (d.status === "accepted" ? "recognized" : d.status === "candidate" ? "possibly" : "no name");
+  const outcome = (d: MatchDecision) => (d.status === "accepted" ? t().live.outcomeRecognized : d.status === "candidate" ? t().live.outcomePossibly : t().live.outcomeNone);
+  const f = fmt();
   return (
-    <section class="panel" aria-label="Match details">
+    <section class="panel" aria-label={t().live.matchTitle}>
       <div class="row" style={{ "justify-content": "space-between" }}>
-        <h2>Match details</h2>
+        <h2>{t().live.matchTitle}</h2>
         <a class="small" href="#/evaluation">
-          Tune
+          {t().live.tune}
         </a>
       </div>
       <Show
         when={!isVoiceIdOption(s().models.speakerEmbedding)}
         fallback={
           <p class="small muted num">
-            Speechmatics names saved voices itself · sensitivity {s().speechmaticsSpeakersSensitivity === null ? "default" : s().speechmaticsSpeakersSensitivity!.toFixed(2)}
+            {t().live.serviceMatching(s().speechmaticsSpeakersSensitivity === null ? t().live.defaultSensitivity : f.number(s().speechmaticsSpeakersSensitivity!, 2))}
           </p>
         }
       >
       <p class="small muted num">
-        Recognize ≥ {policy().minScore.toFixed(2)} · possibly ≥ {policy().candidateScore.toFixed(2)} · lead {policy().minMargin.toFixed(2)} · speech {(policy().minEvidenceMs / 1000).toFixed(0)} s ·
-        agreement {Math.round(policy().minWindowAgreement * 100)}%
+        {t().live.policy(f.number(policy().minScore, 2), f.number(policy().candidateScore, 2), f.number(policy().minMargin, 2), f.seconds(policy().minEvidenceMs / 1000), f.percent(policy().minWindowAgreement))}
       </p>
       </Show>
-      <Show when={props.matches.length} fallback={<p class="small muted">Scores appear once someone speaks.</p>}>
+      <Show when={props.matches.length} fallback={<p class="small muted">{t().live.scoresAppear}</p>}>
         <For each={props.matches}>
           {(d) => (
             <div class="stack" style={{ gap: "2px" }}>
@@ -193,12 +195,13 @@ function MatchDetails(props: { matches: MatchDecision[]; label: (id: ClusterId) 
                 <span class="small muted">{outcome(d)}</span>
               </div>
               <Show when={d.source === "service"}>
-                <span class="small num">{d.best ? props.name(d.best.personId) : ""} · labeled by Speechmatics</span>
+                <span class="small num">{t().live.labeledByService(d.best ? props.name(d.best.personId) : "")}</span>
               </Show>
               <Show when={d.source !== "service"}>
               <span class="small num">
-                {d.best ? `${props.name(d.best.personId)} ${d.best.score.toFixed(3)}` : "No saved voices to compare"}
-                {d.second ? ` · next ${props.name(d.second.personId)} ${d.second.score.toFixed(3)}` : ""} · {(d.evidenceMs / 1000).toFixed(1)} s · agreement {Math.round(d.agreement * 100)}%
+                {d.best ? `${props.name(d.best.personId)} ${f.number(d.best.score, 3)}` : t().live.noSavedVoices}
+                {d.second ? t().live.next(props.name(d.second.personId), f.number(d.second.score, 3)) : ""}
+                {t().live.evidence(f.seconds(d.evidenceMs / 1000, 1), f.percent(d.agreement))}
               </span>
               </Show>
               <Show when={d.status !== "accepted"}>

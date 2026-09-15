@@ -1,11 +1,12 @@
 import { createSignal, For, Match, Show, Switch } from "solid-js";
 import { formatClock, nowIso } from "@irl/domain";
+import { t } from "@irl/i18n";
 import { deleteRecording } from "@irl/pipeline";
 import { DevPlatformMarker } from "./DevPlatformMarker";
 import { DiagnosticsView } from "./DiagnosticsView";
 import { EvaluationView } from "./EvaluationView";
 import { HistoryView } from "./HistoryView";
-import { app, bumpData, Button, go, route, ToastHost, useData } from "./lib";
+import { app, bumpData, Button, go, Rich, route, ToastHost, useData } from "./lib";
 import { LiveView } from "./LiveView";
 import { liveSnapshot } from "./model";
 import { PeopleView, PersonView } from "./PeopleView";
@@ -18,15 +19,15 @@ function Nav() {
     return r === "people" || r === "person" ? "people" : r === "settings" || r === "diagnostics" || r === "evaluation" ? "settings" : "history";
   };
   return (
-    <nav class="nav" aria-label="Main">
+    <nav class="nav" aria-label={t().nav.label}>
       <a href="#/" aria-current={current() === "history" ? "page" : undefined}>
-        Conversations
+        {t().nav.conversations}
       </a>
       <a href="#/people" aria-current={current() === "people" ? "page" : undefined}>
-        People
+        {t().nav.people}
       </a>
       <a href="#/settings" aria-current={current() === "settings" ? "page" : undefined}>
-        Settings
+        {t().nav.settings}
       </a>
     </nav>
   );
@@ -41,11 +42,11 @@ function LiveBanner() {
       <div class="banner live" role="status">
         <div class="row">
           <span class="rec-dot" aria-hidden="true" />
-          <span class="rec-label">{live().state === "paused" ? "Paused" : live().state === "finalizing" ? "Saving" : "Recording"}</span>
+          <span class="rec-label">{live().state === "paused" ? t().states.paused : live().state === "finalizing" ? t().states.saving : t().states.recording}</span>
           <span class="num">{formatClock(live().capturedSamples)}</span>
         </div>
         <a class="btn" href="#/live">
-          Open
+          {t().common.open}
         </a>
       </div>
     </Show>
@@ -62,14 +63,15 @@ function RecoveryBanner() {
       {(rec) => (
         <div class="banner notice" role="alert">
           <div class="stack" style={{ gap: "2px" }}>
-            <strong>Recovered recording</strong>
+            <strong>{t().app.recoveredTitle}</strong>
             <span class="small muted">
-              {new Date(rec.createdAt).toLocaleString()} · {formatClock(rec.recoveryCursor)} saved{rec.error ? `. ${rec.error}` : ""}
+              {t().app.recoveredDetail(new Date(rec.createdAt).toLocaleString(), formatClock(rec.recoveryCursor))}
+              {rec.error ? `. ${rec.error}` : ""}
             </span>
           </div>
           <div class="row">
             <Button
-              label="Finish processing"
+              label={t().app.finishProcessing}
               kind="primary"
               onClick={async () => {
                 app().post.enqueue(rec.id);
@@ -78,10 +80,10 @@ function RecoveryBanner() {
               }}
             />
             <Button
-              label="Discard"
+              label={t().app.discard}
               kind="danger"
               onClick={async () => {
-                if (!confirm("Discard this recovered recording and its audio?")) return;
+                if (!confirm(t().app.discardConfirm)) return;
                 await deleteRecording(app().storage.repo, app().storage.blobs, rec.id, { removeVoiceSamples: false });
                 bumpData();
               }}
@@ -100,15 +102,14 @@ function ConsentNotice() {
     <Show when={!accepted()}>
       <div class="sheet-backdrop">
         <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="consent-title">
-          <h2 id="consent-title">Before you record</h2>
-          <p>Recording laws differ by place. Many require everyone in a conversation to agree to being recorded. You're responsible for getting that consent.</p>
+          <h2 id="consent-title">{t().app.consentTitle}</h2>
+          <p>{t().app.consentLaws}</p>
           <p>
-            While recording, the glasses show <strong>REC</strong> and this phone shows a red recording banner. By default, processing stays on this phone. Audio is only
-            saved if you turn on <em>Save audio</em>.
+            <Rich text={t().app.consentIndicators} />
           </p>
-          <p>Voice profiles are biometric data. They stay on this phone, encrypted, and you can forget any voice at any time.</p>
+          <p>{t().app.consentVoices}</p>
           <Button
-            label="I understand"
+            label={t().app.consentAccept}
             kind="primary"
             onClick={async () => {
               await app().settings.update({ consentNoticeAcceptedAt: nowIso() });
@@ -126,7 +127,7 @@ export function App() {
   return (
     <div class="shell">
       <a class="skip-link" href="#main">
-        Skip to content
+        {t().nav.skip}
       </a>
       <main class="content" id="main">
         <LiveBanner />

@@ -1,20 +1,11 @@
 import { createSignal, For, onSettled, Show } from "solid-js";
-import { describe } from "@irl/i18n";
+import { describe, fmt, locale, t } from "@irl/i18n";
 import { formatClock, recordingLocks, recordingServices, SAMPLE_RATE, selectionLocks, serviceOption, type AnchoredText, type ClusterId, type ProcessingStage, type StageNote, type TranscriptSegment } from "@irl/domain";
 import { ALL_STAGES, deleteRecording, deleteRecordingAudio, exportRecording, type PostStage } from "@irl/pipeline";
 import { catalogEntry } from "@irl/provider-local";
 import { app, bumpData, Button, download, duration, go, Sheet, SpanText, speakerColor, SpeakerName, toast, useData, when } from "./lib";
 import { loadRecording, stateLabel, type RecordingModel } from "./model";
 import { SpeakerSheet } from "./SpeakerSheet";
-
-const STAGE_NAMES: Record<ProcessingStage, string> = {
-  liveStt: "Live captions",
-  finalStt: "Final transcript",
-  diarization: "Speakers",
-  identity: "Voice recognition",
-  summary: "Summary",
-  compression: "Audio storage",
-};
 
 export function RecordingView(props: { id: string; focus?: string }) {
   const data = useData(() => props.id, loadRecording);
@@ -52,7 +43,7 @@ export function RecordingView(props: { id: string; focus?: string }) {
   };
 
   return (
-    <Show when={data.value()} fallback={<p class="muted">{data.error() ?? (data.loading() ? "Loading…" : "This conversation was deleted.")}</p>}>
+    <Show when={data.value()} fallback={<p class="muted">{data.error() ?? (data.loading() ? t().common.loading : t().recording.deleted)}</p>}>
       {(m) => (
         <>
           <Header m={m()} />
@@ -63,8 +54,8 @@ export function RecordingView(props: { id: string; focus?: string }) {
                 when={audioUrl()}
                 fallback={
                   <Button
-                    label="Load audio"
-                    busyLabel="Preparing audio…"
+                    label={t().recording.loadAudio}
+                    busyLabel={t().recording.preparingAudio}
                     onClick={async () => setAudioUrl(URL.createObjectURL(await app().audio.wav(props.id)))}
                   />
                 }
@@ -73,7 +64,7 @@ export function RecordingView(props: { id: string; focus?: string }) {
               </Show>
               <Show when={m().recording.markers.length > 0}>
                 <div class="row small">
-                  <span class="muted">Markers:</span>
+                  <span class="muted">{t().recording.markers}</span>
                   <For each={m().recording.markers}>
                     {(mk) => (
                       <button type="button" class="btn quiet num" onClick={() => seek(mk.sample)} disabled={!audioUrl()}>
@@ -88,10 +79,10 @@ export function RecordingView(props: { id: string; focus?: string }) {
 
           <div class="tabs" role="tablist">
             <button type="button" role="tab" aria-selected={tab() === "summary" ? "true" : "false"} onClick={() => setTab("summary")}>
-              Summary
+              {t().recording.summaryTab}
             </button>
             <button type="button" role="tab" aria-selected={tab() === "transcript" ? "true" : "false"} onClick={() => setTab("transcript")}>
-              Transcript
+              {t().recording.transcriptTab}
             </button>
           </div>
 
@@ -100,9 +91,9 @@ export function RecordingView(props: { id: string; focus?: string }) {
           </Show>
           <Show when={tab() === "transcript"}>
             <div class="stack">
-              <input type="search" placeholder="Search transcript" value={query()} onInput={(e) => setQuery(e.currentTarget.value)} aria-label="Search transcript" />
+              <input type="search" placeholder={t().recording.search} value={query()} onInput={(e) => setQuery(e.currentTarget.value)} aria-label={t().recording.search} />
               <Show when={m().segments.length === 0}>
-                <p class="muted">{m().recording.state === "ready" ? "No speech was transcribed." : "The transcript appears after processing."}</p>
+                <p class="muted">{m().recording.state === "ready" ? t().recording.noSpeech : t().recording.transcriptLater}</p>
               </Show>
               <div>
                 <For each={m().segments.filter((s) => !query() || s.text.toLowerCase().includes(query().toLowerCase()) || (s.clusterId && m().label(s.clusterId).text.toLowerCase().includes(query().toLowerCase())))}>
@@ -113,39 +104,39 @@ export function RecordingView(props: { id: string; focus?: string }) {
           </Show>
 
           <div class="panel">
-            <h2>Export and delete</h2>
+            <h2>{t().recording.exportTitle}</h2>
             <div class="row">
               <Button
-                label="Export text"
+                label={t().recording.exportText}
                 onClick={async () => {
-                  const { markdown } = await exportRecording(app().storage.repo, props.id);
-                  download(`${m().recording.title ?? "conversation"}.md`, new Blob([markdown], { type: "text/markdown" }));
+                  const { markdown } = await exportRecording(app().storage.repo, props.id, locale());
+                  download(`${m().recording.title ?? t().recording.fileName}.md`, new Blob([markdown], { type: "text/markdown" }));
                 }}
               />
               <Button
-                label="Export JSON"
+                label={t().recording.exportJson}
                 onClick={async () => {
-                  const { json } = await exportRecording(app().storage.repo, props.id);
-                  download(`${m().recording.title ?? "conversation"}.json`, new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }));
+                  const { json } = await exportRecording(app().storage.repo, props.id, locale());
+                  download(`${m().recording.title ?? t().recording.fileName}.json`, new Blob([JSON.stringify(json, null, 2)], { type: "application/json" }));
                 }}
               />
             </div>
-            <p class="small muted">Exports mark which names you confirmed and which were recognized automatically. They never include audio or voice profiles.</p>
+            <p class="small muted">{t().recording.exportNote}</p>
             <div class="row">
               <Show when={m().hasAudio}>
                 <Button
-                  label="Delete audio"
+                  label={t().recording.deleteAudio}
                   kind="danger"
                   onClick={async () => {
-                    if (!confirm("Delete this conversation's audio? The transcript, summary, and names stay.")) return;
+                    if (!confirm(t().recording.deleteAudioConfirm)) return;
                     await deleteRecordingAudio(app().storage.repo, app().storage.blobs, props.id);
                     setAudioUrl(null);
                     bumpData();
-                    toast("Audio deleted");
+                    toast(t().recording.audioDeleted);
                   }}
                 />
               </Show>
-              <Button label="Delete conversation" kind="danger" onClick={() => setDeleting(true)} />
+              <Button label={t().recording.deleteConversation} kind="danger" onClick={() => setDeleting(true)} />
             </div>
           </div>
 
@@ -169,13 +160,13 @@ function Header(props: { m: RecordingModel }) {
   return (
     <div class="stack" style={{ gap: "6px" }}>
       <a href="#/" class="small">
-        Conversations
+        {t().nav.conversations}
       </a>
       <Show
         when={editing()}
         fallback={
           <div class="spread">
-            <h1>{r().title ?? "Untitled conversation"}</h1>
+            <h1>{r().title ?? t().history.untitled}</h1>
             <button
               type="button"
               class="btn quiet"
@@ -184,15 +175,15 @@ function Header(props: { m: RecordingModel }) {
                 setEditing(true);
               }}
             >
-              Rename
+              {t().recording.rename}
             </button>
           </div>
         }
       >
         <div class="row">
-          <input type="text" value={title()} onInput={(e) => setTitle(e.currentTarget.value)} aria-label="Title" style={{ flex: "1" }} />
+          <input type="text" value={title()} onInput={(e) => setTitle(e.currentTarget.value)} aria-label={t().recording.titleLabel} style={{ flex: "1" }} />
           <Button
-            label="Save"
+            label={t().common.save}
             kind="primary"
             onClick={async () => {
               await app().storage.repo.updateRecording(r().id, { title: title().trim() || null });
@@ -204,7 +195,7 @@ function Header(props: { m: RecordingModel }) {
       </Show>
       <p class="muted small num">
         {when(r().startedAt ?? r().createdAt)} · {duration(r().totalSamples)} · {describe().recordingServices(recordingServices(r()))} · {r().language} ·{" "}
-        {r().audioRetention === "persisted" ? "audio saved" : r().audioRetention === "ephemeral" ? "audio not kept" : "audio deleted"}{" "}
+        {r().audioRetention === "persisted" ? t().recording.audioSaved : r().audioRetention === "ephemeral" ? t().recording.audioNotKept : t().recording.audioRemoved}{" "}
         <span class={["badge", { busy: badge().kind === "busy", bad: badge().kind === "bad" }]}>{badge().text}</span>
       </p>
       <Show when={r().error}>
@@ -222,8 +213,8 @@ function Processing(props: { m: RecordingModel; progress: { stage: string; progr
     const out: { stage: PostStage; label: string; patch: Partial<typeof settings.prototype> }[] = [];
     const cur = settings().models;
     // A final transcript some other option provided (a live stream's final tokens) can't be redone on its own.
-    if (!recordingLocks(r())["stt-final"] && cur.sttFinal !== r().models.sttFinal) out.push({ stage: "finalStt", label: `Re-transcribe with ${serviceOption(cur.sttFinal)?.displayName ?? catalogEntry(cur.sttFinal)?.displayName ?? cur.sttFinal}`, patch: {} });
-    if (cur.summary !== r().models.summary && cur.summary !== "off") out.push({ stage: "summary", label: `Re-summarize with ${serviceOption(cur.summary) ? "the cloud endpoint" : (catalogEntry(cur.summary)?.displayName ?? cur.summary)}`, patch: {} });
+    if (!recordingLocks(r())["stt-final"] && cur.sttFinal !== r().models.sttFinal) out.push({ stage: "finalStt", label: t().recording.reTranscribe(serviceOption(cur.sttFinal) ? describe().serviceOptionName(serviceOption(cur.sttFinal)!) : (catalogEntry(cur.sttFinal)?.displayName ?? cur.sttFinal)), patch: {} });
+    if (cur.summary !== r().models.summary && cur.summary !== "off") out.push({ stage: "summary", label: t().recording.reSummarize(serviceOption(cur.summary) ? t().services.summaryEndpoint : (catalogEntry(cur.summary)?.displayName ?? cur.summary)), patch: {} });
     return out;
   };
   const busy = () => r().state === "finalizing" || r().state === "captured" || app().post.currentRecordingId === r().id;
@@ -238,24 +229,24 @@ function Processing(props: { m: RecordingModel; progress: { stage: string; progr
     const expanded: PostStage[] = stages.includes("finalStt") ? ["finalStt", "diarization", "identity", "summary"] : stages;
     app().post.enqueue(r().id, expanded);
     bumpData();
-    toast("Processing again");
+    toast(t().recording.processingAgain);
   };
 
   return (
     <Show when={busy() || failed().length > 0 || outdated().length > 0 || r().state === "interrupted"}>
       <div class="panel">
-        <h2>{busy() ? "Processing" : "Processing results"}</h2>
+        <h2>{busy() ? t().recording.processing : t().recording.processingResults}</h2>
         <Show when={busy() && app().controller.activeRecordingId}>
-          <p class="small muted">Processing waits until the current recording stops.</p>
+          <p class="small muted">{t().recording.waitsForRecording}</p>
         </Show>
         <For each={ALL_STAGES}>
           {(stage) => {
             const st = () => r().processing[stage];
             return (
               <div class="stage">
-                <span>{STAGE_NAMES[stage]}</span>
+                <span>{t().recording.stages[stage]}</span>
                 <span class={["small", { error: st().status === "failed", muted: st().status !== "failed" }]}>
-                  {st().status === "running" && props.progress?.stage === stage && props.progress.progress !== undefined ? `${Math.round(props.progress.progress * 100)}%` : st().status}
+                  {st().status === "running" && props.progress?.stage === stage && props.progress.progress !== undefined ? fmt().percent(props.progress.progress) : t().recording.stageStatus[st().status]}
                 </span>
                 <Show when={st().status === "failed" ? describe().stageError(st()) : st().note ? describe().stageNote(st().note!) : null}>
                   {(text) => (
@@ -271,16 +262,16 @@ function Processing(props: { m: RecordingModel; progress: { stage: string; progr
         <Show when={props.progress?.note}>{(n) => <p class="small muted">{describe().stageNote(n())}</p>}</Show>
         <div class="row">
           <Show when={r().state === "interrupted"}>
-            <Button label="Finish processing" kind="primary" onClick={() => reprocess([...ALL_STAGES])} />
+            <Button label={t().app.finishProcessing} kind="primary" onClick={() => reprocess([...ALL_STAGES])} />
           </Show>
           <Show when={!busy() && failed().length > 0}>
-            <Button label="Retry failed steps" kind="primary" onClick={() => reprocess(failed().map(([s]) => s as PostStage))} />
+            <Button label={t().recording.retryFailed} kind="primary" onClick={() => reprocess(failed().map(([s]) => s as PostStage))} />
           </Show>
           <Show when={!busy()}>
             <For each={outdated()}>{(o) => <Button label={o.label} onClick={() => reprocess([o.stage])} />}</For>
           </Show>
           <Show when={busy()}>
-            <Button label="Cancel" kind="quiet" onClick={() => app().post.cancelCurrent()} />
+            <Button label={t().common.cancel} kind="quiet" onClick={() => app().post.cancelCurrent()} />
           </Show>
         </div>
       </div>
@@ -302,7 +293,7 @@ function SummarySection(props: { m: RecordingModel; onSpeaker: (id: ClusterId) =
                 {span(item.text)}{" "}
                 <Show when={item.sourceSegmentIds.length > 0}>
                   <button type="button" class="btn quiet small" onClick={() => props.onSources(item.sourceSegmentIds)}>
-                    Show source
+                    {t().recording.showSource}
                   </button>
                 </Show>
               </li>
@@ -317,18 +308,18 @@ function SummarySection(props: { m: RecordingModel; onSpeaker: (id: ClusterId) =
       when={s()?.summary}
       fallback={
         <p class="muted">
-          {s()?.status === "failed" ? `The summary couldn't be generated: ${s()?.error}` : s()?.status === "off" ? "Summaries are turned off in Settings." : s()?.status === "running" ? "Writing the summary…" : "The summary appears after processing."}
+          {s()?.status === "failed" ? t().recording.summaryFailed(s()?.error ?? "") : s()?.status === "off" ? t().recording.summaryOff : s()?.status === "running" ? t().recording.summaryWriting : t().recording.summaryLater}
         </p>
       }
     >
       {(sum) => (
         <div class="stack">
           <p>{span(sum().overview)}</p>
-          <Items title="Key points" items={sum().keyPoints} />
-          <Items title="Decisions" items={sum().decisions} />
+          <Items title={t().summary.keyPoints} items={sum().keyPoints} />
+          <Items title={t().summary.decisions} items={sum().decisions} />
           <Show when={sum().actionItems.length > 0}>
             <section class="stack" style={{ gap: "6px" }}>
-              <h3>Action items</h3>
+              <h3>{t().summary.actionItems}</h3>
               <ul style={{ margin: 0, "padding-left": "1.2em" }}>
                 <For each={sum().actionItems}>
                   {(a) => (
@@ -342,10 +333,10 @@ function SummarySection(props: { m: RecordingModel; onSpeaker: (id: ClusterId) =
                           </>
                         )}
                       </Show>
-                      <Show when={a.dueText}> due {a.dueText}</Show>{" "}
+                      <Show when={a.dueText}>{(due) => ` ${t().summary.due(due())}`}</Show>{" "}
                       <Show when={a.sourceSegmentIds.length > 0}>
                         <button type="button" class="btn quiet small" onClick={() => props.onSources(a.sourceSegmentIds)}>
-                          Show source
+                          {t().recording.showSource}
                         </button>
                       </Show>
                     </li>
@@ -354,10 +345,8 @@ function SummarySection(props: { m: RecordingModel; onSpeaker: (id: ClusterId) =
               </ul>
             </section>
           </Show>
-          <Items title="Open questions" items={sum().openQuestions} />
-          <p class="small muted">
-            Written {when(sum().generatedAt)} by {sum().providerId === "cloud" ? "the cloud summary service" : "this phone"}.
-          </p>
+          <Items title={t().summary.openQuestions} items={sum().openQuestions} />
+          <p class="small muted">{sum().providerId === "cloud" ? t().recording.writtenByCloud(when(sum().generatedAt)) : t().recording.writtenOnPhone(when(sum().generatedAt))}</p>
         </div>
       )}
     </Show>
@@ -377,7 +366,7 @@ function Segment(props: { m: RecordingModel; seg: TranscriptSegment; highlight: 
     <div id={`seg-${props.seg.id}`} class={["turn", { highlight: props.highlight, provisional: !props.seg.final }]} style={{ "--spk-color": props.seg.clusterId ? speakerColor(ordinal()) : "var(--line)" }}>
       <div>
         <div class="meta">
-          <Show when={props.seg.clusterId} fallback={<span class="muted small">Unknown speaker</span>}>
+          <Show when={props.seg.clusterId} fallback={<span class="muted small">{t().recording.unknownSpeaker}</span>}>
             {(cid) => <SpeakerName label={props.m.label(cid())} ordinal={ordinal()} onOpen={props.onSpeaker} />}
           </Show>
           <Show when={props.onSeek} fallback={<span class="small muted num">{formatClock(props.seg.startSample)}</span>}>
@@ -395,14 +384,14 @@ function Segment(props: { m: RecordingModel; seg: TranscriptSegment; highlight: 
 function DeleteSheet(props: { id: string; onClose: () => void }) {
   const [removeSamples, setRemoveSamples] = createSignal(false);
   return (
-    <Sheet title="Delete conversation" onClose={props.onClose}>
-      <p>This deletes the transcript, summary, speaker names for this conversation, and its audio. People and their voice profiles stay.</p>
+    <Sheet title={t().recording.deleteConversation} onClose={props.onClose}>
+      <p>{t().recording.deleteBody}</p>
       <label class="check">
         <input type="checkbox" checked={removeSamples()} onChange={(e) => setRemoveSamples(e.currentTarget.checked)} />
-        <span>Also remove voice samples learned from this conversation</span>
+        <span>{t().recording.alsoRemoveSamples}</span>
       </label>
       <Button
-        label="Delete conversation"
+        label={t().recording.deleteConversation}
         kind="danger"
         onClick={async () => {
           const r = await deleteRecording(app().storage.repo, app().storage.blobs, props.id, { removeVoiceSamples: removeSamples() });
@@ -410,7 +399,7 @@ function DeleteSheet(props: { id: string; onClose: () => void }) {
           props.onClose();
           go("#/");
           bumpData();
-          toast(r.removedPrototypes || r.removedSamples ? `Deleted, including ${r.removedSamples} voice samples` : "Conversation deleted");
+          toast(r.removedPrototypes || r.removedSamples ? t().recording.deletedWithSamples(r.removedSamples) : t().recording.conversationDeleted);
         }}
       />
     </Sheet>

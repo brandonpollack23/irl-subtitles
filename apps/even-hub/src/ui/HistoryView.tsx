@@ -1,4 +1,5 @@
 import { For, Show } from "solid-js";
+import { t } from "@irl/i18n";
 import { app, Button, duration, go, useData, when } from "./lib";
 import { liveSnapshot, loadHistory, stateLabel } from "./model";
 
@@ -12,21 +13,21 @@ export function HistoryView() {
   return (
     <>
       <div class="spread">
-        <h1>Conversations</h1>
-        <Show when={live().state === "idle"} fallback={<a class="btn" href="#/live">Current recording</a>}>
-          <Button label="Start recording" busyLabel="Starting…" kind="record" onClick={start} />
+        <h1>{t().history.title}</h1>
+        <Show when={live().state === "idle"} fallback={<a class="btn" href="#/live">{t().history.currentRecording}</a>}>
+          <Button label={t().history.startRecording} busyLabel={t().history.starting} kind="record" onClick={start} />
         </Show>
       </div>
       <Show when={history.error()}>
-        <p class="error">Couldn't load conversations: {history.error()}</p>
+        <p class="error">{t().history.loadFailed(history.error()!)}</p>
       </Show>
       <Show
         when={(history.value() ?? []).length > 0}
         fallback={
           <Show when={!history.loading()}>
             <div class="panel">
-              <h2>No conversations yet</h2>
-              <p class="muted">Start recording from the glasses menu or the button above. Transcripts, speakers, and summaries will show up here.</p>
+              <h2>{t().history.emptyTitle}</h2>
+              <p class="muted">{t().history.emptyBody}</p>
             </div>
           </Show>
         }
@@ -38,7 +39,7 @@ export function HistoryView() {
               return (
                 <a href={`#/rec/${row.recording.id}`}>
                   <div class="spread">
-                    <strong>{row.recording.title ?? "Untitled conversation"}</strong>
+                    <strong>{row.recording.title ?? t().history.untitled}</strong>
                     <span class={["badge", { busy: badge().kind === "busy", bad: badge().kind === "bad" }]}>{badge().text}</span>
                   </div>
                   <span class="small muted num">

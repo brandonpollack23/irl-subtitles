@@ -38,14 +38,17 @@ function withTimeout<T>(p: Promise<T>, ms: number, what: string): Promise<T> {
 }
 
 /** Chooses Turso/OPFS when the page supports it, IndexedDB otherwise; domain code never sees which. */
-export async function openStorage(opts: OpenStorageOptions & { onStep?: (step: string) => void }): Promise<StorageHandles> {
+/** Boot progress while storage opens; the app names each step in its own language. */
+export type StorageStep = "audio-storage" | "database" | "indexeddb" | "keys";
+
+export async function openStorage(opts: OpenStorageOptions & { onStep?: (step: StorageStep) => void }): Promise<StorageHandles> {
   const reasons: string[] = [];
   const dbName = opts.dbName ?? "irl-subtitles";
 
   // Audio storage opens first: its probe writes through an OPFS sync access handle in a worker, which is
   // exactly what Turso needs, so a failed probe rules Turso out without waiting on Turso's own timeout.
   let blobs: BlobStore;
-  opts.onStep?.("Opening audio storage");
+  opts.onStep?.("audio-storage");
   try {
     blobs = await withTimeout(OpfsBlobStore.open(), 8_000, "OPFS probe");
   } catch (e) {
@@ -58,17 +61,17 @@ export async function openStorage(opts: OpenStorageOptions & { onStep?: (step: s
   if (skipTurso) {
     reasons.push(`turso: ${skipTurso}`);
   } else {
-    opts.onStep?.("Opening database");
+    opts.onStep?.("database");
     try {
       table = await withTimeout(openTursoDriver(`${dbName}.db`).then((d) => SqlTableStore.open(d)), 10_000, "Turso open");
     } catch (e) {
       reasons.push(`turso: ${errorMessage(e)}`);
     }
   }
-  if (!table) opts.onStep?.("Opening IndexedDB");
+  if (!table) opts.onStep?.("indexeddb");
   table ??= await IdbTableStore.open(dbName);
 
-  opts.onStep?.("Opening keys");
+  opts.onStep?.("keys");
   const vault = await KeyVault.open();
   const durable = await vault.durableSealer();
   const secrets = await VaultSecretStore.open(vault);

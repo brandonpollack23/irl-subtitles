@@ -1,5 +1,6 @@
 import { createSignal, For, Show } from "solid-js";
 import { activeAttributions, displayName, G2_SPEAKER_NAME_MAX_BYTES } from "@irl/domain";
+import { fmt, t } from "@irl/i18n";
 import { embeddingSpaceOf } from "@irl/provider-local";
 import { app, bumpData, Button, go, Sheet, toast, useData, useSettings, when } from "./lib";
 
@@ -15,14 +16,14 @@ export function PeopleView() {
   const [settings] = useSettings();
   return (
     <>
-      <h1>People</h1>
+      <h1>{t().people.title}</h1>
       <Show
         when={(people.value() ?? []).length > 0}
         fallback={
           <Show when={!people.loading()}>
             <div class="panel">
-              <h2>No one named yet</h2>
-              <p class="muted">Tap a speaker's name in any transcript or summary to name them. With "Learn this voice" on, they'll be recognized in later conversations.</p>
+              <h2>{t().people.emptyTitle}</h2>
+              <p class="muted">{t().people.emptyBody}</p>
             </div>
           </Show>
         }
@@ -35,15 +36,15 @@ export function PeopleView() {
                 <a href={`#/people/${row.person.id}`}>
                   <strong>
                     {row.person.fullName}
-                    {settings().selfPersonId === row.person.id ? <span class="muted"> (me)</span> : null}
+                    {settings().selfPersonId === row.person.id ? <span class="muted">{t().people.me}</span> : null}
                   </strong>
                   <span class="small muted">
-                    {row.person.shortName ? `Glasses show "${row.person.shortName}". ` : ""}
+                    {row.person.shortName ? t().people.glassesShow(row.person.shortName) : ""}
                     {!current()
-                      ? "No voice profile"
+                      ? t().people.noProfile
                       : current()!.profile.needsReenrollment
-                        ? "Voice needs re-enrollment"
-                        : `Voice profile: ${current()!.prototypes} sample set${current()!.prototypes === 1 ? "" : "s"}, ${Math.round(current()!.evidenceMs / 1000)} s of speech`}
+                        ? t().people.needsReenrollment
+                        : t().people.profile(current()!.prototypes, fmt().seconds(current()!.evidenceMs / 1000))}
                   </span>
                 </a>
               );
@@ -82,25 +83,26 @@ export function PersonView(props: { id: string }) {
   const [settings, updateSettings] = useSettings();
 
   return (
-    <Show when={data.value()} fallback={<p class="muted">{data.loading() ? "Loading…" : "This person was removed."}</p>}>
+    <Show when={data.value()} fallback={<p class="muted">{data.loading() ? t().common.loading : t().people.removed}</p>}>
       {(d) => (
         <>
           <a href="#/people" class="small">
-            People
+            {t().people.title}
           </a>
           <h1>{d().person.fullName}</h1>
           <div class="panel">
-            <h2>Names</h2>
+            <h2>{t().people.names}</h2>
             <label class="field">
-              Full name
+              {t().people.fullName}
               <input type="text" value={fullName() ?? d().person.fullName} onInput={(e) => setFullName(e.currentTarget.value)} />
             </label>
             <label class="field">
-              Short name <span class="hint">Used on the glasses. Glasses show: "{displayName({ fullName: fullName() ?? d().person.fullName, shortName: (shortName() ?? d().person.shortName) || undefined }, G2_SPEAKER_NAME_MAX_BYTES)}"</span>
+              {t().people.shortName}{" "}
+              <span class="hint">{t().people.shortNamePreview(displayName({ fullName: fullName() ?? d().person.fullName, shortName: (shortName() ?? d().person.shortName) || undefined }, G2_SPEAKER_NAME_MAX_BYTES))}</span>
               <input type="text" value={shortName() ?? d().person.shortName ?? ""} onInput={(e) => setShortName(e.currentTarget.value)} />
             </label>
             <Button
-              label="Save names"
+              label={t().people.saveNames}
               kind="primary"
               disabled={fullName() === null && shortName() === null}
               onClick={async () => {
@@ -108,7 +110,7 @@ export function PersonView(props: { id: string }) {
                 setFullName(null);
                 setShortName(null);
                 bumpData();
-                toast("Names saved. Every transcript and summary uses them now.");
+                toast(t().people.namesSaved);
               }}
             />
           </div>
@@ -121,32 +123,33 @@ export function PersonView(props: { id: string }) {
                 onChange={(e) => void updateSettings({ selfPersonId: e.currentTarget.checked ? props.id : null })}
               />
               <span>
-                This is me
+                {t().people.thisIsMe}
                 <span class="small muted" style={{ display: "block" }}>
-                  Only one person can be you; checking this unmarks anyone else.
+                  {t().people.onlyOneMe}
                 </span>
               </span>
             </label>
             <Show when={settings().selfPersonId === props.id}>
               <p class="small">
-                {settings().hideOwnSpeechOnGlasses ? `"Hide my speech on the glasses" is on in ` : `You can leave what you say off the glasses captions: turn on "Hide my speech on the glasses" in `}
-                <a href="#/settings">Settings › Recording</a>
-                {settings().hideOwnSpeechOnGlasses ? ", so what you say is left off the glasses captions." : "."} The phone transcript keeps everything.
+                {settings().hideOwnSpeechOnGlasses ? t().people.hideOnBefore : t().people.hideOffBefore}
+                <a href="#/settings">{t().people.settingsRecording}</a>
+                {settings().hideOwnSpeechOnGlasses ? t().people.hideOnAfter : t().people.hideOffAfter}
+                {t().people.keepsEverything}
               </p>
             </Show>
           </div>
 
           <div class="panel">
-            <h2>Voice profile</h2>
-            <Show when={d().profile.profiles.length > 0} fallback={<p class="muted">No voice saved. Name this person with "Learn this voice" on to start recognizing them.</p>}>
+            <h2>{t().people.voiceProfile}</h2>
+            <Show when={d().profile.profiles.length > 0} fallback={<p class="muted">{t().people.noVoiceSaved}</p>}>
               <For each={d().profile.profiles}>
                 {(p) => (
                   <div class="stack" style={{ gap: "2px" }}>
-                    <strong>{p.profile.embeddingSpace === embeddingSpaceOf(app().settings.get().models.speakerEmbedding) ? "Current voice model" : "Other voice model"}</strong>
+                    <strong>{p.profile.embeddingSpace === embeddingSpaceOf(app().settings.get().models.speakerEmbedding) ? t().people.currentModel : t().people.otherModel}</strong>
                     <span class="small muted">
                       {p.profile.needsReenrollment
-                        ? "Needs re-enrollment: name this person in a new conversation with Learn this voice on. Until then they aren't recognized automatically."
-                        : `${p.prototypes} sample set${p.prototypes === 1 ? "" : "s"}, ${Math.round(p.evidenceMs / 1000)} s of speech, quality ${Math.round(p.quality * 100)}%. ${p.clips} audio clip${p.clips === 1 ? "" : "s"} kept for re-enrollment.`}
+                        ? t().people.reenrollLong
+                        : t().people.profileDetail(p.prototypes, fmt().seconds(p.evidenceMs / 1000), fmt().percent(p.quality), p.clips)}
                     </span>
                     <span class="small muted">{p.profile.embeddingSpace}</span>
                   </div>
@@ -154,22 +157,22 @@ export function PersonView(props: { id: string }) {
               </For>
             </Show>
             <div class="row">
-              <Button label="Forget voice" kind="danger" disabled={d().profile.profiles.length === 0} onClick={() => setForgetting(true)} />
-              <Button label="Merge into another person" disabled={d().others.length === 0} onClick={() => setMerging(true)} />
+              <Button label={t().people.forgetVoice} kind="danger" disabled={d().profile.profiles.length === 0} onClick={() => setForgetting(true)} />
+              <Button label={t().people.merge} disabled={d().others.length === 0} onClick={() => setMerging(true)} />
             </div>
           </div>
 
           <div class="stack">
-            <h2>Conversations</h2>
-            <Show when={d().appearances.length > 0} fallback={<p class="muted">Not in any conversation.</p>}>
+            <h2>{t().people.conversations}</h2>
+            <Show when={d().appearances.length > 0} fallback={<p class="muted">{t().people.notInAny}</p>}>
               <div class="list">
                 <For each={d().appearances}>
                   {(a) => (
                     <a href={`#/rec/${a.recording.id}`}>
-                      <strong>{a.recording.title ?? "Untitled conversation"}</strong>
+                      <strong>{a.recording.title ?? t().history.untitled}</strong>
                       <span class="small muted">
                         {when(a.recording.startedAt ?? a.recording.createdAt)}
-                        {a.auto ? " · recognized automatically" : ""}
+                        {a.auto ? t().people.recognizedAuto : ""}
                       </span>
                     </a>
                   )}
@@ -179,8 +182,8 @@ export function PersonView(props: { id: string }) {
           </div>
 
           <Show when={merging()}>
-            <Sheet title={`Merge ${d().person.fullName} into…`} onClose={() => setMerging(false)}>
-              <p class="small muted">Their names in past conversations and their voice samples move to the person you pick. You can undo right after.</p>
+            <Sheet title={t().people.mergeTitle(d().person.fullName)} onClose={() => setMerging(false)}>
+              <p class="small muted">{t().people.mergeBody}</p>
               <div class="list">
                 <For each={d().others}>
                   {(other) => (
@@ -193,7 +196,7 @@ export function PersonView(props: { id: string }) {
                         setMerging(false);
                         go(`#/people/${other.id}`);
                         bumpData();
-                        toast(`Merged into ${other.fullName}`, { label: "Undo", run: async () => {
+                        toast(t().people.mergedInto(other.fullName), { label: t().common.undo, run: async () => {
                           await app().identity.undo(op);
                           bumpData();
                           go(`#/people/${props.id}`);
@@ -217,21 +220,21 @@ export function PersonView(props: { id: string }) {
 function ForgetSheet(props: { id: string; name: string; onClose: () => void }) {
   const [keepLabels, setKeepLabels] = createSignal(true);
   return (
-    <Sheet title={`Forget ${props.name}'s voice`} onClose={props.onClose}>
-      <p>This permanently deletes {props.name}'s voice embeddings and saved audio clips. They won't be recognized automatically again. This can't be undone.</p>
+    <Sheet title={t().people.forgetTitle(props.name)} onClose={props.onClose}>
+      <p>{t().people.forgetBody(props.name)}</p>
       <label class="check">
         <input type="checkbox" checked={keepLabels()} onChange={(e) => setKeepLabels(e.currentTarget.checked)} />
-        <span>Keep "{props.name}" as the speaker name in past conversations</span>
+        <span>{t().people.keepLabels(props.name)}</span>
       </label>
       <Button
-        label="Forget voice"
+        label={t().people.forgetVoice}
         kind="danger"
         onClick={async () => {
           await app().identity.forgetVoice(props.id, { keepLabels: keepLabels() });
           props.onClose();
           bumpData();
           if (!keepLabels()) go("#/people");
-          toast("Voice forgotten");
+          toast(t().people.voiceForgotten);
         }}
       />
     </Sheet>
