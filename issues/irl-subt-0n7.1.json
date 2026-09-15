@@ -10,9 +10,15 @@
   "id": "irl-subt-0n7.1",
   "labels": [],
   "parent": "irl-subt-0n7",
+  "comments": [
+    {
+      "text": "Desk findings in docs/i18n.md: SDK exposes no locale (UserInfo has country only) so navigator.languages drives 'system'; menu itemName is validated at 32 UTF-8 bytes (10 kana/kanji); evenhub-cli accepts ja in supported_languages; permission desc can't be localized. G2 firmware glyph coverage for kana/kanji needs a device: moved to irl-subt-0n7.10.",
+      "timestamp": "2026-09-15T05:45:40Z"
+    }
+  ],
   "priority": 2,
   "status": "open",
   "title": "Spike: Japanese text on the G2 display and host locale detection in the Even Hub WebView",
   "type": "task",
-  "updated_at": "2026-09-15T05:39:51Z"
+  "updated_at": "2026-09-15T05:45:40Z"
 }
