@@ -120,10 +120,13 @@ function moonshineStreaming(size: keyof typeof STREAMING_ARCH, lang: string, ver
 const moonshineDtype = { webgpu: { encoder_model: "fp32", decoder_model_merged: "q4" }, wasm: { encoder_model: "fp32", decoder_model_merged: "q4" } };
 const whisperLiveDtype = { webgpu: { encoder_model: "fp32", decoder_model_merged: "q4" }, wasm: { encoder_model: "q8", decoder_model_merged: "q8" } };
 
+/** Moonshine's legacy non-streaming models under its non-commercial Community License; every other Moonshine model is MIT (moonshine-ai/moonshine LICENSE). */
+const MOONSHINE_COMMUNITY = new Set(["base-ar", "tiny-ar", "base-ja", "tiny-ja", "base-ko", "tiny-ko", "base-zh", "tiny-zh", "base-es", "base-uk", "tiny-uk", "base-vi", "tiny-vi"]);
+
 function moonshine(id: string, size: "tiny" | "base", lang: string, repo: string, params: number, bytes: number, extra: Partial<EntrySpec> = {}): ModelCatalogEntry {
   return entry({
     id, role: "stt-live", displayName: `Moonshine ${size === "tiny" ? "Tiny" : "Base"} (${lang})`, parameters: params, downloadBytes: bytes, languages: [lang],
-    license: lang === "en" ? "MIT" : "Moonshine Community License (review)", adapter: "tjs-asr", repo, files: ["config.json", "generation_config.json", "preprocessor_config.json", "tokenizer.json", "tokenizer_config.json", "onnx/encoder_model.onnx", "onnx/decoder_model_merged_q4.onnx", "onnx/decoder_model_q4.onnx"],
+    license: MOONSHINE_COMMUNITY.has(`${size}-${lang}`) ? "Moonshine Community License (non-commercial)" : "MIT", adapter: "tjs-asr", repo, files: ["config.json", "generation_config.json", "preprocessor_config.json", "tokenizer.json", "tokenizer_config.json", "onnx/encoder_model.onnx", "onnx/decoder_model_merged_q4.onnx", "onnx/decoder_model_q4.onnx"],
     dtype: moonshineDtype, timing: "segment-interpolated", targets: { android: "webgpu", ios: "webgpu", desktop: "webgpu" }, ...extra,
   });
 }

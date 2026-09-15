@@ -335,6 +335,7 @@ export const ja: Messages = {
     diagnosticsIntro: "端末の機能、ストレージ、ログ、話者認識の較正と調整。",
     tuneVoices: "声の認識を調整",
     version: (version, build) => `IRL Subtitles ${version}（${build}）`,
+    licenses: "ライセンス",
   },
   glasses: {
     menu: {
@@ -369,6 +370,16 @@ export const ja: Messages = {
     profileActive: (name) => `* ${name}`,
     profileSwitched: (name) => `プロファイル: ${name}`,
     profileReset: (roles) => `保存どおりには使えないため、この端末の既定を使います: ${roles}。`,
+  },
+  licenses: {
+    title: "ライセンス",
+    intro: "IRL Subtitles は以下のオープンソースソフトウェアで作られています。項目を開くとライセンスを読めます。",
+    software: "オープンソースソフトウェア",
+    components: "WebAssembly エンジン内のライブラリ",
+    componentsHint: "音声認識、モデル実行、データベースの各エンジンにコンパイルされているため、個別のパッケージとしては表示されません。",
+    models: "モデル",
+    modelsHint: "モデルはアプリに含まれていません。選んだときに提供元からダウンロードされ、以下のライセンスが適用されます。",
+    loadFailed: (detail) => `ライセンス一覧を読み込めませんでした: ${detail}`,
   },
   diagnostics: {
     title: "診断",

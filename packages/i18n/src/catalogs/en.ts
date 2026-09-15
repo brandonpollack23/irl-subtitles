@@ -341,6 +341,7 @@ export const en = {
     diagnosticsIntro: "Device capabilities, storage, logs, and speaker recognition calibration and tuning.",
     tuneVoices: "Tune voice recognition",
     version: (version: string, build: string) => `IRL Subtitles ${version} (${build})`,
+    licenses: "Licenses",
   },
   glasses: {
     /** Contextual-menu labels: each must fit G2_MENU_LABEL_MAX_BYTES (32 UTF-8 bytes; 10 kana or kanji). */
@@ -377,6 +378,16 @@ export const en = {
     profileActive: (name: string) => `* ${name}`,
     profileSwitched: (name: string) => `Profile: ${name}`,
     profileReset: (roles: string) => `Can't run as saved; using this phone's default for: ${roles}.`,
+  },
+  licenses: {
+    title: "Licenses",
+    intro: "IRL Subtitles is built with the open-source software below. Open an entry to read its license.",
+    software: "Open-source software",
+    components: "Libraries inside WebAssembly engines",
+    componentsHint: "Compiled into the speech recognition, model runtime and database engines, so they aren't separate packages.",
+    models: "Models",
+    modelsHint: "Models aren't part of the app. They download from their publishers when you choose them, under these licenses.",
+    loadFailed: (detail: string) => `Couldn't load the license list: ${detail}`,
   },
   diagnostics: {
     title: "Diagnostics",

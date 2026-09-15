@@ -6,6 +6,7 @@ import { DevPlatformMarker } from "./DevPlatformMarker";
 import { DiagnosticsView } from "./DiagnosticsView";
 import { EvaluationView } from "./EvaluationView";
 import { HistoryView } from "./HistoryView";
+import { LicensesView } from "./LicensesView";
 import { app, bumpData, Button, go, Rich, route, ToastHost, useData } from "./lib";
 import { LiveView } from "./LiveView";
 import { liveSnapshot } from "./model";
@@ -16,7 +17,7 @@ import { SettingsView } from "./SettingsView";
 function Nav() {
   const current = () => {
     const r = route().name;
-    return r === "people" || r === "person" ? "people" : r === "settings" || r === "diagnostics" || r === "evaluation" ? "settings" : "history";
+    return r === "people" || r === "person" ? "people" : r === "settings" || r === "diagnostics" || r === "evaluation" || r === "licenses" ? "settings" : "history";
   };
   return (
     <nav class="nav" aria-label={t().nav.label}>
@@ -156,6 +157,9 @@ export function App() {
           </Match>
           <Match when={r().name === "evaluation"}>
             <EvaluationView />
+          </Match>
+          <Match when={r().name === "licenses"}>
+            <LicensesView />
           </Match>
         </Switch>
       </main>

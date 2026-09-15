@@ -22,7 +22,8 @@ export type Route =
   | { name: "person"; id: string }
   | { name: "settings" }
   | { name: "diagnostics" }
-  | { name: "evaluation" };
+  | { name: "evaluation" }
+  | { name: "licenses" };
 
 function parse(hash: string): Route {
   const parts = hash.replace(/^#\/?/, "").split("/").map(decodeURIComponent);
@@ -39,6 +40,8 @@ function parse(hash: string): Route {
       return { name: "diagnostics" };
     case "evaluation":
       return { name: "evaluation" };
+    case "licenses":
+      return { name: "licenses" };
     default:
       return { name: "history" };
   }

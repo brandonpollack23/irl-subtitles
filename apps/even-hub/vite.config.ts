@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import solid from "@solidjs/vite-plugin";
 import { defineConfig, type Plugin } from "vite";
+import { licenses } from "./licenses/plugin";
 
 const root = import.meta.dirname;
 const appVersion = (JSON.parse(readFileSync(join(root, "app.json"), "utf8")) as { version: string }).version;
@@ -71,9 +72,11 @@ function csp(): Plugin {
   };
 }
 
+const licensePlugins = licenses();
+
 export default defineConfig({
   root,
-  plugins: [solid(), csp()],
+  plugins: [solid(), csp(), licensePlugins.plugin],
   define: {
     __APP_VERSION__: JSON.stringify(appVersion),
     __BUILD_ID__: JSON.stringify(new Date().toISOString()),
@@ -81,6 +84,6 @@ export default defineConfig({
   server: { host: true, port: 5174, strictPort: true, headers: coiHeaders, https: https() },
   preview: { host: true, port: 5174, strictPort: true, headers: coiHeaders, https: https() },
   optimizeDeps: { exclude: ["onnxruntime-web", "@tursodatabase/database-wasm", "@huggingface/transformers"] },
-  worker: { format: "es" },
+  worker: { format: "es", plugins: () => [licensePlugins.worker()] },
   build: { target: "esnext", outDir: resolve(root, "dist"), emptyOutDir: true, chunkSizeWarningLimit: 4096 },
 });

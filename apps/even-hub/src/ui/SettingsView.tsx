@@ -55,6 +55,11 @@ export function SettingsView() {
           </a>
         </div>
       </div>
+      <div class="row">
+        <a class="btn" href="#/licenses">
+          {t().settings.licenses}
+        </a>
+      </div>
       <p class="small muted">
         {t().settings.version(__APP_VERSION__, __BUILD_ID__.slice(0, 16))}
       </p>
