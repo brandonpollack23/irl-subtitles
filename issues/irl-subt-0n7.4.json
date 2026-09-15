@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-15T05:39:51Z",
+  "description": "Strings shown to the user that originate in packages must become codes plus params, localized at the UI edge:\n- domain selection.ts: disabled reasons (\"no key\", \"language unsupported\", \"needs Speechmatics audio\", \"Provided by \u003cservice\u003e\") and option labels/descriptions.\n- domain identity.ts: match status/reasons, \"Unknown\", \"Possibly \u003cname\u003e\", anonymous \"Speaker N\" labels.\n- SERVICE_NAMES and LANGUAGES display names (use Intl.DisplayNames for language names where possible).\n- Errors surfaced via errorMessage(): introduce a typed user-facing error code for the ones the UI shows (key invalid, network, model download failed, quota, storage full); unknown errors fall back to a generic localized message plus the raw text in Diagnostics.\n- pipeline export.ts: markdown header, default \"Recording\" title, date line; export follows the UI language.\nUpdate existing tests (selection.test.ts etc.) to assert codes.",
+  "id": "irl-subt-0n7.4",
+  "labels": [],
+  "parent": "irl-subt-0n7",
+  "priority": 2,
+  "status": "open",
+  "title": "Domain and pipeline: return message codes instead of English sentences",
+  "type": "task",
+  "updated_at": "2026-09-15T05:39:51Z"
+}
