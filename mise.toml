@@ -5,3 +5,8 @@ mkcert = "latest"
 
 [env]
 WEBKIT_DISABLE_DMABUF_RENDERER = "1"
+
+[tasks.package]
+description = "Build the production .ehpk for upload to Even Hub (apps/even-hub/irl-subtitles.ehpk)"
+alias = "ehpk"
+run = "pnpm --filter @irl/even-hub ehpk"
