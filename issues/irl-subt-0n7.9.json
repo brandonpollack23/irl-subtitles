@@ -11,9 +11,15 @@
   "id": "irl-subt-0n7.9",
   "labels": [],
   "parent": "irl-subt-0n7",
+  "comments": [
+    {
+      "text": "app.json supported_languages now [en, ja]; evenhub pack accepts it (CLI enum: en de fr es it zh ja ko). The permission desc is a single string (max 300 chars) with no localized variant, so it stays English. Review items hold in Japanese: exit is the system dialog (shutDownPageContainer(1)), and the glasses recording indicator stays 'REC' in every locale, matching the consent text.",
+      "timestamp": "2026-09-15T06:16:58Z"
+    }
+  ],
   "priority": 3,
   "status": "in_progress",
   "title": "Even Hub manifest and store metadata for Japanese",
   "type": "task",
-  "updated_at": "2026-09-15T06:16:46Z"
+  "updated_at": "2026-09-15T06:16:58Z"
 }
