@@ -200,6 +200,38 @@ class FakeVoiceIdProvider implements LiveSpeechProvider {
   }
 }
 
+/** A cloud live stream whose speaker labels come from a script: (voice, second of audio) → cluster id. */
+class ScriptedCloudLive implements LiveSpeechProvider {
+  readonly id = "fake-speechmatics-live";
+  readonly capabilities = { transcription: "streaming", diarization: "fused-with-stt", persistentIdentity: true, languages: ["en"], execution: "cloud" } as const;
+  constructor(private readonly label: (voice: "A" | "B", second: number) => string) {}
+  async start(config: { recordingId: string; providerRunId: string }): Promise<LiveSpeechRun> {
+    const events = new AsyncQueue<SpeechEvent>();
+    const seen = new Set<string>();
+    return {
+      providerRunId: config.providerRunId,
+      events,
+      push: (frame: AudioFrame) => {
+        const n = frame.pcm.byteLength / 2;
+        // A 2 s turn per 2 s of audio, long enough for a voice window.
+        if ((frame.startSample + n) % (2 * SAMPLE_RATE) !== 0) return;
+        const end = frame.startSample + n;
+        const start = end - 2 * SAMPLE_RATE;
+        const voice = Math.abs(new DataView(frame.pcm.buffer, frame.pcm.byteOffset).getInt16(0, true) / 32768) > 0.3 ? "B" : "A";
+        const clusterId = this.label(voice, start / SAMPLE_RATE);
+        if (!seen.has(clusterId)) {
+          seen.add(clusterId);
+          events.push({ type: "cluster", clusterId, ordinal: seen.size, providerLabel: clusterId.split("-")[1] });
+        }
+        events.push({ type: "tokens", replaceProvisional: true, tokens: [{ id: newId("t"), recordingId: config.recordingId, providerRunId: config.providerRunId, startSample: start, endSample: end, text: ` ${voice}`, final: true, timing: "word" }] });
+        events.push({ type: "turns", turns: [{ id: newId("turn"), recordingId: config.recordingId, providerRunId: config.providerRunId, clusterId, startSample: start, endSample: end, final: true }] });
+      },
+      finish: async () => events.close(),
+      abort: async () => events.close(),
+    };
+  }
+}
+
 async function setup(wrapToolkit: (t: ProcessingToolkit) => ProcessingToolkit = (t) => t, opts: { models?: Partial<ModelSelection>; cloudFinal?: CloudFinalProvider; liveRequests?: string[]; live?: (identity: IdentityService) => LiveSpeechProvider; serviceEnroll?: (wav: Uint8Array) => Promise<string[] | null> } = {}) {
   const repo = new Repository(await SqlTableStore.open(nodeSqliteDriver()));
   const blobs = new MemoryBlobStore();
@@ -218,7 +250,8 @@ async function setup(wrapToolkit: (t: ProcessingToolkit) => ProcessingToolkit = 
     repo, blobs, durable, ephemeral, settings, identity,
     providers: async (optionId) => {
       opts.liveRequests?.push(optionId);
-      return live ?? new FakeLiveProvider(optionId !== "local");
+      // A custom provider stands in for the cloud option; "local" keeps the on-device fake.
+      return optionId !== "local" && live ? live : new FakeLiveProvider(optionId !== "local");
     },
     createSource: async () => new ManualSource(),
     onCaptured: (id) => {
@@ -575,5 +608,60 @@ describe("Speechmatics voice identification (irl-subt-3xb.7)", () => {
     expect(attrs.has("L2")).toBe(false);
     // Identifiers follow the live cluster ids the service speakers were mapped onto.
     expect((await env.repo.listWindows(id)).filter((w) => w.embeddingSpace === "speechmatics-id@1").map((w) => w.clusterId).sort()).toEqual(["L1", "L2"]);
+  }, 20_000);
+});
+
+describe("Speechmatics speakers stay authoritative (diarization and attribution)", () => {
+  it("live Speechmatics with the phone's voice model: service turns kept, only reconnect labels linked, saved voices matched locally", async () => {
+    // Alice is enrolled on the phone first, from a local recording.
+    const env = await setup(undefined, {
+      live: () =>
+        // 0-10 s Alice as S1, 10-14 s Alice again but Speechmatics split her off as S2 (same connection),
+        // 14-20 s Bob as S3, 20-26 s Bob after a reconnect as S3 on connection 1.
+        new ScriptedCloudLive((_voice, sec) => (sec < 10 ? "S0-S1" : sec < 14 ? "S0-S2" : sec < 20 ? "S0-S3" : "S1-S3")),
+    });
+    const enrollRec = await record(env, [["A", 12], ["B", 4]]);
+    const alice = await env.identity.assign({ recordingId: enrollRec, clusterId: (await loadTranscript(env.repo, enrollRec)).segments[0]!.clusterId!, person: { fullName: "Alice" }, learnVoice: true });
+
+    await env.settings.update({ models: { ...env.settings.get().models, sttLive: "speechmatics:enhanced" } });
+    const id = await record(env, [["A", 14], ["B", 12]], true, { liveReady: true });
+    const rec = (await env.repo.getRecording(id))!;
+    expect(rec.provider).toBe("speechmatics");
+    expect(rec.processing.finalStt).toMatchObject({ status: "skipped", error: "Speechmatics final tokens are the transcript" });
+    expect(rec.processing.diarization, JSON.stringify(rec.processing.diarization)).toMatchObject({ status: "done" });
+
+    const clusters = new Map((await env.repo.listClusters(id)).map((c) => [c.clusterId, c]));
+    // Turns are Speechmatics' own; nothing re-clustered them locally.
+    expect(new Set((await env.repo.listTurns(id)).map((t) => t.clusterId))).toEqual(new Set(["S0-S1", "S0-S2", "S0-S3", "S1-S3"]));
+    expect(clusters.get("S1-S3")?.mergedInto).toBe("S0-S3");
+    // Speechmatics separated S1 and S2 within one connection: local embeddings don't overrule that.
+    expect(clusters.get("S0-S2")?.mergedInto).toBeUndefined();
+    // Attribution: the phone's voice model matched Alice on Speechmatics' speaker.
+    expect(activeAttributions(await env.repo.listAttributions(id)).get("S0-S1")).toMatchObject({ personId: alice.personId, source: "auto" });
+  }, 40_000);
+
+  it("Speechmatics batch final: its speakers replace local clustering, and nothing merges them", async () => {
+    const batch: CloudFinalProvider = {
+      id: "speechmatics-batch",
+      // Splits voice A into two batch speakers by time, which local clustering would have joined.
+      transcribe: async (job) => {
+        const base = await fakeCloudFinal().transcribe(job);
+        const turns = base.turns.flatMap((t) => (t.clusterId === "B-S1" ? [{ ...t, endSample: 4 * SAMPLE_RATE }, { ...t, id: newId("turn"), clusterId: "B-S3", startSample: 4 * SAMPLE_RATE }] : [t]));
+        return { ...base, turns, clusters: [...base.clusters, { clusterId: "B-S3", ordinal: 3, providerLabel: "S3" }] };
+      },
+    };
+    const env = await setup(undefined, { models: { sttFinal: "speechmatics-batch:enhanced" }, cloudFinal: batch });
+    const id = await record(env, [["A", 8], ["B", 8]], true, { liveReady: true });
+    const rec = (await env.repo.getRecording(id))!;
+    expect(rec.processing.finalStt.status).toBe("done");
+    expect(rec.processing.diarization).toMatchObject({ status: "done" });
+    expect(rec.processing.diarization.error).toMatch(/local windows/);
+    const runs = await env.repo.listRuns(id);
+    expect(runs.some((r) => r.kind === "diarization-refine")).toBe(false);
+    const turns = await env.repo.listTurns(id);
+    expect(new Set(turns.map((t) => t.providerRunId))).toEqual(new Set([runs.find((r) => r.kind === "final-stt" && r.state === "finished")!.id]));
+    const t = await loadTranscript(env.repo, id);
+    expect(new Set(t.segments.map((s) => s.clusterId)).size, JSON.stringify(await env.repo.listClusters(id))).toBe(3);
+    expect((await env.repo.listClusters(id)).filter((c) => c.mergedInto && turns.some((x) => x.clusterId === c.clusterId))).toEqual([]);
   }, 20_000);
 });

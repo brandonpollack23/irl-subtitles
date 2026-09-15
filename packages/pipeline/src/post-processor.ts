@@ -503,15 +503,24 @@ export class PostProcessor {
     const centroids = [...byCluster.entries()].map(([id, vs]) => ({ id, c: meanVector(vs), n: vs.length })).sort((a, b) => b.n - a.n);
     const threshold = toolkit.mergeThreshold(space);
     let merges = 0;
+    // Only labels from different connections of a live stream are linked (numbering restarts on reconnect), and each
+    // connection links at most one label to a speaker: speakers the service told apart stay apart, and a batch pass,
+    // which has no connections, is never merged.
+    const linked = new Set<string>();
     for (let i = 0; i < centroids.length; i++) {
       for (let j = 0; j < i; j++) {
         const a = centroids[j]!, b = centroids[i]!;
         if (clusters.get(a.id)?.mergedInto || clusters.get(b.id)?.mergedInto) continue;
+        const ca = connectionOf(a.id), cb = connectionOf(b.id);
+        if (ca === null || cb === null || ca === cb) continue;
+        const links = [...clusters.values()].filter((c) => c.mergedInto === a.id).map((c) => connectionOf(c.clusterId));
+        if (links.includes(cb) || linked.has(`${a.id}:${cb}`)) continue;
         if (cosine(a.c, b.c) >= threshold) {
           const c = clusters.get(b.id);
           if (c) {
             clusters.set(b.id, { ...c, mergedInto: a.id });
             await repo.putCluster(clusters.get(b.id)!);
+            linked.add(`${a.id}:${cb}`);
             merges++;
           }
         }
@@ -592,6 +601,12 @@ export async function deleteAudio(repo: Repository, blobs: BlobStore, recordingI
   await blobs.deletePrefix(`scratch/${recordingId}/`);
   await repo.deleteChunks(recordingId);
   await repo.updateRecording(recordingId, { audioRetention: "deleted" });
+}
+
+/** The live connection a service cluster id came from (`S<conn>-<label>`), or null for batch, enrolled, and local ids. */
+function connectionOf(clusterId: ClusterId): number | null {
+  const m = /^S(\d+)-/.exec(clusterId);
+  return m ? Number(m[1]) : null;
 }
 
 function serviceSpan(result: FinalTranscriptResult, clusterId: ClusterId): number {
