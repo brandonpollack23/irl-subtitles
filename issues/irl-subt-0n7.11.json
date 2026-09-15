@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-15T06:20:41Z",
+  "description": "The Japanese catalog (packages/i18n/src/catalogs/ja.ts) was written without a fluent reviewer. Before a Japanese release, a fluent reader reviews the consent and privacy strings (app.consent*, settings.consent*, settings.privacy*, settings.voiceToService, settings.voiceSwitch, people.forgetBody) for accuracy and tone, then skims the rest against the glossary in docs/i18n.md. Fix strings in ja.ts; pnpm check keeps the catalog complete.",
+  "id": "irl-subt-0n7.11",
+  "labels": [],
+  "parent": "irl-subt-0n7",
+  "priority": 2,
+  "status": "open",
+  "title": "Fluent review of Japanese consent and privacy wording",
+  "type": "task",
+  "updated_at": "2026-09-15T06:20:41Z"
+}
