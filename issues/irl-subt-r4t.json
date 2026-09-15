@@ -6,9 +6,15 @@
   "description": "Named profiles save the recording language, power policy and model selection (every role). Switch from Settings, the idle Live page, and the idle glasses context menu (one item per profile, active one marked; the menu takes at most 10 items so at most 8 profiles). Profiles are snapshots: editing settings after applying one marks it modified, with Update to save the change into it. Applying repairs what can't run now (removed key, device) with the local fallback and says so; a voice model change re-enrolls voices in the background. Switching applies to the next recording, like any settings change.",
   "id": "irl-subt-r4t",
   "labels": [],
+  "comments": [
+    {
+      "text": "Landed r4t.1-.3 as jj revisions rwvqrqrr, rtuvqxpk, ovrmzrrm (workspace ../irl-subtitles-profiles) on top of irl-subt-56z. Glasses marker is ASCII '* ' because G2 glyph coverage is unverified; r4t.4 checks on device.",
+      "timestamp": "2026-09-15T09:21:57Z"
+    }
+  ],
   "priority": 2,
   "status": "open",
   "title": "Configuration profiles: save and quick-switch models, language and power, from the phone and the glasses menu",
   "type": "epic",
-  "updated_at": "2026-09-15T09:09:38Z"
+  "updated_at": "2026-09-15T09:21:57Z"
 }
