@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [],
   "created": "2026-09-15T09:31:44Z",
@@ -7,7 +7,7 @@
   "id": "irl-subt-gxu",
   "labels": [],
   "priority": 2,
-  "status": "open",
+  "status": "in_progress",
   "title": "Glasses recording indicator: a small blinking dot in the top-right corner instead of REC and the timer",
   "type": "task",
   "updated_at": "2026-09-15T09:31:44Z"
