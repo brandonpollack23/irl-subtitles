@@ -3,7 +3,9 @@
   "blocked_by": [
     "irl-subt-0n7.2"
   ],
-  "blocks": [],
+  "blocks": [
+    "irl-subt-0n7.7"
+  ],
   "created": "2026-09-15T05:39:51Z",
   "description": "Replace default-locale toLocaleString calls (App.tsx recovery line, lib.tsx \"Today, …\" and history dates, export.ts) with the @irl/i18n formatters for the active UI locale. Japanese conventions: 2026年9月15日 14:05, 今日 14:05, durations like 1時間2分. Check model download sizes, match scores, and percentages in Settings/People/Diagnostics.",
   "id": "irl-subt-0n7.5",
