@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-15T09:09:38Z",
+  "description": "Settings gains configProfiles and activeConfigProfileId. Domain: ConfigProfile {id,name,language,powerPolicy,models}, profileFields, profileMatches, name budget so the glasses label fits 32 bytes. App: applyProfile(services,id) sets fields, repairs cloud options whose key is gone and local models the device can't run (boot's fallback, extracted), and migrates voice profiles in the background when the voice model changes. Tests.",
+  "id": "irl-subt-r4t.1",
+  "labels": [],
+  "parent": "irl-subt-r4t",
+  "priority": 2,
+  "status": "open",
+  "title": "Profiles in settings: domain model, byte-limited names, apply with repair",
+  "type": "task",
+  "updated_at": "2026-09-15T09:09:38Z"
+}
