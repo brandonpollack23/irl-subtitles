@@ -2,13 +2,15 @@
   "assignee": "",
   "blocked_by": [],
   "blocks": [],
+  "closed_at": "2026-09-15T10:19:19Z",
+  "close_reason": "All children done; live local captions verified fast on device",
   "created": "2026-09-14T09:32:27Z",
   "description": "Local provider problems (2026-09-14): initial model load takes very long, and live captions lag (often only appear after each sentence ends).\n\nRoot causes found:\n1. Live STT (Moonshine Base, non-streaming) re-decodes the whole VAD utterance (up to 15 s) every 1.2 s of new audio, then again at utterance end (packages/provider-local/src/live-provider.ts runStt). Quadratic cost; \u003e=1.2 s algorithmic lag even on fast V8 (Node harness: first caption 2.3 s on jfk.wav).\n2. ComputeScheduler drops interim captions at level 1 (median RTF \u003e 0.8); short utterances have inflated RTF, so captions degrade to final-only.\n3. All workers load the onnxruntime-web asyncify build (ort-env.ts; transformers.js imports onnxruntime-web/webgpu statically), even for WASM-only sessions. Measured in the jsc shell (WebKitGTK 2.52.6 JSC, 1 thread, ORT 1.29, our cached models) plain vs asyncify: Moonshine q4 decoder session create 0.6 s vs 5.1 s; first encoder run on 2 s audio 0.17 s vs 8.0 s; steady encoder RTF 0.07 vs 0.12; Silero 0.40 vs 0.58 ms/window. In Node (V8) the builds are similar, so the harness hides it. JSC = simulator and iOS WKWebView. The simulator's earlier 34.6 s Moonshine load and VAD RTF 2.1 are NOT fully explained by this; something else in the WebKit web process too.\n4. Simulator has no SharedArrayBuffer and the packaged Even app is likely not cross-origin isolated, so WASM is single-threaded.\n\nPlan: Phase A quick wins on current stack; Phase B move live STT to Moonshine v2 Streaming via @moonshine-ai/moonshine-wasm (MIT, incremental encoder/decoder caching; published speech-end latency Pixel 10a native: Tiny 92 ms, Small 234 ms, Medium 420 ms; WER Small 7.84%, Medium 6.65% vs Base 10.07%) gated by a single-thread build spike; Phase C perceived load.\nRejected: Nemotron 3.5 streaming 0.6B (too heavy for 1 phone thread), sherpa-onnx streaming Zipformer (fallback only: lower accuracy, no punctuation, no ja), Whisper streaming (no caching), WebGPU for live STT (per-dispatch overhead).\n\n```mermaid\ngraph LR\n  A0[instrument] --\u003e A1[plain ORT build]\n  A0 --\u003e A4[no whole-utterance re-decode]\n  A0 --\u003e A5[scheduler signal]\n  A0 --\u003e A6[WebKit web-process slowdown]\n  A1 --\u003e A2[warm-up inference]\n  B1[moonshine-wasm 1-thread spike] --\u003e B2[catalog: streaming models]\n  B1 --\u003e B4[fallback: TS streaming loop on ORT web]\n  B2 --\u003e B3[live STT adapter]\n  B3 --\u003e C2[Tiny-first hot swap]\n  C1[keep live model during post-processing]\n```",
   "id": "irl-subt-kdl",
   "labels": [],
   "priority": 0,
-  "status": "open",
+  "status": "closed",
   "title": "Real-time local captions: fast model load and truly live STT",
   "type": "epic",
-  "updated_at": "2026-09-14T09:32:27Z"
+  "updated_at": "2026-09-15T10:19:19Z"
 }
