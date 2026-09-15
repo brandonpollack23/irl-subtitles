@@ -969,7 +969,8 @@ The G2 interface stays intentionally small:
 
 **Recording**
 
-- visible recording indicator and elapsed time;
+- visible recording indicator: a small dot blinking in the top-right corner
+  (elapsed time is on the phone, not the glasses);
 - current stable speaker display name or `Speaker 2`;
 - last one or two lines of finalized transcript when live text is available;
 - degraded-state text such as `Saving — processing later` when local compute or

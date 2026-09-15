@@ -34,7 +34,7 @@ export interface RecordingReport {
 }
 
 /** Lines the glasses body adds around captions; everything else in the body is caption text. */
-const NON_CAPTION = [/^\((audio not saved|saving audio)\)$/, /^Tap to resume/, /processing later/i, /loading/i, /^Captions ready\.$/, /^Restarting/, /slowed/i, /^Soniox/];
+const NON_CAPTION = [/^\((audio not saved|saving audio)\)$/, /^PAUSED$/, /^Tap to resume/, /processing later/i, /loading/i, /^Captions ready\.$/, /^Restarting/, /slowed/i, /^Soniox/];
 
 /**
  * The app's live path as services.ts wires it, in Node with real models: RecordingController →
@@ -92,12 +92,13 @@ export async function createLiveApp(opts: LiveAppOptions = {}) {
   const onGlasses: ((c: { status: string; body: string }) => void)[] = [];
   const setText = (id: number, content: string) => {
     if (id === 1) shown.status = content;
-    else shown.body = content;
+    else if (id === 2) shown.body = content;
+    else return;
     onGlasses.forEach((l) => l({ ...shown }));
   };
   const bridge = {
-    createStartUpPageContainer: async (p: { textObject: { content: string }[] }) => (p.textObject.forEach((t, i) => setText(i + 1, t.content)), 0),
-    rebuildPageContainer: async (p: { textObject: { content: string }[] }) => (p.textObject.forEach((t, i) => setText(i + 1, t.content)), true),
+    createStartUpPageContainer: async (p: { textObject: { containerID: number; content: string }[] }) => (p.textObject.forEach((t) => setText(t.containerID, t.content)), 0),
+    rebuildPageContainer: async (p: { textObject: { containerID: number; content: string }[] }) => (p.textObject.forEach((t) => setText(t.containerID, t.content)), true),
     textContainerUpgrade: async (p: { containerID: number; content: string }) => (setText(p.containerID, p.content), true),
     audioControl: async () => true,
     shutDownPageContainer: async () => true,

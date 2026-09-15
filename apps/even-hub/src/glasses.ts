@@ -1,6 +1,6 @@
 import { OsEventTypeList, StartUpPageCreateResult, type EvenAppBridge, type EvenHubEvent } from "@evenrealities/even_hub_sdk";
 import { getBridge, onHubEvent } from "@irl/capture";
-import { activeProfile, formatClock, G2_MENU_LABEL_MAX_BYTES, MAX_CONFIG_PROFILES, truncateUtf8, utf8ByteLength, errorMessage, SERVICE_NAMES } from "@irl/domain";
+import { activeProfile, G2_MENU_LABEL_MAX_BYTES, MAX_CONFIG_PROFILES, truncateUtf8, utf8ByteLength, errorMessage, SERVICE_NAMES } from "@irl/domain";
 import { describe, fmt, localeChanges, t } from "@irl/i18n";
 import type { LiveSnapshot, RecordingController } from "@irl/pipeline";
 import type { SettingsStore } from "@irl/storage";
@@ -12,6 +12,12 @@ const log = logger("glasses");
 const MENU = { start: 1, stop: 2, pause: 3, resume: 4, marker: 5, toggleAudio: 6, firstProfile: 100 } as const;
 const STATUS = { id: 1, name: "status" };
 const BODY = { id: 2, name: "body" };
+const DOT = { id: 3, name: "rec-dot" };
+const CONTAINERS = [STATUS, BODY, DOT] as const;
+const REC_DOT = "•";
+/** The recording dot is on screen almost all the time and blinks off briefly, so it reads as live without nagging. */
+const DOT_ON_MS = 5000;
+const DOT_OFF_MS = 400;
 const TEXT_LIMIT = 900;
 /** Loads shorter than this (a model that was already in memory) don't flash a loading line. */
 const LOADING_SHOW_AFTER_MS = 400;
@@ -49,8 +55,8 @@ function label(text: string) {
 }
 
 /**
- * The constrained G2 surface (plan.md §10): idle start page, and while recording a persistent REC
- * indicator with elapsed time, the current speaker, the last caption lines, and degraded-state text.
+ * The constrained G2 surface (plan.md §10): idle start page, and while recording a small dot blinking now and then in the
+ * top-right corner (the recording indicator), the current speaker, the last caption lines, and degraded-state text.
  * Touchpad gestures mirror Even's Conversate: tap to start, tap to pause or resume, double tap to end
  * (stop and summarize). Double tap on the idle root page opens the system exit dialog, as Even Hub
  * app review requires. The contextual menu adds marker and the "Save audio" toggle, and on the idle page one item per
@@ -71,6 +77,8 @@ export class GlassesController {
   private nameVersion = "";
   /** Profile ids behind the menu items on the glasses now, so a click acts on what was shown. */
   private menuProfiles: string[] = [];
+  private dotOn = true;
+  private blinkTimer: ReturnType<typeof setTimeout> | null = null;
   failures = 0;
 
   constructor(
@@ -178,17 +186,24 @@ export class GlassesController {
   private page(mode: Mode, s: LiveSnapshot) {
     const texts = this.texts(mode, s);
     const menu = this.menu(mode);
+    // While capturing there's no status line: captions take the full height, beside the dot's column.
+    const textObject =
+      texts.status === null
+        ? [{ xPosition: 0, yPosition: 0, width: 528, height: 288, containerID: BODY.id, containerName: BODY.name, content: texts.body, isEventCapture: 1 }]
+        : [
+            { xPosition: 0, yPosition: 0, width: 528, height: 48, containerID: STATUS.id, containerName: STATUS.name, content: texts.status, isEventCapture: 0 },
+            { xPosition: 0, yPosition: 52, width: 576, height: 236, containerID: BODY.id, containerName: BODY.name, content: texts.body, isEventCapture: 1 },
+          ];
+    textObject.push({ xPosition: 536, yPosition: 0, width: 40, height: 48, containerID: DOT.id, containerName: DOT.name, content: texts.dot, isEventCapture: 0 });
     return {
-      containerTotalNum: 2,
-      textObject: [
-        { xPosition: 0, yPosition: 0, width: 576, height: 48, containerID: STATUS.id, containerName: STATUS.name, content: texts.status, isEventCapture: 0 },
-        { xPosition: 0, yPosition: 52, width: 576, height: 236, containerID: BODY.id, containerName: BODY.name, content: texts.body, isEventCapture: 1 },
-      ],
+      containerTotalNum: textObject.length,
+      textObject,
       ...(menu.length ? { menuObject: { menuItems: menu } } : {}),
     };
   }
 
-  private texts(mode: Mode, s: LiveSnapshot): { status: string; body: string } {
+  /** Page text per container; status is null on the recording and paused pages, which have no status line. */
+  private texts(mode: Mode, s: LiveSnapshot): { status: string | null; body: string; dot: string } {
     const g = t().glasses;
     const provider = s.provider === "local" ? g.local : SERVICE_NAMES[s.provider];
     const audio = s.persistAudio ? g.savingAudio : g.audioNotSaved;
@@ -204,14 +219,12 @@ export class GlassesController {
         missing.length ? g.notDownloaded(missing.join(", ")) : "",
         g.idleHint,
       ];
-      return { status: `${t().common.appName}  ${provider}`, body: truncateUtf8(lines.filter(Boolean).join("\n"), TEXT_LIMIT) };
+      return { status: `${t().common.appName}  ${provider}`, body: truncateUtf8(lines.filter(Boolean).join("\n"), TEXT_LIMIT), dot: " " };
     }
-    if (mode === "finalizing") return { status: g.stopped, body: g.processing };
-    // The recording indicator is always the first thing on the status line (plan.md §11: never covert).
-    const indicator = mode === "paused" ? g.paused : g.rec;
+    if (mode === "finalizing") return { status: g.stopped, body: g.processing, dot: " " };
+    // The dot shows for as long as audio is being captured (plan.md §11: never covert); paused says so in words.
+    const dot = mode === "recording" && this.dotOn ? REC_DOT : " ";
     const speakerOf = (clusterId: string | null) => (clusterId && s.recordingId ? this.nameCache.get(`${s.recordingId}:${clusterId}`) : undefined);
-    const speaker = speakerOf(s.currentClusterId)?.name;
-    const status = `${indicator} ${formatClock(s.capturedSamples)}  ${speaker ?? ""}`.trim();
     const settings = this.settings.get();
     // With "Hide my speech" on, lines from a speaker attributed to the wearer are left off. A "Name?" candidate isn't
     // enough: hiding someone else's words on a weak match is worse than showing the wearer's own.
@@ -236,17 +249,37 @@ export class GlassesController {
       const hint = mode === "paused" ? g.pausedHint : "";
       const captions = settings.showCaptionsOnGlasses;
       const modelsLine = !captions ? "" : line === "loading" ? g.loadingLive : line === "ready" ? g.captionsReady : "";
-      body = [captions ? tail : "", modelsLine, degraded, hint, g.audioTag(audio)].filter(Boolean).join("\n");
+      body = [mode === "paused" ? g.paused : "", captions ? tail : "", modelsLine, degraded, hint, g.audioTag(audio)].filter(Boolean).join("\n");
     }
-    return { status: truncateUtf8(status, 120), body: truncateUtf8(body || " ", TEXT_LIMIT) };
+    return { status: null, body: truncateUtf8(body || " ", TEXT_LIMIT), dot };
   }
 
   private onSnapshot(s: LiveSnapshot): void {
     this.lastSnapshot = s;
     const mode = modeOf(s);
     if (mode === "recording") this.notice = null;
+    this.syncBlink(mode);
     void this.refreshNames(s);
     void this.render(s, mode !== this.mode);
+  }
+
+  /** Blinks the dot while recording; stops (and resets to on) otherwise. Each blink is one 3-byte text upgrade. */
+  private syncBlink(mode: Mode): void {
+    if (mode !== "recording") {
+      if (this.blinkTimer) clearTimeout(this.blinkTimer);
+      this.blinkTimer = null;
+      this.dotOn = true;
+      return;
+    }
+    if (this.blinkTimer) return;
+    const tick = () => {
+      this.blinkTimer = setTimeout(() => {
+        this.dotOn = !this.dotOn;
+        this.rerender();
+        tick();
+      }, this.dotOn ? DOT_ON_MS : DOT_OFF_MS);
+    };
+    tick();
   }
 
   private async refreshNames(s: LiveSnapshot): Promise<void> {
@@ -301,8 +334,7 @@ export class GlassesController {
         const page = this.page(mode, s);
         const ok = await this.bridge.rebuildPageContainer(page as never);
         if (ok) {
-          this.shown.set(STATUS.id, page.textObject[0]!.content);
-          this.shown.set(BODY.id, page.textObject[1]!.content);
+          for (const c of page.textObject) this.shown.set(c.containerID, c.content);
         } else {
           this.failures++;
           this.failedRebuild();
@@ -314,10 +346,12 @@ export class GlassesController {
       }
       return;
     }
-    const t = this.texts(mode, s);
-    for (const [id, content] of [[STATUS.id, t.status], [BODY.id, t.body]] as const) {
-      if (this.shown.get(id) === content) continue;
-      const name = id === STATUS.id ? STATUS.name : BODY.name;
+    const texts = this.texts(mode, s);
+    const contents = { [STATUS.id]: texts.status, [BODY.id]: texts.body, [DOT.id]: texts.dot };
+    for (const { id, name } of CONTAINERS) {
+      const content = contents[id];
+      // Only containers on the current page; the rebuild for a mode change is queued ahead of this.
+      if (content === null || content === undefined || this.shown.get(id) === content) continue;
       const ok = await this.bridge.textContainerUpgrade({ containerID: id, containerName: name, content } as never).catch(() => false);
       if (ok) this.shown.set(id, content);
       else this.failures++;

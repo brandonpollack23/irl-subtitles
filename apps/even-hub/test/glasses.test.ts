@@ -103,7 +103,7 @@ describe("glasses model loading notice", () => {
     const body = async () => {
       await internals.renderTail;
       const upgrades = bridge.textContainerUpgrade.mock.calls.filter(([u]) => u.containerID === 2);
-      return upgrades.length ? upgrades.at(-1)![0].content : bridge.rebuildPageContainer.mock.calls.at(-1)![0].textObject[1]!.content;
+      return upgrades.length ? upgrades.at(-1)![0].content : (bridge.rebuildPageContainer.mock.calls.at(-1)![0].textObject as unknown as { containerID: number; content: string }[]).find((c) => c.containerID === 2)!.content;
     };
     return { glasses, bridge, body };
   }
@@ -208,6 +208,51 @@ describe("glasses model loading notice", () => {
     expect(await render({ hideOwnSpeechOnGlasses: true })).toBe("Alice: Where are you from?\nBrandon?: Seattle.\nAnd you\n(audio not saved)");
   });
 
+  it("shows recording as a small dot in the top-right corner that blinks off now and then, with captions taking the status line's space (irl-subt-gxu)", async () => {
+    vi.useFakeTimers();
+    const { glasses, bridge } = page("recording");
+    const internals = glasses as unknown as { onSnapshot(s: LiveSnapshot): void; renderTail: Promise<void> };
+    type Box = { containerID: number; content: string; xPosition: number; yPosition: number; width: number; height: number };
+    // Latest content per container, whether it arrived in a page rebuild or a text upgrade.
+    const latest = new Map<number, { content: string }>();
+    const layouts: Box[][] = [];
+    bridge.rebuildPageContainer.mockImplementation(async (p) => {
+      const objs = (p as unknown as { textObject: Box[] }).textObject;
+      layouts.push(objs);
+      for (const c of objs) latest.set(c.containerID, { content: c.content });
+      return true;
+    });
+    bridge.textContainerUpgrade.mockImplementation(async (u) => (latest.set(u.containerID, { content: u.content }), true));
+    const shown = async (id: number) => {
+      await internals.renderTail;
+      return latest.get(id);
+    };
+    await internals.renderTail;
+    // No status line: the body starts at the top, full height, beside the dot's column.
+    expect(layouts.at(-1)!.map((c) => c.containerID)).toEqual([2, 3]);
+    expect(layouts.at(-1)!.find((c) => c.containerID === 2)).toMatchObject({ xPosition: 0, yPosition: 0, width: 528, height: 288 });
+    expect(layouts.at(-1)!.find((c) => c.containerID === 3)).toMatchObject({ xPosition: 536, width: 40 });
+    expect(bridge.textContainerUpgrade.mock.calls.some(([u]) => u.containerID === 1)).toBe(false);
+    // A small dot, on screen most of the time, briefly off every few seconds.
+    expect((await shown(3))?.content).toBe("•");
+    await vi.advanceTimersByTimeAsync(4900);
+    expect((await shown(3))?.content).toBe("•");
+    await vi.advanceTimersByTimeAsync(100);
+    expect((await shown(3))?.content).toBe(" ");
+    await vi.advanceTimersByTimeAsync(400);
+    expect((await shown(3))?.content).toBe("•");
+    // Paused: no dot, no blinking, and the body says so first.
+    const base = { provider: "local", persistAudio: false, capturedSamples: 16000 * 75, segments: [], provisionalText: "", recordingId: null, currentClusterId: null, labelsVersion: 0 };
+    internals.onSnapshot({ ...base, state: "paused" } as unknown as LiveSnapshot);
+    expect((await shown(3))?.content).toBe(" ");
+    expect((await shown(2))!.content.split("\n")[0]).toBe("PAUSED");
+    const dotUpdates = () => bridge.textContainerUpgrade.mock.calls.filter(([u]) => u.containerID === 3).length;
+    const before = dotUpdates();
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(dotUpdates()).toBe(before);
+    vi.useRealTimers();
+  });
+
   it("says on the idle page when a model failed to load or isn't downloaded", async () => {
     vi.useFakeTimers();
     const { glasses, body } = page("idle");
@@ -281,7 +326,7 @@ describe("glasses profile menu (irl-subt-r4t)", () => {
     await click("Cloud");
     expect(switchProfile).toHaveBeenCalledWith(cloud.id);
     expect((await menu()).map((i) => i.itemName)).toEqual(["Start recording", "Save audio: off", "Local", "* Cloud"]);
-    const bodies = [...bridge.rebuildPageContainer.mock.calls.map(([p]) => p.textObject[1]!.content), ...bridge.textContainerUpgrade.mock.calls.filter(([u]) => u.containerID === 2).map(([u]) => u.content)];
+    const bodies = [...bridge.rebuildPageContainer.mock.calls.map(([p]) => (p.textObject as unknown as { containerID: number; content: string }[]).find((c) => c.containerID === 2)!.content), ...bridge.textContainerUpgrade.mock.calls.filter(([u]) => u.containerID === 2).map(([u]) => u.content)];
     expect(bodies.some((b) => b.startsWith("Profile: Cloud\nCan't run as saved; using this phone's default for: Live captions."))).toBe(true);
   });
 

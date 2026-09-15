@@ -42,7 +42,7 @@ describe("catalogs", () => {
   it("leaves no English in Japanese beyond names and technical terms", () => {
     // Brand and product names, units, and tokens that stay Latin in Japanese UI text.
     const allowed = new Set([
-      "common.appName", "settings.version", "glasses.rec", "diagnostics.webgpu", "glasses.profileActive",
+      "common.appName", "settings.version", "diagnostics.webgpu", "glasses.profileActive",
       // Punctuation-only templates around values.
       "boot.step", "settings.downloadCount", "settings.bytesOf", "glasses.audioTag", "speakers.maybe", "selection.withModel", "stages.fromService", "dataFlow.sentence",
     ]);

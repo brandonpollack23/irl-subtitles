@@ -56,7 +56,7 @@ export const en = {
     consentTitle: "Before you record",
     consentLaws: "Recording laws differ by place. Many require everyone in a conversation to agree to being recorded. You're responsible for getting that consent.",
     /** **bold** and _emphasis_ are rendered as markup. */
-    consentIndicators: "While recording, the glasses show **REC** and this phone shows a red recording banner. By default, processing stays on this phone. Audio is only saved if you turn on _Save audio_.",
+    consentIndicators: "While recording, a dot blinks in the top-right corner of the glasses and this phone shows a red recording banner. By default, processing stays on this phone. Audio is only saved if you turn on _Save audio_.",
     consentVoices: "Voice profiles are biometric data. They stay on this phone, encrypted, and you can forget any voice at any time.",
     consentAccept: "I understand",
   },
@@ -348,7 +348,6 @@ export const en = {
       stop: "Stop and summarize",
     },
     local: "Local",
-    rec: "REC",
     paused: "PAUSED",
     savingAudio: "saving audio",
     audioNotSaved: "audio not saved",
