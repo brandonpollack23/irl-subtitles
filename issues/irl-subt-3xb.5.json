@@ -13,9 +13,15 @@
   "id": "irl-subt-3xb.5",
   "labels": [],
   "parent": "irl-subt-3xb",
+  "comments": [
+    {
+      "text": "Implemented against documented API with fake-socket tests; on-device end-to-end with a real key is tracked in irl-subt-3xb.9.",
+      "timestamp": "2026-09-15T04:38:38Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "Speechmatics live provider: realtime STT and diarization",
   "type": "task",
-  "updated_at": "2026-09-15T04:33:01Z"
+  "updated_at": "2026-09-15T04:38:38Z"
 }
