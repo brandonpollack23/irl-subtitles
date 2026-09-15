@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-15T10:09:27Z",
+  "description": "Spike 2 (irl-subt-0i6.2) showed that WebGPU works in the Even Android WebView, but the page is never cross-origin isolated there, so WASM is single-threaded. Which target is faster depends on the device and the model. Add a Settings \u003e Models 'Model compute' choice: Automatic (today's selectTarget: benchmarks, manifest, power policy), WebGPU, or CPU, with a note that results vary by phone and model. Models that can only run one way (Silero VAD and Moonshine Streaming are CPU only; summary LLMs and Whisper Large-v3-Turbo are GPU only) ignore it. WebGPU falls back to CPU when there's no GPU or a load fails. Changing it reloads warm live models. en and ja strings.",
+  "id": "irl-subt-re3",
+  "labels": [],
+  "priority": 2,
+  "status": "open",
+  "title": "Settings: let the user choose WebGPU or CPU for local models, with a your-mileage-may-vary note",
+  "type": "task",
+  "updated_at": "2026-09-15T10:09:27Z"
+}
