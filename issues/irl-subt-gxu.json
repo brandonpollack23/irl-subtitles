@@ -2,13 +2,14 @@
   "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [],
+  "closed_at": "2026-09-15T09:35:06Z",
   "created": "2026-09-15T09:31:44Z",
   "description": "The G2 status line 'REC 00:12  Speaker' is too big. While recording, a dot blinks in its own small top-right container; the timer leaves the glasses (the phone keeps it). Paused shows PAUSED on the left. Consent text and plan.md say the glasses show a blinking dot instead of REC.",
   "id": "irl-subt-gxu",
   "labels": [],
   "priority": 2,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Glasses recording indicator: a small blinking dot in the top-right corner instead of REC and the timer",
   "type": "task",
-  "updated_at": "2026-09-15T09:31:44Z"
+  "updated_at": "2026-09-15T09:35:06Z"
 }
