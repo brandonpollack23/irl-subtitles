@@ -9,9 +9,15 @@
   "id": "irl-subt-3xb.4",
   "labels": [],
   "parent": "irl-subt-3xb",
+  "comments": [
+    {
+      "text": "Desk probe 2026-09-15 (no account, no device): CORS OK for mp.speechmatics.com and asr.api.speechmatics.com; 401 from mp. has no ACAO so key test uses GET asr.api/v2/jobs; realtime bad JWT -\u003e Error not_authorised + close 4001; Soniox async CORS open. Probe panel added (Speechmatics tab). Results: spikes/phase0-probe/results/speechmatics/2026-09-15-desk.md. Still open: on-device Android/iOS runs with a real key (whitelist, latency, speaker ID round trip, batch from WebView). Implementation proceeds on the documented API; left open until device results exist.",
+      "timestamp": "2026-09-15T04:32:44Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "Spike: Speechmatics realtime, batch and speaker ID from the Even WebView",
   "type": "task",
-  "updated_at": "2026-09-15T04:29:26Z"
+  "updated_at": "2026-09-15T04:32:44Z"
 }
