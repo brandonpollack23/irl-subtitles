@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [],
   "created": "2026-09-15T03:51:05Z",
@@ -7,8 +7,8 @@
   "id": "irl-subt-3xb",
   "labels": [],
   "priority": 2,
-  "status": "open",
+  "status": "in_progress",
   "title": "Cloud services as selectable models; Speechmatics STT, diarization and voice identification",
   "type": "epic",
-  "updated_at": "2026-09-15T03:51:05Z"
+  "updated_at": "2026-09-15T04:15:24Z"
 }
