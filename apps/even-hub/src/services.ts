@@ -26,19 +26,16 @@ import {
   type RecoveredRecording,
 } from "@irl/pipeline";
 import {
-  availabilityOnDevice,
   catalogEntry,
   defaultSelection,
   defaultWorkers,
-  entriesForRole,
+  embeddingSpaceOf,
   liveMetrics,
   LocalEngines,
   LocalToolkit,
   ModelWarmup,
   summarizeLiveMetrics,
   type LiveMetric,
-  ROLE_KEYS,
-  supportsLanguage,
   type DeviceCapabilities,
 } from "@irl/provider-local";
 import { SonioxAsyncProvider, SonioxSpeechProvider } from "@irl/provider-soniox";
@@ -48,6 +45,7 @@ import workletUrl from "@irl/capture/worklet?worker&url";
 import { GlassesController } from "./glasses";
 import { installConsoleCapture, logger, setLogContent } from "./log";
 import { platformReport } from "./platform";
+import { fitDevice, switchProfile, type ProfileSwitch } from "./profiles";
 
 const log = logger("boot");
 
@@ -74,6 +72,8 @@ export interface AppServices {
   /** Why the recording isn't using the chosen microphone. */
   sourceNote: "glasses-fallback" | null;
   saveBenchmarks(results: BenchmarkResult[]): Promise<void>;
+  /** Switches to a saved configuration profile (irl-subt-r4t); null when it no longer exists. */
+  switchProfile(id: string): Promise<ProfileSwitch | null>;
 }
 
 const BENCH_KEY = "benchmarks.v1";
@@ -108,19 +108,9 @@ export async function boot(onStep: (step: BootStep) => void = () => undefined): 
   // preferred option that can, so a fresh install never starts with an unusable model.
   {
     const current = settings.get();
-    const models = { ...current.models };
-    let changed = false;
-    for (const role of ["vad", "stt-live", "stt-final", "speaker-embedding", "summary"] as const) {
-      const key = ROLE_KEYS[role];
-      const entry = catalogEntry(models[key]);
-      if (!entry || availabilityOnDevice(entry, caps).status === "available") continue;
-      const options = entriesForRole(role).filter((e) => availabilityOnDevice(e, caps).status === "available" && supportsLanguage(e, current.language));
-      const next = options.find((e) => e.planDefault) ?? options[0];
-      (models as Record<string, string>)[key] = next?.id ?? (role === "stt-live" || role === "summary" ? "off" : role === "stt-final" ? "same-as-live" : models[key]);
-      log.warn(`${entry.displayName} can't run here; using ${next?.displayName ?? (models as Record<string, string>)[key]}`);
-      changed = true;
-    }
-    if (changed) await settings.update({ models });
+    const fitted = fitDevice(current.models, current.language, caps);
+    for (const r of fitted.replaced) log.warn(`${r.from} can't run here; using ${r.to}`);
+    if (fitted.replaced.length) await settings.update({ models: fitted.models });
   }
 
   const ephemeral = new EphemeralKeys();
@@ -283,6 +273,16 @@ export async function boot(onStep: (step: BootStep) => void = () => undefined): 
     devWav: null, sourceNote: null,
     setDevWav(file: { name: string; bytes: Uint8Array } | null) {
       services.devWav = file;
+    },
+    switchProfile(id: string) {
+      return switchProfile(
+        {
+          settings, caps,
+          hasSecret: (name) => storage.secrets.has(name),
+          migrateVoices: async (modelId) => ((await storage.repo.listProfiles()).length ? identity.migrateEmbeddingSpace(modelId, embeddingSpaceOf(modelId)) : null),
+        },
+        id,
+      );
     },
     async saveBenchmarks(results: BenchmarkResult[]) {
       const merged = [...engines.benchmarks.filter((b) => !results.some((r) => r.modelId === b.modelId && r.target === b.target)), ...results];

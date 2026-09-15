@@ -1,6 +1,7 @@
 import type { PersonId } from "./audio";
 import type { MatchPolicy } from "./identity";
 import type { ModelSelection, PowerPolicy } from "./models";
+import type { ConfigProfile } from "./profiles";
 import type { SecretName } from "./selection";
 
 export type CaptureSourceKind = "glasses" | "phone-mic" | "wav-file";
@@ -48,6 +49,10 @@ export interface Settings {
   speechmaticsRegion: "eu" | "us" | "au";
   /** Speechmatics speakers_sensitivity (0–1) for voice identification; null uses the service default. */
   speechmaticsSpeakersSensitivity: number | null;
+  /** Saved language, power and model setups to switch between (irl-subt-r4t), in the user's order. */
+  configProfiles: ConfigProfile[];
+  /** The profile last switched to; it only counts as active while the settings still match it. */
+  activeConfigProfileId: string | null;
 }
 
 export type CloudConsentKey = "soniox" | "speechmatics" | "speechmatics-voiceprints" | "summary-endpoint";
@@ -94,6 +99,8 @@ export function defaultSettings(models: ModelSelection): Settings {
     cloudConsent: {},
     speechmaticsRegion: "eu",
     speechmaticsSpeakersSensitivity: null,
+    configProfiles: [],
+    activeConfigProfileId: null,
   };
 }
 

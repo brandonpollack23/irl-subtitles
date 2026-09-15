@@ -3,6 +3,7 @@ export * from "./errors";
 export * from "./identity";
 export * from "./models";
 export * from "./people";
+export * from "./profiles";
 export * from "./providers";
 export * from "./recording";
 export * from "./selection";
