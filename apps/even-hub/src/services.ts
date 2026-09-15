@@ -93,6 +93,7 @@ export async function boot(onStep: (step: BootStep) => void = () => undefined): 
   onStep("device");
   const engines = new LocalEngines(defaultWorkers());
   engines.policy = settings.get().powerPolicy;
+  engines.computeMode = settings.get().computeMode;
   engines.benchmarks = (await storage.repo.getSetting<BenchmarkResult[]>(BENCH_KEY)) ?? [];
   const caps = await engines.capabilities();
   log.info("capabilities", caps);
@@ -228,6 +229,7 @@ export async function boot(onStep: (step: BootStep) => void = () => undefined): 
   });
   settings.changes.on((s: Settings) => {
     engines.policy = s.powerPolicy;
+    engines.computeMode = s.computeMode;
     setLogContent(s.diagnosticsIncludeContent);
   });
 

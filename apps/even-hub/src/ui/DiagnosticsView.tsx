@@ -17,7 +17,7 @@ export function DiagnosticsView() {
         capabilities: a.caps,
         inEvenApp: a.inEvenApp,
         glassesUiFailures: a.glasses.failures,
-        engines: { policy: a.engines.policy, benchmarks: a.engines.benchmarks.length },
+        engines: { policy: a.engines.policy, computeMode: a.engines.computeMode, benchmarks: a.engines.benchmarks.length },
         recovered: a.recovered.map((r) => ({ id: r.recording.id, readableChunks: r.readableChunks, badChunks: r.badChunks, audioLost: r.audioLost })),
       };
     },

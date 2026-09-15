@@ -277,6 +277,12 @@ export const en = {
     powerLow: "Save battery",
     powerBalanced: "Balanced",
     powerFast: "Fastest",
+    compute: "Run models on",
+    computeAuto: "Automatic",
+    computeWebGpu: "GPU (WebGPU)",
+    computeCpu: "CPU",
+    computeNote:
+      "Your mileage may vary: which is faster depends on the phone and the model. The GPU usually wins for bigger models but can run warmer; the CPU is often quicker for small ones. Automatic picks per model, from Measure this phone when you've run it. Speech detection and Moonshine Streaming always use the CPU, and summary models and Whisper Large-v3-Turbo always use the GPU.",
     download: "Download selected models",
     downloading: "Downloading…",
     measure: "Measure this phone",

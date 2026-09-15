@@ -117,6 +117,18 @@ describe("model warmup", () => {
     expect(t.warmup.current).toEqual({ loading: [], failed: [], missing: [], ready: true });
   });
 
+  it("re-warms when the compute mode changes, since the models load on another target", async () => {
+    const t = setup();
+    for (const id of ["silero-vad-v6", "campplus-voxceleb", "moonshine-base-en"]) t.loads.set(id, { ...deferred(), promise: Promise.resolve() });
+    await t.warmup.warm();
+    expect(t.engines.ensureEmbedding).toHaveBeenCalledTimes(1);
+
+    t.update({ computeMode: "cpu" });
+    await t.warmup.selectionChanged();
+    expect(t.engines.ensureEmbedding).toHaveBeenCalledTimes(2);
+    expect(t.engines.ensureLiveStt).toHaveBeenCalledTimes(2);
+  });
+
   it("loads nothing for roles a cloud option provides or for cloud options themselves", async () => {
     const t = setup();
     t.update({ models: { ...t.settings().models, sttLive: "speechmatics:enhanced", speakerEmbedding: "speechmatics:voice-id" } });

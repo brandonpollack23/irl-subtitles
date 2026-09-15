@@ -271,6 +271,12 @@ export const ja: Messages = {
     powerLow: "省電力",
     powerBalanced: "バランス",
     powerFast: "最速",
+    compute: "モデルの実行先",
+    computeAuto: "自動",
+    computeWebGpu: "GPU（WebGPU）",
+    computeCpu: "CPU",
+    computeNote:
+      "効果は端末やモデルによって異なります。大きなモデルは GPU のほうが速いことが多いものの、端末が熱くなりやすくなります。小さなモデルは CPU のほうが速いこともあります。「自動」はモデルごとに選び、「この端末を計測」を実行していればその結果を使います。音声検出と Moonshine Streaming は常に CPU、要約モデルと Whisper Large-v3-Turbo は常に GPU を使います。",
     download: "選択したモデルをダウンロード",
     downloading: "ダウンロード中…",
     measure: "この端末を計測",

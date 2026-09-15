@@ -459,6 +459,15 @@ function ModelsSection(props: SectionProps & { keys: Partial<Record<SecretName, 
           <option value="fast">{t().settings.powerFast}</option>
         </select>
       </label>
+      <label class="field">
+        {t().settings.compute}
+        <select value={props.s.computeMode} onChange={(e) => void props.update({ computeMode: e.currentTarget.value as Settings["computeMode"] })}>
+          <option value="auto">{t().settings.computeAuto}</option>
+          <option value="webgpu">{t().settings.computeWebGpu}</option>
+          <option value="cpu">{t().settings.computeCpu}</option>
+        </select>
+      </label>
+      <p class="small muted">{t().settings.computeNote}</p>
       <For each={ROLES}>
         {(role) => <ModelPicker role={role} resolution={resolved()[role]} progress={progress()} onChange={(id) => void setModel(role, id)} />}
       </For>

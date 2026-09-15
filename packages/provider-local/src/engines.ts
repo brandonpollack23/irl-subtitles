@@ -1,4 +1,4 @@
-import { Emitter, errorMessage, type BenchmarkResult, type ExecutionTarget, type ModelCatalogEntry, type PowerPolicy } from "@irl/domain";
+import { Emitter, errorMessage, type BenchmarkResult, type ComputeMode, type ExecutionTarget, type ModelCatalogEntry, type PowerPolicy } from "@irl/domain";
 import { catalogEntry, isStreamingStt } from "./catalog";
 import { availabilityOnDevice, detectCapabilities, selectTarget, type DeviceCapabilities } from "./device";
 import { downloadModelFiles, filesForTargets, missingFiles } from "./model-files";
@@ -46,6 +46,7 @@ export class LocalEngines {
   caps: DeviceCapabilities | null = null;
   benchmarks: BenchmarkResult[] = [];
   policy: PowerPolicy = "balanced";
+  computeMode: ComputeMode = "auto";
 
   constructor(private readonly workerFactory: Record<EngineKind, (flavor: OrtFlavor) => Worker>) {}
 
@@ -81,7 +82,7 @@ export class LocalEngines {
   }
 
   async targetFor(entry: ModelCatalogEntry): Promise<ExecutionTarget> {
-    return selectTarget(entry, await this.capabilities(), this.policy, this.benchmarks);
+    return selectTarget(entry, await this.capabilities(), this.policy, this.benchmarks, this.computeMode);
   }
 
   /**

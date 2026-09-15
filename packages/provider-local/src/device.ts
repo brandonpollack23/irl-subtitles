@@ -1,4 +1,4 @@
-import type { Availability, BenchmarkResult, ExecutionTarget, ModelCatalogEntry, PowerPolicy } from "@irl/domain";
+import type { Availability, BenchmarkResult, ComputeMode, ExecutionTarget, ModelCatalogEntry, PowerPolicy } from "@irl/domain";
 
 export interface DeviceCapabilities {
   platform: "android" | "ios" | "desktop";
@@ -97,11 +97,15 @@ export function availabilityOnDevice(entry: ModelCatalogEntry, caps: DeviceCapab
 
 /**
  * Per-model execution target (plan.md §5 ComputeRuntimeSelector): benchmark evidence first, then the
- * manifest's platform target, adjusted by power policy; WebGPU only when present.
+ * manifest's platform target, adjusted by power policy; WebGPU only when present. A compute mode other than "auto"
+ * overrides all of that for models that can run on either target.
  */
-export function selectTarget(entry: ModelCatalogEntry, caps: DeviceCapabilities, policy: PowerPolicy, benchmarks: readonly BenchmarkResult[] = []): ExecutionTarget {
+export function selectTarget(entry: ModelCatalogEntry, caps: DeviceCapabilities, policy: PowerPolicy, benchmarks: readonly BenchmarkResult[] = [], mode: ComputeMode = "auto"): ExecutionTarget {
   const needsGpu = entry.manifest.params?.requiresWebGpu === true;
   if (!caps.webgpu.available) return "wasm";
+  if (needsGpu) return "webgpu";
+  if (mode === "cpu") return "wasm";
+  if (mode === "webgpu") return "webgpu";
   const ok = benchmarks.filter((b) => b.modelId === entry.id && b.ok && b.realTimeFactor !== undefined);
   const gpu = ok.find((b) => b.target === "webgpu");
   const cpu = ok.find((b) => b.target === "wasm");

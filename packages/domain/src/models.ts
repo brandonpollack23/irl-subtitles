@@ -4,6 +4,9 @@ export type ExecutionTarget = "webgpu" | "wasm";
 
 export type PowerPolicy = "low-power" | "balanced" | "fast";
 
+/** The user's choice of where local models run: "auto" picks per model (benchmarks, manifest, power policy). */
+export type ComputeMode = "auto" | "webgpu" | "cpu";
+
 /**
  * How the local provider runs an entry:
  * - ort-silero / ort-fbank-embedding / ort-waveform-embedding: hand-written ORT Web session loops.

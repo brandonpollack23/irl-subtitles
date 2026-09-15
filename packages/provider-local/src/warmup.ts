@@ -21,7 +21,7 @@ interface WarmTarget {
 }
 
 export interface WarmupDeps {
-  settings: () => Pick<Settings, "models" | "powerPolicy">;
+  settings: () => Pick<Settings, "models" | "powerPolicy" | "computeMode">;
   /** A recording is capturing: its live run is loading the same models, so a new pass would only compete. */
   recording: () => boolean;
   /** Post-processing owns the workers and loads other models into them. */
@@ -133,7 +133,7 @@ export function liveIds(s: { models: ModelSelection }): string[] {
   return [locks.vad ? null : m.vad, m.speakerEmbedding, m.sttLive === "off" ? null : m.sttLive].filter((id): id is string => !!id && !!catalogEntry(id));
 }
 
-function keyOf(s: Pick<Settings, "models" | "powerPolicy">): string {
-  // Power policy picks the execution target, and a different target is a different load.
-  return JSON.stringify([s.powerPolicy, ...liveIds(s)]);
+function keyOf(s: Pick<Settings, "models" | "powerPolicy" | "computeMode">): string {
+  // Power policy and compute mode pick the execution target, and a different target is a different load.
+  return JSON.stringify([s.powerPolicy, s.computeMode, ...liveIds(s)]);
 }

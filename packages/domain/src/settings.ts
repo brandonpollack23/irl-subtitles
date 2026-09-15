@@ -1,6 +1,6 @@
 import type { PersonId } from "./audio";
 import type { MatchPolicy } from "./identity";
-import type { ModelSelection, PowerPolicy } from "./models";
+import type { ComputeMode, ModelSelection, PowerPolicy } from "./models";
 import type { ConfigProfile } from "./profiles";
 import type { SecretName } from "./selection";
 
@@ -22,6 +22,11 @@ export interface Settings {
   uiLanguage: UiLanguage;
   models: ModelSelection;
   powerPolicy: PowerPolicy;
+  /**
+   * WebGPU or CPU for local models that can run on either; models that only run one way ignore it. WebGPU still falls
+   * back to the CPU when the phone has no GPU or a load fails.
+   */
+  computeMode: ComputeMode;
   /** Default for the glasses "Save audio" toggle. Off: non-persisted mode. */
   persistAudio: boolean;
   deleteAudioAfterProcessing: boolean;
@@ -82,6 +87,7 @@ export function defaultSettings(models: ModelSelection): Settings {
     uiLanguage: "system",
     models,
     powerPolicy: "balanced",
+    computeMode: "auto",
     persistAudio: false,
     deleteAudioAfterProcessing: false,
     learnVoiceDefault: true,
