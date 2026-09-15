@@ -155,6 +155,8 @@ describe("crypto and secrets", () => {
     expect(store.get()).not.toHaveProperty("sonioxModel");
     expect(store.get().models).toEqual({ ...models, sttLive: "soniox:stt-rt-v5", summary: "cloud-summary" });
     expect(store.get().language).toBe("de");
+    // Saved before the display language existed: follows the phone, independent of the recording language.
+    expect(store.get().uiLanguage).toBe("system");
   });
 
   it("verifies blob writes", async () => {

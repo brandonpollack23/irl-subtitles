@@ -5,12 +5,20 @@ import type { SecretName } from "./selection";
 
 export type CaptureSourceKind = "glasses" | "phone-mic" | "wav-file";
 
+/** Languages the app's own text is translated into (irl-subt-0n7). English is the source. */
+export const UI_LOCALES = ["en", "ja"] as const;
+export type UiLocale = (typeof UI_LOCALES)[number];
+/** "system" follows the phone's preferred languages. */
+export type UiLanguage = "system" | UiLocale;
+
 /**
  * Non-secret settings (plan.md §10). Changes apply to the next recording: a recording snapshots
  * language and model selection (local models and cloud service options) when it starts.
  */
 export interface Settings {
   language: string;
+  /** Language of the app's own text; independent of the recording language. Applies immediately. */
+  uiLanguage: UiLanguage;
   models: ModelSelection;
   powerPolicy: PowerPolicy;
   /** Default for the glasses "Save audio" toggle. Off: non-persisted mode. */
@@ -66,6 +74,7 @@ export const LANGUAGES: readonly LanguageOption[] = [
 export function defaultSettings(models: ModelSelection): Settings {
   return {
     language: "en",
+    uiLanguage: "system",
     models,
     powerPolicy: "balanced",
     persistAudio: false,

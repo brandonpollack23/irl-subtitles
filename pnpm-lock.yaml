@@ -44,6 +44,9 @@ importers:
       '@irl/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@irl/i18n':
+        specifier: workspace:*
+        version: link:../../packages/i18n
       '@irl/pipeline':
         specifier: workspace:*
         version: link:../../packages/pipeline
@@ -95,6 +98,12 @@ importers:
         version: link:../storage
 
   packages/domain: {}
+
+  packages/i18n:
+    dependencies:
+      '@irl/domain':
+        specifier: workspace:*
+        version: link:../domain
 
   packages/pipeline:
     dependencies:

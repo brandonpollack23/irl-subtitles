@@ -23,6 +23,7 @@ import {
 import { availabilityOnDevice, catalogEntry, clearModelCache, defaultSelection, embeddingSpaceOf, entriesForRole, firstRunBenchmark, ROLE_KEYS, supportsLanguage, type LoadProgress } from "@irl/provider-local";
 import { testSonioxKey } from "@irl/provider-soniox";
 import { testSpeechmaticsKey } from "@irl/provider-speechmatics";
+import { LOCALE_NAMES, resolveLocale, t } from "@irl/i18n";
 import { app, bumpData, Button, bytes, toast, useData, useSettings } from "./lib";
 
 const ROLE_TITLES: Record<ModelRole, { title: string; hint: string }> = {
@@ -39,6 +40,7 @@ export function SettingsView() {
   return (
     <>
       <h1>Settings</h1>
+      <DisplaySection s={s()} update={update} />
       <RecordingSection s={s()} update={update} keys={keys.value() ?? {}} />
       <ServicesSection s={s()} update={update} keys={keys.value() ?? {}} />
       <ModelsSection s={s()} update={update} keys={keys.value() ?? {}} />
@@ -63,6 +65,22 @@ export function SettingsView() {
 }
 
 type SectionProps = { s: Settings; update: (p: Partial<Settings>) => Promise<void> };
+
+function DisplaySection(props: SectionProps) {
+  return (
+    <section class="panel">
+      <label class="field">
+        {t().display.title}
+        <span class="hint">{t().display.hint}</span>
+        <select value={props.s.uiLanguage} onChange={(e) => void props.update({ uiLanguage: e.currentTarget.value as Settings["uiLanguage"] })}>
+          <option value="system">{t().display.system(LOCALE_NAMES[resolveLocale("system")])}</option>
+          <option value="en" lang="en">{LOCALE_NAMES.en}</option>
+          <option value="ja" lang="ja">{LOCALE_NAMES.ja}</option>
+        </select>
+      </label>
+    </section>
+  );
+}
 
 function RecordingSection(props: SectionProps & { keys: Partial<Record<SecretName, boolean>> }) {
   const [wavName, setWavName] = createSignal(app().devWav?.name ?? null);
