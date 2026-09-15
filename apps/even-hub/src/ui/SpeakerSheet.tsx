@@ -1,5 +1,5 @@
 import { createSignal, For, Show } from "solid-js";
-import { activeAttributions, policyFor, resolveCluster, speakerLabel } from "@irl/domain";
+import { activeAttributions, isServiceVoiceSpace, policyFor, resolveCluster, speakerLabel } from "@irl/domain";
 import { app, bumpData, Button, Sheet, toast, useData } from "./lib";
 
 /**
@@ -20,7 +20,7 @@ export function SpeakerSheet(props: { recordingId: string; clusterId: string; on
       const clusterMap = new Map(clusters.map((c) => [c.clusterId, c]));
       const resolved = resolveCluster(clusterMap, cid);
       const current = speakerLabel(resolved, clusterMap, activeAttributions(attrs), new Map(people.map((p) => [p.id, p])));
-      const windows = (await repo.listWindows(rid)).filter((w) => resolveCluster(clusterMap, w.clusterId) === resolved);
+      const windows = (await repo.listWindows(rid)).filter((w) => !isServiceVoiceSpace(w.embeddingSpace) && resolveCluster(clusterMap, w.clusterId) === resolved);
       const space = windows[0]?.embeddingSpace;
       const candidate = space ? policyFor(space, app().settings.get().matchPolicies).candidateScore : 0.5;
       return { resolved, current, likely, candidate, voiceSeconds: windows.reduce((n, w) => n + (w.endSample - w.startSample) / 16000, 0) };

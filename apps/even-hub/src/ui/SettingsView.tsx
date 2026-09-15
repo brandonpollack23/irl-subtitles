@@ -351,13 +351,17 @@ function ModelsSection(props: SectionProps & { keys: Partial<Record<SecretName, 
     }
     if (role === "speaker-embedding" && id !== props.s.models.speakerEmbedding) {
       const profiles = await app().storage.repo.listProfiles();
-      if (profiles.length && !confirm("Switching the voice model changes how voices are compared. Saved voices are re-enrolled from their kept audio clips; people without clips need to be named again before they're recognized. Continue?")) {
+      const toService = !!serviceOption(id);
+      const question = toService
+        ? "Speechmatics will recognize saved voices instead of this phone. Saved voices are enrolled with Speechmatics by sending their kept audio clips; people without clips need to be named again before they're recognized. Continue?"
+        : "Switching the voice model changes how voices are compared. Saved voices are re-enrolled from their kept audio clips; people without clips need to be named again before they're recognized. Continue?";
+      if (profiles.length && !confirm(question)) {
         bumpData();
         return;
       }
       await props.update({ models });
-      if (profiles.length && !serviceOption(id)) {
-        toast("Re-enrolling saved voices…");
+      if (profiles.length) {
+        toast(toService ? "Enrolling saved voices with Speechmatics…" : "Re-enrolling saved voices…");
         const r = await app().identity.migrateEmbeddingSpace(id, embeddingSpaceOf(id));
         toast(`${r.reembedded} voice${r.reembedded === 1 ? "" : "s"} re-enrolled, ${r.needsReenrollment} need${r.needsReenrollment === 1 ? "s" : ""} naming again`);
       }

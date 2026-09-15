@@ -90,6 +90,25 @@ function sonioxAsync(model: string): ServiceOption {
 }
 
 export const SPEECHMATICS_VOICE_ID = "speechmatics:voice-id";
+/**
+ * Voice profiles holding Speechmatics speaker identifiers. Identifiers are tied to Speechmatics' model version; bump the
+ * suffix when they must be re-enrolled.
+ */
+export const SPEECHMATICS_VOICE_SPACE = "speechmatics-id@1";
+
+/** Spaces whose "vectors" are sealed service identifiers, never embeddings to compare locally. */
+export function isServiceVoiceSpace(space: string): boolean {
+  return space.startsWith("speechmatics-id@");
+}
+
+/** The opaque label a service sees for a saved person: never the name. */
+export function serviceVoiceLabel(personId: string): string {
+  return `P_${personId.replace(/[^A-Za-z0-9]/g, "")}`;
+}
+
+export function isVoiceIdOption(id: string): boolean {
+  return serviceOption(id)?.kind === "voice-id";
+}
 export const CLOUD_SUMMARY = "cloud-summary";
 
 export const SERVICE_OPTIONS: readonly ServiceOption[] = [

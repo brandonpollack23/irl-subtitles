@@ -5,7 +5,11 @@ import {
   Emitter,
   errorMessage,
   glassesSpeakerName,
+  isVoiceIdOption,
+  newId,
   serviceOption,
+  SPEECHMATICS_VOICE_ID,
+  SPEECHMATICS_VOICE_SPACE,
   type BenchmarkResult,
   type CloudFinalProvider,
   type LiveSpeechProvider,
@@ -118,7 +122,19 @@ export async function boot(onStep: (step: string) => void = () => undefined): Pr
   const ephemeral = new EphemeralKeys();
   const audio = new RecordingAudio(storage.repo, storage.blobs, (kind, id) => (kind === "durable" ? storage.durable : ephemeral.get(id)));
   const toolkit = new LocalToolkit(engines, () => settings.get());
-  const identity = new IdentityService(storage.repo, storage.blobs, storage.durable, audio, () => settings.get(), (m, w) => toolkit.embed(m, w));
+  // Saved identifiers refused (e.g. Speechmatics changed model version): stop sending them and re-enroll from clips.
+  function onIdentifiersRejected(reason: string): void {
+    log.warn("Speechmatics rejected saved voice identifiers", reason);
+    void identity.markServiceProfilesStale().then(() => identity.migrateEmbeddingSpace(SPEECHMATICS_VOICE_ID, SPEECHMATICS_VOICE_SPACE)).catch((e) => log.error("re-enrolling voices failed", errorMessage(e)));
+  }
+  const speechmaticsBatch = new SpeechmaticsBatchProvider({ apiKey: () => storage.secrets.get("speechmatics_api_key"), onIdentifiersRejected });
+  // Enrolls one person's kept clips with Speechmatics: the speaker with the most speech in the job is them.
+  const enrollWithSpeechmatics = async (wav: Uint8Array, language: string) => {
+    const r = await speechmaticsBatch.transcribe({ recordingId: "enroll", providerRunId: newId("enroll"), optionId: "speechmatics-batch:enhanced", language, wav, signal: new AbortController().signal, getSpeakers: true });
+    const span = (id: string) => r.turns.filter((t) => t.clusterId === id).reduce((n, t) => n + t.endSample - t.startSample, 0);
+    return [...(r.speakers ?? [])].sort((a, b) => span(b.clusterId) - span(a.clusterId))[0]?.identifiers ?? null;
+  };
+  const identity = new IdentityService(storage.repo, storage.blobs, storage.durable, audio, () => settings.get(), (m, w) => toolkit.embed(m, w), enrollWithSpeechmatics);
   const dataChanged = new Emitter<{ recordingId?: string }>();
   identity.changes.on((c) => dataChanged.emit({ recordingId: c.recordingId }));
 
@@ -130,14 +146,27 @@ export async function boot(onStep: (step: string) => void = () => undefined): Pr
     apiKey: () => storage.secrets.get("speechmatics_api_key"),
     region: () => settings.get().speechmaticsRegion,
     replay: (id, s, e) => audio.readRange(id, { startSample: s, endSample: e }),
+    speakerSession: async (config) => {
+      if (!isVoiceIdOption(config.embeddingModelId)) return { speakers: [], getSpeakers: false };
+      const sensitivity = settings.get().speechmaticsSpeakersSensitivity;
+      return { speakers: await identity.serviceSpeakers(), getSpeakers: true, ...(sensitivity !== null ? { sensitivity } : {}) };
+    },
+    onIdentifiersRejected,
   });
   const liveProviders: Record<string, LiveSpeechProvider> = { soniox, speechmatics };
-  const speechmaticsBatch = new SpeechmaticsBatchProvider({ apiKey: () => storage.secrets.get("speechmatics_api_key") });
   const sonioxAsync = new SonioxAsyncProvider({ apiKey: () => storage.secrets.get("soniox_api_key") });
   const finalProviders: Record<string, CloudFinalProvider> = { speechmatics: speechmaticsBatch, soniox: sonioxAsync };
   const cloudFinal = (optionId: string): CloudFinalProvider | null => {
     const o = serviceOption(optionId);
     return o?.kind === "batch-final" ? (finalProviders[o.service] ?? null) : null;
+  };
+
+  // With Speechmatics voice ID the phone still separates speakers live with its default voice model.
+  const local = toolkit.liveProvider();
+  const localLive: LiveSpeechProvider = {
+    id: local.id,
+    capabilities: local.capabilities,
+    start: (config) => local.start(isVoiceIdOption(config.embeddingModelId) ? { ...config, embeddingModelId: defaultSelection(config.language).speakerEmbedding } : config),
   };
 
   let controller!: RecordingController;
@@ -169,7 +198,7 @@ export async function boot(onStep: (step: string) => void = () => undefined): Pr
   controller = new RecordingController({
     repo: storage.repo, blobs: storage.blobs, durable: storage.durable, ephemeral, settings, identity,
     providers: async (optionId) => {
-      if (optionId === "local") return toolkit.liveProvider();
+      if (optionId === "local") return localLive;
       const provider = liveProviders[serviceOption(optionId)?.service ?? ""];
       if (!provider) throw new Error(`No live provider for ${optionId}`);
       return provider;

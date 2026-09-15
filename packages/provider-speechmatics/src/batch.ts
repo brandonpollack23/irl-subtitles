@@ -19,6 +19,8 @@ export interface SpeechmaticsBatchOptions {
   pollDelayMs?: (attempt: number) => number;
   /** Give up on a job that hasn't finished after this long. */
   timeoutMs?: number;
+  /** A job was refused over its speaker identifiers (e.g. after a model change). */
+  onIdentifiersRejected?: (reason: string) => void;
 }
 
 interface JobStatus {
@@ -52,6 +54,7 @@ export class SpeechmaticsBatchProvider implements CloudFinalProvider {
     const diarization: Record<string, unknown> = {};
     if (job.speakers?.length) diarization.speakers = job.speakers.map((s) => ({ label: s.label, speaker_identifiers: s.identifiers }));
     if (job.getSpeakers) diarization.get_speakers = true;
+    if (job.speakers?.length && job.speakersSensitivity !== undefined) diarization.speakers_sensitivity = job.speakersSensitivity;
     const config = {
       type: "transcription",
       transcription_config: { language, model: serviceOption(job.optionId)?.model ?? "enhanced", diarization: "speaker", ...(Object.keys(diarization).length ? { speaker_diarization_config: diarization } : {}) },
@@ -83,6 +86,8 @@ export class SpeechmaticsBatchProvider implements CloudFinalProvider {
       const status = ((await (await this.request(`${SPEECHMATICS_ENDPOINTS.batch}/v2/jobs/${id}`, { headers: auth, signal: job.signal })).json()) as JobStatus).job;
       if (status?.status === "done") return;
       if (status?.status && status.status !== "running") {
+        const reason = status.errors?.map((e) => e.message ?? "").join("; ") ?? "";
+        if (job.speakers?.length && /identifier/i.test(reason)) this.opts.onIdentifiersRejected?.(reason);
         throw new Error(`Speechmatics job ${status.status}${status.errors?.[0]?.message ? `: ${status.errors[0].message}` : ""}`);
       }
       job.onProgress?.("waiting for Speechmatics");

@@ -1,5 +1,6 @@
 import {
   errorMessage,
+  isVoiceIdOption,
   newId,
   nowIso,
   rangeDurationMs,
@@ -71,6 +72,9 @@ export class ProviderCoordinator {
   private emitScheduled = false;
   private pumps: Promise<void>[] = [];
   private finished = false;
+  /** Speechmatics voice ID: the service names enrolled voices; local matching doesn't run. */
+  private readonly serviceVoices: boolean;
+  private serviceIdentifiers: { clusterId: ClusterId; identifiers: string[] }[] = [];
   readonly runIds: string[] = [];
 
   constructor(
@@ -79,7 +83,9 @@ export class ProviderCoordinator {
     private readonly provider: LiveSpeechProvider,
     private readonly identity: IdentityService,
     private readonly onUpdate: (u: CoordinatorUpdate) => void,
-  ) {}
+  ) {
+    this.serviceVoices = isVoiceIdOption(recording.models.speakerEmbedding);
+  }
 
   async start(): Promise<void> {
     this.flushTimer = setInterval(() => void this.flush(), 1000);
@@ -161,7 +167,11 @@ export class ProviderCoordinator {
       case "cluster": {
         const c: SpeakerCluster = { recordingId: this.recording.id, clusterId: ev.clusterId, ordinal: ev.ordinal, evidenceMs: 0, ...(ev.providerLabel ? { providerLabel: ev.providerLabel } : {}) };
         this.clusters.set(c.clusterId, { ...c, ...this.clusters.get(c.clusterId) });
-        void this.repo.putCluster(this.clusters.get(c.clusterId)!);
+        const stored = this.repo.putCluster(this.clusters.get(c.clusterId)!);
+        if (this.serviceVoices && ev.providerLabel) {
+          const label = ev.providerLabel;
+          void stored.then(() => this.identifyByService(ev.clusterId, label));
+        }
         break;
       }
       case "window": {
@@ -172,13 +182,16 @@ export class ProviderCoordinator {
           const c = this.clusters.get(ev.clusterId);
           if (c) this.clusters.set(ev.clusterId, { ...c, evidenceMs: c.evidenceMs + rangeDurationMs(w) });
           const count = this.windowsByCluster.get(ev.clusterId)!.length;
-          if (!this.identified.has(ev.clusterId) && count <= LIVE_ID_EAGER_WINDOWS) this.identifySoon(ev.clusterId);
+          if (!this.serviceVoices && !this.identified.has(ev.clusterId) && count <= LIVE_ID_EAGER_WINDOWS) this.identifySoon(ev.clusterId);
         });
         break;
       }
       case "speech":
         this.speechActive = ev.active;
         break;
+      case "speakers":
+        this.serviceIdentifiers.push(...ev.speakers);
+        return;
       case "degraded":
         this.setDegraded(ev.reason);
         return;
@@ -242,6 +255,7 @@ export class ProviderCoordinator {
 
   /** Live name updates (plan.md §2, irl-subt-f9n.7): conservative matching on clusters with enough evidence. */
   private liveIdentify(): void {
+    if (this.serviceVoices) return;
     for (const [clusterId, windows] of this.windowsByCluster) if (windows.length >= 3) this.identifySoon(clusterId);
   }
 
@@ -252,6 +266,22 @@ export class ProviderCoordinator {
       this.identifyQueued.delete(clusterId);
       await this.identifyCluster(clusterId);
       this.scheduleEmit();
+    });
+  }
+
+  /** A cluster the service labeled with a saved person's token is named at once (the glasses show it live). */
+  private identifyByService(clusterId: ClusterId, providerLabel: string): void {
+    this.identifyTail = this.identifyTail.then(async () => {
+      try {
+        const d = await this.identity.serviceDecision(clusterId, providerLabel);
+        if (!d) return;
+        this.matches.set(clusterId, d);
+        this.identified.add(clusterId);
+        await this.identity.applyDecision(this.recording.id, d);
+        this.scheduleEmit();
+      } catch {
+        /* identification is best-effort during capture */
+      }
     });
   }
 
@@ -293,6 +323,7 @@ export class ProviderCoordinator {
     await Promise.race([this.identifyTail, new Promise((ok) => setTimeout(ok, 5_000))]);
     if (this.flushTimer) clearInterval(this.flushTimer);
     await this.flush();
+    if (this.serviceIdentifiers.length) await this.identity.storeServiceIdentifiers(this.recording.id, this.serviceIdentifiers).catch(() => undefined);
     this.emit();
   }
 

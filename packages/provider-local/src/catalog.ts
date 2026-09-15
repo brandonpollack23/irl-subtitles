@@ -1,4 +1,4 @@
-import type { ExecutionTarget, ModelAdapter, ModelCatalogEntry, ModelRole, ModelSelection } from "@irl/domain";
+import { isVoiceIdOption, SPEECHMATICS_VOICE_SPACE, type ExecutionTarget, type ModelAdapter, type ModelCatalogEntry, type ModelRole, type ModelSelection } from "@irl/domain";
 import lockJson from "./catalog.lock.json" with { type: "json" };
 
 /**
@@ -276,5 +276,6 @@ export function defaultSelection(language = "en"): ModelSelection {
 }
 
 export function embeddingSpaceOf(modelId: string): string {
+  if (isVoiceIdOption(modelId)) return SPEECHMATICS_VOICE_SPACE;
   return catalogEntry(modelId)?.embeddingSpace ?? `${modelId}@unknown`;
 }

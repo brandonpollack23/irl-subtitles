@@ -8,7 +8,7 @@
   "permissions": [
     {
       "name": "network",
-      "desc": "Downloads on-device speech models from Hugging Face once. Sends conversation audio to Soniox or Speechmatics only for the options you choose in Settings.",
+      "desc": "Downloads on-device speech models from Hugging Face once. Sends conversation audio to Soniox or Speechmatics only for the options you choose in Settings; with Speechmatics voice identification, Speechmatics also keeps voiceprints of people you name.",
       "whitelist": [
         "https://huggingface.co",
         "https://cdn-lfs.huggingface.co",

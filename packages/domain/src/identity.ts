@@ -124,6 +124,8 @@ export interface MatchDecision {
   agreement: number;
   status: "accepted" | "candidate" | "rejected";
   reason: string;
+  /** "service": the speech service recognized an enrolled voice (Speechmatics voice ID); scores don't apply. */
+  source?: "local" | "service";
 }
 
 function personScore(vector: Float32Array, profile: CandidateProfile): number {

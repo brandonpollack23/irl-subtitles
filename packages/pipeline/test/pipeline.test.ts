@@ -2,6 +2,7 @@ import "fake-indexeddb/auto";
 import { IDBFactory } from "fake-indexeddb";
 import { describe, expect, it, vi } from "vitest";
 import {
+  activeAttributions,
   AsyncQueue,
   defaultSettings,
   float32ToPcm,
@@ -14,6 +15,7 @@ import {
   type CloudFinalProvider,
   type FinalTranscriptJob,
   type ModelSelection,
+  type ServiceSpeaker,
   type SpeakerTurn,
   type TranscriptToken,
   type ConversationSummary,
@@ -154,7 +156,51 @@ function fakeCloudFinal(opts: { fail?: boolean; jobs?: FinalTranscriptJob[] } = 
   };
 }
 
-async function setup(wrapToolkit: (t: ProcessingToolkit) => ProcessingToolkit = (t) => t, opts: { models?: Partial<ModelSelection>; cloudFinal?: CloudFinalProvider; liveRequests?: string[] } = {}) {
+/**
+ * Speechmatics voice ID stand-in: labels a voice with a saved person's token when the session sent identifiers for
+ * that voice ("id-A"), otherwise S1/S2, and returns identifiers for every speaker at the end.
+ */
+class FakeVoiceIdProvider implements LiveSpeechProvider {
+  readonly id = "fake-speechmatics";
+  readonly capabilities = { transcription: "streaming", diarization: "fused-with-stt", persistentIdentity: true, languages: ["en"], execution: "cloud" } as const;
+  sessions: ServiceSpeaker[][] = [];
+  constructor(private readonly identity: IdentityService) {}
+  async start(config: { recordingId: string; providerRunId: string }): Promise<LiveSpeechRun> {
+    const speakers = await this.identity.serviceSpeakers();
+    this.sessions.push(speakers);
+    const events = new AsyncQueue<SpeechEvent>();
+    const seen = new Map<string, string>();
+    let acc = 0;
+    return {
+      providerRunId: config.providerRunId,
+      events,
+      push: (frame: AudioFrame) => {
+        acc += frame.pcm.byteLength / 2;
+        if (acc < SAMPLE_RATE * 2) return;
+        acc = 0;
+        const end = frame.startSample + frame.pcm.byteLength / 2;
+        const start = end - SAMPLE_RATE * 2;
+        const voice = Math.abs(new DataView(frame.pcm.buffer, frame.pcm.byteOffset).getInt16(0, true) / 32768) > 0.3 ? "B" : "A";
+        const enrolled = speakers.find((s) => s.identifiers.includes(`id-${voice}`));
+        const label = enrolled?.label ?? (voice === "A" ? "S1" : "S2");
+        const clusterId = enrolled ? `SM-${label}` : `S0-${label}`;
+        if (!seen.has(clusterId)) {
+          seen.set(clusterId, voice);
+          events.push({ type: "cluster", clusterId, ordinal: seen.size, providerLabel: label });
+        }
+        events.push({ type: "tokens", replaceProvisional: true, tokens: [{ id: newId("t"), recordingId: config.recordingId, providerRunId: config.providerRunId, startSample: start, endSample: end, text: ` ${voice}`, final: true, timing: "word" }] });
+        events.push({ type: "turns", turns: [{ id: newId("turn"), recordingId: config.recordingId, providerRunId: config.providerRunId, clusterId, startSample: start, endSample: end, final: true }] });
+      },
+      finish: async () => {
+        events.push({ type: "speakers", speakers: [...seen].map(([clusterId, voice]) => ({ clusterId, identifiers: [`id-${voice}`] })) });
+        events.close();
+      },
+      abort: async () => events.close(),
+    };
+  }
+}
+
+async function setup(wrapToolkit: (t: ProcessingToolkit) => ProcessingToolkit = (t) => t, opts: { models?: Partial<ModelSelection>; cloudFinal?: CloudFinalProvider; liveRequests?: string[]; live?: (identity: IdentityService) => LiveSpeechProvider; serviceEnroll?: (wav: Uint8Array) => Promise<string[] | null> } = {}) {
   const repo = new Repository(await SqlTableStore.open(nodeSqliteDriver()));
   const blobs = new MemoryBlobStore();
   const vault = await KeyVault.open(new IDBFactory());
@@ -163,7 +209,8 @@ async function setup(wrapToolkit: (t: ProcessingToolkit) => ProcessingToolkit = 
   const settings = await SettingsStore.open(repo, defaultSettings({ vad: "vad", sttLive: "stt", sttFinal: "stt-final", speakerEmbedding: "emb", summary: "llm", ...opts.models }));
   const audio = new RecordingAudio(repo, blobs, (kind, id) => (kind === "durable" ? durable : ephemeral.get(id)));
   const toolkit = wrapToolkit(fakeToolkit());
-  const identity = new IdentityService(repo, blobs, durable, audio, () => settings.get(), toolkit.embed);
+  const identity = new IdentityService(repo, blobs, durable, audio, () => settings.get(), toolkit.embed, opts.serviceEnroll);
+  const live = opts.live?.(identity);
   const captured: string[] = [];
   let controller!: RecordingController;
   const post = new PostProcessor({ repo, blobs, audio, toolkit, identity, settings, ephemeral, durable, isCapturing: () => controller.activeRecordingId !== null, cloudFinal: () => opts.cloudFinal ?? null });
@@ -171,7 +218,7 @@ async function setup(wrapToolkit: (t: ProcessingToolkit) => ProcessingToolkit = 
     repo, blobs, durable, ephemeral, settings, identity,
     providers: async (optionId) => {
       opts.liveRequests?.push(optionId);
-      return new FakeLiveProvider(optionId !== "local");
+      return live ?? new FakeLiveProvider(optionId !== "local");
     },
     createSource: async () => new ManualSource(),
     onCaptured: (id) => {
@@ -180,7 +227,7 @@ async function setup(wrapToolkit: (t: ProcessingToolkit) => ProcessingToolkit = 
     },
   });
   const waitDone = (id: string) => new Promise<void>((ok) => post.events.on((e) => e.recordingId === id && e.stage === "done" && ok()));
-  return { repo, blobs, durable, ephemeral, settings, audio, identity, post, controller, captured, waitDone };
+  return { repo, blobs, durable, ephemeral, settings, audio, identity, post, controller, captured, waitDone, live };
 }
 
 async function record(env: Awaited<ReturnType<typeof setup>>, script: ["A" | "B", number][], persistAudio = true, opts: { liveReady?: boolean } = {}) {
@@ -430,5 +477,103 @@ describe("cloud options (irl-subt-3xb.3)", () => {
     expect(rec.processing.finalStt).toMatchObject({ status: "skipped" });
     const t = await loadTranscript(env.repo, id);
     expect(t.segments[0]!.text).toMatch(/^live/);
+  }, 20_000);
+});
+
+describe("Speechmatics voice identification (irl-subt-3xb.7)", () => {
+  it("enrolls service identifiers when a speaker is named, names them live next time, and stops sending them after Forget voice", async () => {
+    const env = await setup(undefined, { models: { sttLive: "speechmatics:enhanced", speakerEmbedding: "speechmatics:voice-id" }, live: (identity) => new FakeVoiceIdProvider(identity) });
+    const provider = env.live as FakeVoiceIdProvider;
+    const first = await record(env, [["A", 6], ["B", 6]], true, { liveReady: true });
+    const rec = (await env.repo.getRecording(first))!;
+    expect(rec.processing.finalStt.status).toBe("skipped");
+    expect(rec.processing.diarization).toMatchObject({ status: "skipped", error: "speakers from Speechmatics" });
+    // Identifiers are kept sealed per speaker, outside the local voice windows.
+    const idWindows = (await env.repo.listWindows(first)).filter((w) => w.embeddingSpace === "speechmatics-id@1");
+    expect(idWindows.map((w) => w.clusterId).sort()).toEqual(["S0-S1", "S0-S2"]);
+    expect(new TextDecoder().decode(idWindows[0]!.sealedVector)).not.toContain("id-");
+
+    const { personId } = await env.identity.assign({ recordingId: first, clusterId: "S0-S1", person: { fullName: "Alice Liddell" }, learnVoice: true });
+    const summary = await env.identity.profileSummary(personId!);
+    expect(summary.profiles).toHaveLength(1);
+    expect(summary.profiles[0]).toMatchObject({ prototypes: 1, profile: { embeddingSpace: "speechmatics-id@1" } });
+    // Clips of her turns are kept so she can be re-enrolled after a model change.
+    expect(summary.profiles[0]!.clips).toBeGreaterThan(0);
+    const label = `P_${personId!.replace(/[^A-Za-z0-9]/g, "")}`;
+    expect(await env.identity.serviceSpeakers()).toEqual([{ label, identifiers: ["id-A"] }]);
+
+    const second = await record(env, [["A", 6], ["B", 4]], true, { liveReady: true });
+    expect(provider.sessions.at(-1)).toEqual([{ label, identifiers: ["id-A"] }]);
+    const attrs = activeAttributions(await env.repo.listAttributions(second));
+    expect(attrs.get(`SM-${label}`)).toMatchObject({ personId, source: "auto" });
+    expect([...attrs.keys()]).toEqual([`SM-${label}`]);
+    const exported = await exportRecording(env.repo, second);
+    expect(exported.json.speakers.find((s) => s.clusterId === `SM-${label}`)).toMatchObject({ label: "Alice Liddell", kind: "auto" });
+
+    await env.identity.forgetVoice(personId!, { keepLabels: true });
+    expect(await env.identity.serviceSpeakers()).toEqual([]);
+    await record(env, [["A", 4]], true, { liveReady: true });
+    expect(provider.sessions.at(-1)).toEqual([]);
+  }, 30_000);
+
+  it("keeps the identifier budget at 50 and re-enrolls stale profiles from kept clips", async () => {
+    const enrolled: Uint8Array[] = [];
+    const env = await setup(undefined, {
+      models: { sttLive: "speechmatics:enhanced", speakerEmbedding: "speechmatics:voice-id" },
+      live: (identity) => new FakeVoiceIdProvider(identity),
+      serviceEnroll: async (wav) => (enrolled.push(wav), ["id-new"]),
+    });
+    const id = await record(env, [["A", 6]], true, { liveReady: true });
+    const { personId } = await env.identity.assign({ recordingId: id, clusterId: "S0-S1", person: { fullName: "Alice" }, learnVoice: true });
+    // Many more people than identifiers allowed: everyone gets one before anyone gets a second.
+    for (let i = 0; i < 60; i++) {
+      const p = await env.identity.createPerson(`Person ${i}`);
+      const now = new Date(Date.UTC(2026, 0, 1, 0, i)).toISOString();
+      await env.repo.putProfile({ id: `prof${i}`, personId: p.id, embeddingSpace: "speechmatics-id@1", needsReenrollment: false, createdAt: now, updatedAt: now });
+      await env.repo.putPrototype({ id: `proto${i}`, profileId: `prof${i}`, sealedVector: await env.durable.seal(new TextEncoder().encode(JSON.stringify([`x${i}a`, `x${i}b`]))), quality: 1, evidenceMs: 1, sourceRecordingId: id, operationId: "op", createdAt: now });
+    }
+    const speakers = await env.identity.serviceSpeakers();
+    expect(speakers.reduce((n, s) => n + s.identifiers.length, 0)).toBe(50);
+    expect(speakers.every((s) => s.identifiers.length === 1)).toBe(true);
+
+    expect(await env.identity.markServiceProfilesStale()).toBe(61);
+    expect(await env.identity.serviceSpeakers()).toEqual([]);
+    const r = await env.identity.migrateEmbeddingSpace("speechmatics:voice-id", "speechmatics-id@1");
+    // Only Alice has clips; the rest need naming again.
+    expect(r).toEqual({ reembedded: 1, needsReenrollment: 60 });
+    expect(parseWav(enrolled[0]!).samples.length).toBeGreaterThan(SAMPLE_RATE);
+    const label = `P_${personId!.replace(/[^A-Za-z0-9]/g, "")}`;
+    expect(await env.identity.serviceSpeakers()).toEqual([{ label, identifiers: ["id-new"] }]);
+  }, 30_000);
+
+  it("sends saved voices with a batch job and names the live cluster the service labeled", async () => {
+    const jobs: FinalTranscriptJob[] = [];
+    const batch: CloudFinalProvider = {
+      id: "fake-speechmatics-batch",
+      transcribe: async (job) => {
+        jobs.push(job);
+        const base = await fakeCloudFinal().transcribe(job);
+        const alice = job.speakers?.find((sp) => sp.identifiers.includes("id-A"));
+        const rename = (id: string) => (alice && id === "B-S1" ? `SM-${alice.label}` : id);
+        const clusters = base.clusters.map((c) => ({ ...c, clusterId: rename(c.clusterId), providerLabel: alice && c.clusterId === "B-S1" ? alice.label : c.providerLabel }));
+        return { ...base, clusters, turns: base.turns.map((t) => ({ ...t, clusterId: rename(t.clusterId) })), speakers: clusters.map((c) => ({ clusterId: c.clusterId, identifiers: [`id-${c.clusterId}`] })) };
+      },
+    };
+    const env = await setup(undefined, { models: { sttFinal: "speechmatics-batch:enhanced", speakerEmbedding: "speechmatics:voice-id" }, cloudFinal: batch });
+    const alice = await env.identity.createPerson("Alice");
+    await env.repo.putProfile({ id: "prof-a", personId: alice.id, embeddingSpace: "speechmatics-id@1", needsReenrollment: false, createdAt: "2026-09-15T00:00:00Z", updatedAt: "2026-09-15T00:00:00Z" });
+    await env.repo.putPrototype({ id: "proto-a", profileId: "prof-a", sealedVector: await env.durable.seal(new TextEncoder().encode(JSON.stringify(["id-A"]))), quality: 1, evidenceMs: 1, sourceRecordingId: "x", operationId: "op", createdAt: "2026-09-15T00:00:00Z" });
+    await env.settings.update({ speechmaticsSpeakersSensitivity: 0.7 });
+
+    const id = await record(env, [["A", 8], ["B", 8]], true, { liveReady: true });
+    const label = `P_${alice.id.replace(/[^A-Za-z0-9]/g, "")}`;
+    expect(jobs[0]).toMatchObject({ speakers: [{ label, identifiers: ["id-A"] }], getSpeakers: true, speakersSensitivity: 0.7 });
+    const rec = (await env.repo.getRecording(id))!;
+    expect(rec.processing.identity).toMatchObject({ status: "done", error: "1 speakers recognized by Speechmatics" });
+    const attrs = activeAttributions(await env.repo.listAttributions(id));
+    expect(attrs.get("L1")).toMatchObject({ personId: alice.id, source: "auto" });
+    expect(attrs.has("L2")).toBe(false);
+    // Identifiers follow the live cluster ids the service speakers were mapped onto.
+    expect((await env.repo.listWindows(id)).filter((w) => w.embeddingSpace === "speechmatics-id@1").map((w) => w.clusterId).sort()).toEqual(["L1", "L2"]);
   }, 20_000);
 });

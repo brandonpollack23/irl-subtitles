@@ -665,6 +665,43 @@ Audio can still stream directly from the phone to Soniox after the temporary key
 is issued.
 [Soniox direct streaming and temporary keys](https://soniox.com/docs/guides/direct-stream)
 
+### 6.2a Cloud services as per-role options (irl-subt-3xb)
+
+Cloud services are no longer a separate "provider" switch. Every role (speech
+detection, live captions, final transcript, voice model, summary) is one picker
+listing on-device models and cloud options side by side:
+
+| Option | Roles | Provides |
+| --- | --- | --- |
+| Soniox realtime, Speechmatics realtime | live captions | speech detection, final transcript |
+| Speechmatics batch, Soniox async (after Stop) | final transcript | speech detection while live captions are off |
+| Speechmatics voice identification | voice model | needs Speechmatics live captions or final transcript |
+| Cloud summary endpoint | summary | (transcript text only) |
+
+A role provided by another role's option shows "Provided by <service>" and is
+disabled. Options whose key isn't saved, whose language isn't supported, or
+whose dependency isn't selected are disabled with the reason. API keys are
+entries in a Services section. Local stays the default; each service asks for
+consent the first time an option would send it anything. A recording snapshots
+the resolved selection (which roles were provided by what).
+
+**Speechmatics** realtime uses a temporary key minted from the saved key
+(browsers must not send the long-lived key to the realtime host) and a raw
+WebSocket; batch uses the saved key. Speaker labels are scoped per connection
+like Soniox's. [Speechmatics realtime API](https://docs.speechmatics.com/api-ref/realtime-transcription-websocket)
+
+**Speechmatics voice identification** is the one exception to "voiceprints stay
+on the phone". With it selected, Speechmatics issues speaker identifiers
+(voiceprints tied to its model version, stored by Speechmatics for the account)
+when a speaker is named with "Learn this voice"; the phone keeps them sealed in
+a `speechmatics-id@<n>` voice space and sends up to 50 of them, under opaque
+per-person labels (never names), with each session or batch job so Speechmatics
+labels known people itself, live and after Stop. Forget voice deletes them from
+the phone so they are never sent again. If Speechmatics refuses them (e.g. a
+model change), profiles are marked for re-enrollment and re-enrolled from kept
+voice clips through a short batch job. This option has its own consent wording.
+[Speechmatics speaker identification](https://docs.speechmatics.com/speech-to-text/features/speaker-identification)
+
 ### 6.3 Summary provider
 
 Summarization should be another replaceable provider, even though it was not
@@ -977,13 +1014,15 @@ summary schema.
 
 ### Soniox settings behavior
 
+These apply to every cloud service key (Soniox, Speechmatics) in Settings › Services.
+
 - Key field is masked and never redisplays the stored key.
 - **Test key** performs the smallest supported authenticated request and reports
   only success or a sanitized error.
 - Switching from Soniox to Local takes effect on the next recording; it does not
   alter old recordings.
 - Removing the key disables new Soniox sessions but leaves existing transcripts
-  intact.
+  intact; roles that used the service fall back to on-device defaults.
 - Provider and data-transfer descriptions clearly state whether audio leaves the
   phone.
 
@@ -995,7 +1034,10 @@ than an ordinary contact label.
 - Local is the default provider.
 - Show a persistent recording indicator on both surfaces.
 - Explain that recording-consent laws vary and require the user to comply.
-- Never upload voice embeddings or profile samples in Soniox mode.
+- Never upload voice embeddings or profile samples in Soniox mode, or with any
+  on-device voice model. Only the explicitly chosen Speechmatics voice
+  identification option lets a service keep voiceprints, with its own consent;
+  kept clips are sent to it only to re-enroll saved voices.
 - Encrypt stored voice profiles, samples, and session audio.
 - Bundle application code; do not load third-party scripts at runtime.
 - Apply a restrictive CSP and explicit network allowlist. Even Hub requires both

@@ -122,6 +122,8 @@ export interface FinalTranscriptJob {
   speakers?: readonly ServiceSpeaker[];
   /** Ask the service for voiceprint identifiers of the speakers it found. */
   getSpeakers?: boolean;
+  /** How readily the service assigns speech to enrolled voices (0–1). */
+  speakersSensitivity?: number;
 }
 
 export interface FinalTranscriptResult {

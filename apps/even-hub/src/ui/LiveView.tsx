@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web";
 import { createMemo, createSignal, For, Show } from "solid-js";
-import { activeAttributions, describeDataFlow, SERVICE_NAMES, formatClock, policyFor, speakerLabel, type ClusterId, type MatchDecision, type Person, type SpeakerAttribution } from "@irl/domain";
+import { activeAttributions, describeDataFlow, isVoiceIdOption, SERVICE_NAMES, formatClock, policyFor, speakerLabel, type ClusterId, type MatchDecision, type Person, type SpeakerAttribution } from "@irl/domain";
 import { embeddingSpaceOf } from "@irl/provider-local";
 import { app, Button, go, speakerColor, SpeakerName, useData, useSettings } from "./lib";
 import { liveSnapshot, warmupStatus } from "./model";
@@ -172,10 +172,19 @@ function MatchDetails(props: { matches: MatchDecision[]; label: (id: ClusterId) 
           Tune
         </a>
       </div>
+      <Show
+        when={!isVoiceIdOption(s().models.speakerEmbedding)}
+        fallback={
+          <p class="small muted num">
+            Speechmatics names saved voices itself · sensitivity {s().speechmaticsSpeakersSensitivity === null ? "default" : s().speechmaticsSpeakersSensitivity!.toFixed(2)}
+          </p>
+        }
+      >
       <p class="small muted num">
         Recognize ≥ {policy().minScore.toFixed(2)} · possibly ≥ {policy().candidateScore.toFixed(2)} · lead {policy().minMargin.toFixed(2)} · speech {(policy().minEvidenceMs / 1000).toFixed(0)} s ·
         agreement {Math.round(policy().minWindowAgreement * 100)}%
       </p>
+      </Show>
       <Show when={props.matches.length} fallback={<p class="small muted">Scores appear once someone speaks.</p>}>
         <For each={props.matches}>
           {(d) => (
@@ -184,10 +193,15 @@ function MatchDetails(props: { matches: MatchDecision[]; label: (id: ClusterId) 
                 {props.label(d.clusterId)}
                 <span class="small muted">{outcome(d)}</span>
               </div>
+              <Show when={d.source === "service"}>
+                <span class="small num">{d.best ? props.name(d.best.personId) : ""} · labeled by Speechmatics</span>
+              </Show>
+              <Show when={d.source !== "service"}>
               <span class="small num">
                 {d.best ? `${props.name(d.best.personId)} ${d.best.score.toFixed(3)}` : "No saved voices to compare"}
                 {d.second ? ` · next ${props.name(d.second.personId)} ${d.second.score.toFixed(3)}` : ""} · {(d.evidenceMs / 1000).toFixed(1)} s · agreement {Math.round(d.agreement * 100)}%
               </span>
+              </Show>
               <Show when={d.status !== "accepted"}>
                 <span class="small muted">{d.reason}</span>
               </Show>

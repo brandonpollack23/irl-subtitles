@@ -40,6 +40,7 @@ const FATAL_ERRORS = new Set(["not_authorised", "invalid_model", "invalid_langua
 export interface SpeakerSession {
   speakers: readonly ServiceSpeaker[];
   getSpeakers: boolean;
+  sensitivity?: number;
 }
 
 export interface SpeechmaticsProviderOptions {
@@ -47,6 +48,8 @@ export interface SpeechmaticsProviderOptions {
   region?: () => SpeechmaticsRegion;
   /** Reads older audio from storage when a reconnect needs more than the in-memory ring holds. */
   replay?: (recordingId: string, startSample: number, endSample: number) => Promise<Float32Array | null>;
+  /** The service refused saved identifiers (e.g. after a model change): profiles need re-enrolling. */
+  onIdentifiersRejected?: (reason: string) => void;
   /** Speechmatics voice identification (irl-subt-3xb.7); absent: plain diarization. */
   speakerSession?: (config: TranscriptionConfig & { embeddingModelId: string }) => Promise<SpeakerSession>;
   socket?: (url: string) => SocketLike;
@@ -153,6 +156,7 @@ class SpeechmaticsRun implements LiveSpeechRun {
     const diarization: Record<string, unknown> = {};
     if (this.session.speakers.length) diarization.speakers = this.session.speakers.map((s) => ({ label: s.label, speaker_identifiers: s.identifiers }));
     if (this.session.getSpeakers) diarization.get_speakers = true;
+    if (this.session.speakers.length && this.session.sensitivity !== undefined) diarization.speakers_sensitivity = this.session.sensitivity;
     return {
       message: "StartRecognition",
       audio_format: { type: "raw", encoding: "pcm_s16le", sample_rate: SAMPLE_RATE },
@@ -190,8 +194,13 @@ class SpeechmaticsRun implements LiveSpeechRun {
       case "EndOfTranscript":
         conn.end();
         break;
+      case "Warning":
+        if (m.type === "speaker_id") this.events.push({ type: "error", message: `Speechmatics couldn't use saved voices: ${String(m.reason ?? "speaker identification warning")}`, fatal: false });
+        break;
       case "Error": {
         const type = String(m.type ?? "error");
+        // A session refused over its identifiers restarts without them once the profiles are marked stale.
+        if (this.session.speakers.length && /identifier/i.test(String(m.reason ?? ""))) this.opts.onIdentifiersRejected?.(String(m.reason));
         const message = `Speechmatics: ${type === "not_authorised" ? "the key was rejected" : String(m.reason ?? type)}`;
         if (FATAL_ERRORS.has(type)) {
           conn.failed = true;

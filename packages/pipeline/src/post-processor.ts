@@ -30,7 +30,10 @@ import {
   SERVICE_NAMES,
   serviceOption,
   wavHeader,
+  isServiceVoiceSpace,
+  isVoiceIdOption,
   type CloudFinalProvider,
+  type ServiceSpeaker,
   type FinalTranscriptResult,
   type ServiceOption,
 } from "@irl/domain";
@@ -297,9 +300,12 @@ export class PostProcessor {
     return { status: "done", note: `${result.tokens.length} words, ${result.clusters.length} speakers from ${SERVICE_NAMES[option.service]}${result.language ? `, language ${result.language}` : ""}` };
   }
 
-  /** Voices to send with a batch job; filled in by Speechmatics voice identification. */
-  protected async serviceSpeakers(_rec: Recording, _option: ServiceOption): Promise<{ speakers?: { label: string; identifiers: string[] }[]; getSpeakers?: boolean }> {
-    return {};
+  /** Voices to send with a batch job when the recording uses the service's voice identification. */
+  private async serviceSpeakers(rec: Recording, option: ServiceOption): Promise<{ speakers?: ServiceSpeaker[]; getSpeakers?: boolean; speakersSensitivity?: number }> {
+    const voiceId = serviceOption(rec.models.speakerEmbedding);
+    if (voiceId?.kind !== "voice-id" || voiceId.service !== option.service) return {};
+    const sensitivity = this.deps.settings.get().speechmaticsSpeakersSensitivity;
+    return { speakers: await this.deps.identity.serviceSpeakers(), getSpeakers: true, ...(sensitivity !== null ? { speakersSensitivity: sensitivity } : {}) };
   }
 
   /** Reads the recording block by block (yielding to live capture) into one WAV. */
@@ -371,17 +377,14 @@ export class PostProcessor {
     for (const r of await repo.listRuns(rec.id)) if (r.kind === "final-stt" && r.id !== runId && r.state === "finished") await repo.updateRun(r.id, { state: "aborted" });
     // Voice windows follow the speaker turn they fall in.
     const windows = await repo.listWindows(rec.id);
-    const moved = windows.map((w) => {
+    const moved = windows.filter((w) => !isServiceVoiceSpace(w.embeddingSpace)).map((w) => {
       const mid = (w.startSample + w.endSample) / 2;
       const t = turns.find((x) => x.startSample <= mid && mid < x.endSample);
       return t && t.clusterId !== w.clusterId ? { ...w, clusterId: t.clusterId } : null;
     }).filter((w): w is VoiceWindow => w !== null);
     if (moved.length) await repo.putWindows(moved);
-    await this.storeServiceSpeakers(rec, runId, result.speakers?.map((s) => ({ ...s, clusterId: map(s.clusterId) })) ?? []);
+    if (result.speakers?.length) await this.deps.identity.storeServiceIdentifiers(rec.id, result.speakers.map((s) => ({ ...s, clusterId: map(s.clusterId) })));
   }
-
-  /** Keeps voiceprint identifiers a service returned; used by Speechmatics voice identification. */
-  protected async storeServiceSpeakers(_rec: Recording, _runId: string, _speakers: { clusterId: ClusterId; identifiers: string[] }[]): Promise<void> {}
 
   private async diarize(rec: Recording, speech: () => Promise<TimeRange[]>, signal: AbortSignal): Promise<{ status: StageStatus; note?: string }> {
     const { repo, toolkit, identity } = this.deps;
@@ -518,6 +521,10 @@ export class PostProcessor {
   }
 
   private async identify(rec: Recording): Promise<{ status: StageStatus; note?: string }> {
+    if (isVoiceIdOption(rec.models.speakerEmbedding)) {
+      const named = await this.deps.identity.identifyByServiceLabels(rec.id);
+      return { status: "done", note: `${named.length} speakers recognized by Speechmatics` };
+    }
     const decisions = await this.deps.identity.identifyRecording(rec.id);
     const accepted = decisions.filter((d) => d.status === "accepted").length;
     return { status: "done", note: `${accepted} of ${decisions.length} speakers recognized` };

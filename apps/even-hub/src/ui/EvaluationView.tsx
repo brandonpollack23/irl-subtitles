@@ -1,5 +1,5 @@
 import { createSignal, For, Show } from "solid-js";
-import { activeAttributions, cosine, DEFAULT_POLICIES, equalErrorRate, meanVector, policyFor, rates, resolveCluster, type MatchPolicy } from "@irl/domain";
+import { activeAttributions, cosine, isVoiceIdOption, DEFAULT_POLICIES, equalErrorRate, meanVector, policyFor, rates, resolveCluster, type MatchPolicy } from "@irl/domain";
 import { embeddingSpaceOf } from "@irl/provider-local";
 import { app, Button, toast, useSettings } from "./lib";
 
@@ -118,6 +118,57 @@ const CONTROLS: readonly PolicyControl[] = [
  * read at every match, so moving a slider during a recording applies to the next live check.
  */
 function MatchTuning() {
+  const [s] = useSettings();
+  return (
+    <Show when={!isVoiceIdOption(s().models.speakerEmbedding)} fallback={<ServiceMatchTuning />}>
+      <LocalMatchTuning />
+    </Show>
+  );
+}
+
+/** With Speechmatics voice ID the service decides; its one knob is speakers_sensitivity. */
+function ServiceMatchTuning() {
+  const [s, update] = useSettings();
+  const [draft, setDraft] = createSignal<number | null>(null);
+  const value = () => draft() ?? s().speechmaticsSpeakersSensitivity ?? 0.5;
+  return (
+    <section class="panel">
+      <h2>Tune matching</h2>
+      <p class="small muted">
+        Speechmatics recognizes saved voices itself, so the score thresholds don't apply. Sensitivity sets how readily it assigns speech to a saved voice instead of a new speaker; it
+        applies from the next recording. {s().speechmaticsSpeakersSensitivity === null ? "Using the service default." : "Using your value."}
+      </p>
+      <label class="check">
+        <input type="checkbox" checked={s().showMatchDetails} onChange={(e) => void update({ showMatchDetails: e.currentTarget.checked })} />
+        <span>Show match details while recording</span>
+      </label>
+      <label class="field">
+        <span class="row" style={{ "justify-content": "space-between" }}>
+          Sensitivity to saved voices
+          <span class="num">{value().toFixed(2)}</span>
+        </span>
+        <span class="hint">Higher names saved people more often, and more often wrongly.</span>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.05}
+          value={value()}
+          onInput={(e) => setDraft(Number(e.currentTarget.value))}
+          onChange={async (e) => {
+            await update({ speechmaticsSpeakersSensitivity: Number(e.currentTarget.value) });
+            setDraft(null);
+          }}
+        />
+      </label>
+      <div class="row">
+        <Button label="Use the service default" disabled={s().speechmaticsSpeakersSensitivity === null} onClick={() => update({ speechmaticsSpeakersSensitivity: null })} />
+      </div>
+    </section>
+  );
+}
+
+function LocalMatchTuning() {
   const [s, update] = useSettings();
   // The value being dragged, saved when the slider is released.
   const [draft, setDraft] = createSignal<Partial<MatchPolicy>>({});

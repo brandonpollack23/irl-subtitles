@@ -38,6 +38,8 @@ export interface Settings {
   cloudConsent: Partial<Record<CloudConsentKey, string>>;
   /** Speechmatics realtime region. */
   speechmaticsRegion: "eu" | "us";
+  /** Speechmatics speakers_sensitivity (0–1) for voice identification; null uses the service default. */
+  speechmaticsSpeakersSensitivity: number | null;
 }
 
 export type CloudConsentKey = "soniox" | "speechmatics" | "speechmatics-voiceprints" | "summary-endpoint";
@@ -82,6 +84,7 @@ export function defaultSettings(models: ModelSelection): Settings {
     firstRunBenchmarkAt: null,
     cloudConsent: {},
     speechmaticsRegion: "eu",
+    speechmaticsSpeakersSensitivity: null,
   };
 }
 

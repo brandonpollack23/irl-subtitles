@@ -178,6 +178,24 @@ describe("SpeechmaticsSpeechProvider", () => {
     expect(sockets).toHaveLength(1);
   });
 
+  it("sends speakers_sensitivity with enrolled voices and reports identifiers the service refuses", async () => {
+    const sockets: FakeSocket[] = [];
+    const rejected: string[] = [];
+    const provider = new SpeechmaticsSpeechProvider({
+      apiKey: async () => "sk", fetch: keyFetch, socket: (url) => (sockets.push(new FakeSocket(url)), sockets.at(-1)!),
+      speakerSession: async () => ({ speakers: [{ label: "P_1", identifiers: ["old"] }], getSpeakers: true, sensitivity: 0.3 }),
+      onIdentifiersRejected: (r) => rejected.push(r),
+    });
+    const run = await provider.start({ ...config, language: "en" });
+    const collected = drain(run.events);
+    await sleep(0);
+    expect(sockets[0]!.json[0]).toMatchObject({ transcription_config: { speaker_diarization_config: { speakers_sensitivity: 0.3 } } });
+    sockets[0]!.server({ message: "Error", type: "invalid_config", reason: "speaker_identifiers are not valid for this model" });
+    await run.finish();
+    await collected;
+    expect(rejected).toEqual(["speaker_identifiers are not valid for this model"]);
+  });
+
   it("refuses to start without a key or for an unsupported language", async () => {
     await expect(new SpeechmaticsSpeechProvider({ apiKey: async () => null }).start(config)).rejects.toThrow("No Speechmatics API key saved");
     await expect(new SpeechmaticsSpeechProvider({ apiKey: async () => "k", fetch: keyFetch }).start({ ...config, language: "auto" })).rejects.toThrow("don't support auto");
