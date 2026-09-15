@@ -8,6 +8,7 @@
     "irl-subt-0i6.3",
     "irl-subt-0i6.7"
   ],
+  "closed_at": "2026-09-15T10:08:17Z",
   "created": "2026-09-13T11:20:47Z",
   "description": "Verify the production Even WebView on Android AND iOS exposes navigator.gpu WITHOUT flags, in the page and in a dedicated worker. Inventory adapter info, shader-f16, maxBufferSize/maxStorageBufferBindingSize, known-answer compute shader, Web Workers, WASM SIMD/threads, SharedArrayBuffer and whether cross-origin isolation (COOP/COEP) can be enabled for plugin content (needed by Turso WASM), OPFS sync access handles, storage quota, secure context. Also run in standalone Chrome (Android) and Safari (iOS 26+), but do not infer Even WebView support from them. Missing WebGPU in an Even WebView blocks local STT/summary on that platform. plan.md §3, §13.2. Runbook: docs/phase0/RUNBOOK.md Spike 2.",
   "id": "irl-subt-0i6.2",
@@ -26,7 +27,7 @@
     }
   ],
   "priority": 0,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Spike: WebGPU and platform capability inventory in Even WebView (Android + iOS)",
   "type": "task",
   "updated_at": "2026-09-15T10:08:17Z"
