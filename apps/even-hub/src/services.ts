@@ -239,7 +239,7 @@ export async function boot(onStep: (step: BootStep) => void = () => undefined): 
     const name = glassesSpeakerName(clusterId, clusterMap, active, new Map<string, Person>(people.map((p) => [p.id, p])), t().speakers);
     return { name, personId: active.get(clusterId)?.personId ?? null };
   };
-  const glasses = new GlassesController(controller, settings, names);
+  const glasses = new GlassesController(controller, settings, names, (id) => services.switchProfile(id));
   glassesRef.current = glasses;
 
   // Live models load at launch rather than when a recording starts; Start never waits on them.

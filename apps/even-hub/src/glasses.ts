@@ -1,14 +1,15 @@
 import { OsEventTypeList, StartUpPageCreateResult, type EvenAppBridge, type EvenHubEvent } from "@evenrealities/even_hub_sdk";
 import { getBridge, onHubEvent } from "@irl/capture";
-import { formatClock, G2_MENU_LABEL_MAX_BYTES, truncateUtf8, utf8ByteLength, errorMessage, SERVICE_NAMES } from "@irl/domain";
-import { describe, localeChanges, t } from "@irl/i18n";
+import { activeProfile, formatClock, G2_MENU_LABEL_MAX_BYTES, MAX_CONFIG_PROFILES, truncateUtf8, utf8ByteLength, errorMessage, SERVICE_NAMES } from "@irl/domain";
+import { describe, fmt, localeChanges, t } from "@irl/i18n";
 import type { LiveSnapshot, RecordingController } from "@irl/pipeline";
 import type { SettingsStore } from "@irl/storage";
 import { logger } from "./log";
+import type { ProfileSwitch } from "./profiles";
 
 const log = logger("glasses");
 
-const MENU = { start: 1, stop: 2, pause: 3, resume: 4, marker: 5, toggleAudio: 6 } as const;
+const MENU = { start: 1, stop: 2, pause: 3, resume: 4, marker: 5, toggleAudio: 6, firstProfile: 100 } as const;
 const STATUS = { id: 1, name: "status" };
 const BODY = { id: 2, name: "body" };
 const TEXT_LIMIT = 900;
@@ -52,7 +53,8 @@ function label(text: string) {
  * indicator with elapsed time, the current speaker, the last caption lines, and degraded-state text.
  * Touchpad gestures mirror Even's Conversate: tap to start, tap to pause or resume, double tap to end
  * (stop and summarize). Double tap on the idle root page opens the system exit dialog, as Even Hub
- * app review requires. The contextual menu adds marker and the "Save audio" toggle.
+ * app review requires. The contextual menu adds marker and the "Save audio" toggle, and on the idle page one item per
+ * configuration profile (irl-subt-r4t), the active one marked, to switch before starting.
  * Text updates use textContainerUpgrade and are coalesced so a slow BLE link never builds a backlog.
  */
 export class GlassesController {
@@ -67,12 +69,15 @@ export class GlassesController {
   private lastSnapshot: LiveSnapshot | null = null;
   private nameCache = new Map<string, GlassesSpeaker>();
   private nameVersion = "";
+  /** Profile ids behind the menu items on the glasses now, so a click acts on what was shown. */
+  private menuProfiles: string[] = [];
   failures = 0;
 
   constructor(
     private readonly controller: RecordingController,
     private readonly settings: SettingsStore,
     private readonly names: (recordingId: string, clusterId: string) => Promise<GlassesSpeaker>,
+    private readonly switchProfile: (id: string) => Promise<ProfileSwitch | null> = async () => null,
   ) {}
 
   async init(): Promise<boolean> {
@@ -140,14 +145,20 @@ export class GlassesController {
   }
 
   private menu(mode: Mode): { itemName: string; itemID: number }[] {
-    const persist = this.settings.get().persistAudio;
+    const settings = this.settings.get();
+    const persist = settings.persistAudio;
     const m = t().glasses.menu;
     switch (mode) {
-      case "idle":
+      case "idle": {
+        const active = activeProfile(settings);
+        const profiles = settings.configProfiles.slice(0, MAX_CONFIG_PROFILES);
+        this.menuProfiles = profiles.map((p) => p.id);
         return [
           { itemName: label(m.start), itemID: MENU.start },
           { itemName: label(persist ? m.audioOn : m.audioOff), itemID: MENU.toggleAudio },
+          ...profiles.map((p, i) => ({ itemName: label(p.id === active?.id ? t().glasses.profileActive(p.name) : p.name), itemID: MENU.firstProfile + i })),
         ];
+      }
       case "recording":
         return [
           { itemName: label(m.marker), itemID: MENU.marker },
@@ -361,7 +372,19 @@ export class GlassesController {
     else if (id === MENU.toggleAudio) {
       await this.controller.setPersistAudio(!this.settings.get().persistAudio);
       if (this.lastSnapshot) await this.render({ ...this.controller.current }, true);
-    }
+    } else if (id >= MENU.firstProfile) await this.onProfile(this.menuProfiles[id - MENU.firstProfile]);
+  }
+
+  /** Switching applies to the next recording, so it's only offered (and only acts) while idle. */
+  private async onProfile(profileId: string | undefined): Promise<void> {
+    if (!profileId || modeOf(this.controller.current) !== "idle") return;
+    const r = await this.switchProfile(profileId);
+    if (!r) return;
+    const g = t().glasses;
+    const reset = r.reset.length ? g.profileReset(fmt().list(r.reset.map((role) => t().settings.roles[role].title))) : "";
+    // The settings change rebuilds the menu with the new marker; the notice says which profile is now in use.
+    this.showNotice([g.profileSwitched(r.profile.name), reset].filter(Boolean).join("\n"));
+    void r.voices?.then((v) => v && log.info("voices re-enrolled for the profile's voice model", v)).catch((e) => log.error("re-enrolling voices failed", errorMessage(e)));
   }
 
   private async onTap(): Promise<void> {

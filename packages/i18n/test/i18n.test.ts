@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { G2_MENU_LABEL_MAX_BYTES, UI_LOCALES, UserError, utf8ByteLength } from "@irl/domain";
+import { G2_MENU_LABEL_MAX_BYTES, PROFILE_NAME_MAX_BYTES, UI_LOCALES, UserError, utf8ByteLength } from "@irl/domain";
 import { describer, en, fmt, formatters, ja, keyPaths, locale, localeChanges, matchLocale, messages, resolveLocale, setLocale, t } from "../src";
 
 describe("locale resolution", () => {
@@ -158,6 +158,12 @@ describe("glasses budgets", () => {
   it("every menu label fits the G2's 32-byte limit untruncated, in every locale", () => {
     for (const l of UI_LOCALES) {
       for (const [key, text] of Object.entries(messages(l).glasses.menu)) expect(utf8ByteLength(text), `${l}:${key} "${text}"`).toBeLessThanOrEqual(G2_MENU_LABEL_MAX_BYTES);
+    }
+  });
+
+  it("the active profile marker leaves room for a full-length profile name in the menu label", () => {
+    for (const l of UI_LOCALES) {
+      expect(utf8ByteLength(messages(l).glasses.profileActive("a".repeat(PROFILE_NAME_MAX_BYTES))), l).toBeLessThanOrEqual(G2_MENU_LABEL_MAX_BYTES);
     }
   });
 

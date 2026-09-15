@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { OsEventTypeList, type EvenHubEvent } from "@evenrealities/even_hub_sdk";
+import { defaultSettings, newConfigProfile, type ModelSelection, type Settings } from "@irl/domain";
 import { setLocale } from "@irl/i18n";
 import type { LiveSnapshot, RecordingController } from "@irl/pipeline";
 import type { SettingsStore } from "@irl/storage";
 import { GlassesController, gestureOf } from "../src/glasses";
+import type { ProfileSwitch } from "../src/profiles";
 
 const tap = { textEvent: { containerID: 2, containerName: "body" } } as EvenHubEvent;
 const doubleTap = { textEvent: { containerID: 2, containerName: "body", eventType: OsEventTypeList.DOUBLE_CLICK_EVENT } } as EvenHubEvent;
@@ -89,7 +91,7 @@ describe("glasses gestures (Conversate model)", () => {
 describe("glasses model loading notice", () => {
   function page(state: LiveSnapshot["state"]) {
     const snapshot = { state, provider: "local", persistAudio: false, capturedSamples: 0, segments: [], provisionalText: "", recordingId: null, currentClusterId: null, labelsVersion: 0 } as unknown as LiveSnapshot;
-    const settings = { get: () => ({ showCaptionsOnGlasses: true, persistAudio: false }), changes: { on: () => () => undefined } };
+    const settings = { get: () => ({ showCaptionsOnGlasses: true, persistAudio: false, configProfiles: [] }), changes: { on: () => () => undefined } };
     const glasses = new GlassesController({ current: snapshot } as unknown as RecordingController, settings as unknown as SettingsStore, async () => ({ name: "Speaker", personId: null }));
     const bridge = {
       rebuildPageContainer: vi.fn(async (_page: { textObject: { content: string }[] }) => true),
@@ -167,7 +169,7 @@ describe("glasses model loading notice", () => {
         state: "recording", provider: "local", persistAudio: false, capturedSamples: 0, segments: [], provisionalText: "", recordingId: "rec", currentClusterId: "L1", labelsVersion: 1,
         clusters: [{ recordingId: "rec", clusterId: "L1", ordinal: 1, evidenceMs: 0, ...(candidate ? { candidatePersonId: candidate } : {}) }],
       }) as unknown as LiveSnapshot;
-    const settings = { get: () => ({ showCaptionsOnGlasses: true, persistAudio: false }), changes: { on: () => () => undefined } };
+    const settings = { get: () => ({ showCaptionsOnGlasses: true, persistAudio: false, configProfiles: [] }), changes: { on: () => () => undefined } };
     let current = snapshot();
     const names = vi.fn(async () => ({ name: current.clusters[0]!.candidatePersonId ? "Alice?" : "Speaker 1", personId: null }));
     const glasses = new GlassesController({ current } as unknown as RecordingController, settings as unknown as SettingsStore, names);
@@ -229,5 +231,71 @@ describe("glasses model loading notice", () => {
     } finally {
       setLocale("en");
     }
+  });
+});
+
+describe("glasses profile menu (irl-subt-r4t)", () => {
+  const LOCAL: ModelSelection = { vad: "silero", sttLive: "moonshine", sttFinal: "whisper", speakerEmbedding: "campplus", summary: "gemma" };
+  const local = newConfigProfile("Local", { language: "en", powerPolicy: "balanced", models: LOCAL });
+  const cloud = newConfigProfile("Cloud", { language: "en", powerPolicy: "fast", models: { ...LOCAL, sttLive: "soniox:stt-rt-v5" } });
+
+  function setupMenu(state: LiveSnapshot["state"], profiles = [local, cloud]) {
+    const snapshot = { state, provider: "local", persistAudio: false, capturedSamples: 0, segments: [], provisionalText: "", recordingId: null, currentClusterId: null, labelsVersion: 0 } as unknown as LiveSnapshot;
+    let settings: Settings = { ...defaultSettings(LOCAL), configProfiles: profiles, activeConfigProfileId: local.id };
+    const store = { get: () => settings, changes: { on: () => () => undefined } };
+    const switchProfile = vi.fn(async (id: string): Promise<ProfileSwitch | null> => {
+      const p = settings.configProfiles.find((x) => x.id === id)!;
+      settings = { ...settings, ...p, name: undefined, id: undefined, activeConfigProfileId: id } as unknown as Settings;
+      return { profile: p, reset: p === cloud ? ["stt-live"] : [], voices: null };
+    });
+    const glasses = new GlassesController({ current: snapshot } as unknown as RecordingController, store as unknown as SettingsStore, async () => ({ name: "Speaker", personId: null }), switchProfile);
+    const bridge = {
+      rebuildPageContainer: vi.fn(async (_page: { textObject: { content: string }[]; menuObject?: { menuItems: { itemName: string; itemID: number }[] } }) => true),
+      textContainerUpgrade: vi.fn(async (_update: { containerID: number; content: string }) => true),
+    };
+    Object.assign(glasses, { bridge, created: Promise.resolve(true) });
+    const internals = glasses as unknown as { onSnapshot(s: LiveSnapshot): void; onEvent(e: EvenHubEvent): void; render(s: LiveSnapshot, rebuild: boolean): Promise<void>; renderTail: Promise<void> };
+    internals.onSnapshot(snapshot);
+    const menu = async () => {
+      await internals.renderTail;
+      return bridge.rebuildPageContainer.mock.calls.at(-1)![0].menuObject?.menuItems ?? [];
+    };
+    const click = async (itemName: string) => {
+      const item = (await menu()).find((i) => i.itemName === itemName)!;
+      internals.onEvent({ menuItemClickEvent: { itemID: item.itemID } } as unknown as EvenHubEvent);
+      await vi.waitFor(() => expect(switchProfile).toHaveBeenCalled());
+      await new Promise((ok) => setTimeout(ok, 0));
+      // What init()'s settings listener does on the idle page.
+      await internals.render(snapshot, true);
+    };
+    return { glasses, bridge, menu, click, switchProfile, internals };
+  }
+
+  it("lists each profile after Start and Save audio, marking the one in use", async () => {
+    const { menu } = setupMenu("idle");
+    expect((await menu()).map((i) => i.itemName)).toEqual(["Start recording", "Save audio: off", "* Local", "Cloud"]);
+  });
+
+  it("switches profile from the menu, moves the marker and says so on the idle page", async () => {
+    const { menu, click, switchProfile, bridge } = setupMenu("idle");
+    await click("Cloud");
+    expect(switchProfile).toHaveBeenCalledWith(cloud.id);
+    expect((await menu()).map((i) => i.itemName)).toEqual(["Start recording", "Save audio: off", "Local", "* Cloud"]);
+    const bodies = [...bridge.rebuildPageContainer.mock.calls.map(([p]) => p.textObject[1]!.content), ...bridge.textContainerUpgrade.mock.calls.filter(([u]) => u.containerID === 2).map(([u]) => u.content)];
+    expect(bodies.some((b) => b.startsWith("Profile: Cloud\nCan't run as saved; using this phone's default for: Live captions."))).toBe(true);
+  });
+
+  it("offers no profiles while recording, and ignores a stale profile click", async () => {
+    const { menu, switchProfile, internals } = setupMenu("recording");
+    expect((await menu()).map((i) => i.itemName)).toEqual(["Add marker", "Pause", "Stop and summarize"]);
+    internals.onEvent({ menuItemClickEvent: { itemID: 100 } } as unknown as EvenHubEvent);
+    await new Promise((ok) => setTimeout(ok, 0));
+    expect(switchProfile).not.toHaveBeenCalled();
+  });
+
+  it("keeps the menu within the firmware's 10 items", async () => {
+    const many = Array.from({ length: 12 }, (_, i) => newConfigProfile(`P${i}`, { language: "en", powerPolicy: "balanced", models: LOCAL }));
+    const { menu } = setupMenu("idle", many);
+    expect(await menu()).toHaveLength(10);
   });
 });
