@@ -21,6 +21,7 @@
     "@irl/pipeline": "workspace:*",
     "@irl/provider-local": "workspace:*",
     "@irl/provider-soniox": "workspace:*",
+    "@irl/provider-speechmatics": "workspace:*",
     "@irl/provider-summary": "workspace:*",
     "@irl/storage": "workspace:*",
     "@solidjs/web": "2.0.0-rc.8",

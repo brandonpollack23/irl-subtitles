@@ -82,6 +82,8 @@ export type SpeechEvent =
   | { type: "cluster"; clusterId: ClusterId; ordinal: number; providerLabel?: string }
   | { type: "window"; clusterId: ClusterId; embedding: VoiceEmbedding }
   | { type: "speech"; active: boolean; sample: number }
+  /** Voiceprint identifiers a service issued for this run's speakers (Speechmatics get_speakers), per cluster. */
+  | { type: "speakers"; speakers: { clusterId: ClusterId; identifiers: string[] }[] }
   | { type: "degraded"; reason: string | null }
   | { type: "error"; message: string; fatal: boolean };
 

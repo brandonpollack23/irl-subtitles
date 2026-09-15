@@ -53,6 +53,9 @@ importers:
       '@irl/provider-soniox':
         specifier: workspace:*
         version: link:../../packages/provider-soniox
+      '@irl/provider-speechmatics':
+        specifier: workspace:*
+        version: link:../../packages/provider-speechmatics
       '@irl/provider-summary':
         specifier: workspace:*
         version: link:../../packages/provider-summary
@@ -134,6 +137,12 @@ importers:
       '@soniox/client':
         specifier: 2.3.0
         version: 2.3.0
+
+  packages/provider-speechmatics:
+    dependencies:
+      '@irl/domain':
+        specifier: workspace:*
+        version: link:../domain
 
   packages/provider-summary:
     dependencies:

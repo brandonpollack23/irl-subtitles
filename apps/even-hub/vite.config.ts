@@ -32,6 +32,11 @@ const CONNECT = [
   "https://download.moonshine.ai",
   "https://api.soniox.com",
   "wss://stt-rt.soniox.com",
+  // Speechmatics (irl-subt-3xb.5): session keys, batch jobs, realtime regions.
+  "https://mp.speechmatics.com",
+  "https://asr.api.speechmatics.com",
+  "wss://eu.rt.speechmatics.com",
+  "wss://us.rt.speechmatics.com",
   ...(process.env.IRL_SUMMARY_ORIGIN ? [process.env.IRL_SUMMARY_ORIGIN] : []),
 ];
 

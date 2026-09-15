@@ -8,7 +8,7 @@
   "permissions": [
     {
       "name": "network",
-      "desc": "Downloads on-device speech models from Hugging Face once. Sends audio to Soniox only when you choose Soniox as the provider.",
+      "desc": "Downloads on-device speech models from Hugging Face once. Sends conversation audio to Soniox or Speechmatics only for the options you choose in Settings.",
       "whitelist": [
         "https://huggingface.co",
         "https://cdn-lfs.huggingface.co",
@@ -16,9 +16,15 @@
         "https://cas-bridge.xethub.hf.co",
         "https://download.moonshine.ai",
         "https://api.soniox.com",
-        "wss://stt-rt.soniox.com"
+        "wss://stt-rt.soniox.com",
+        "https://mp.speechmatics.com",
+        "https://asr.api.speechmatics.com",
+        "wss://eu.rt.speechmatics.com",
+        "wss://us.rt.speechmatics.com"
       ]
     }
   ],
-  "supported_languages": ["en"]
+  "supported_languages": [
+    "en"
+  ]
 }

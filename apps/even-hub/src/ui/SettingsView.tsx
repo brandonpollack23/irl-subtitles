@@ -22,6 +22,7 @@ import {
 } from "@irl/domain";
 import { availabilityOnDevice, catalogEntry, clearModelCache, defaultSelection, embeddingSpaceOf, entriesForRole, firstRunBenchmark, ROLE_KEYS, supportsLanguage, type LoadProgress } from "@irl/provider-local";
 import { testSonioxKey } from "@irl/provider-soniox";
+import { testSpeechmaticsKey } from "@irl/provider-speechmatics";
 import { app, bumpData, Button, bytes, toast, useData, useSettings } from "./lib";
 
 const ROLE_TITLES: Record<ModelRole, { title: string; hint: string }> = {
@@ -197,7 +198,7 @@ const SERVICES: readonly ServiceInfo[] = [
   {
     service: "speechmatics",
     privacy: "Receives audio only for the options you pick below. With voice identification it also keeps voiceprints of the people you name.",
-    test: null,
+    test: (k) => testSpeechmaticsKey(k),
   },
 ];
 
@@ -223,6 +224,16 @@ function ServiceKey(props: SectionProps & { info: ServiceInfo; saved: boolean; k
       <p class="small muted">{props.info.privacy}</p>
       <Show when={props.saved} fallback={<p class="small muted">No key saved.</p>}>
         <p class="small">A key is saved.</p>
+      </Show>
+      <Show when={props.info.service === "speechmatics"}>
+        <label class="field">
+          Region
+          <span class="hint">Where live audio is processed.</span>
+          <select value={props.s.speechmaticsRegion} onChange={(e) => void props.update({ speechmaticsRegion: e.currentTarget.value as Settings["speechmaticsRegion"] })}>
+            <option value="eu">Europe</option>
+            <option value="us">United States</option>
+          </select>
+        </label>
       </Show>
       <label class="field">
         {props.saved ? "Replace key" : "Key"}

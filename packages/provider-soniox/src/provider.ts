@@ -2,9 +2,11 @@ import { SonioxClient, type AudioSource, type AudioSourceHandlers, type Recordin
 import {
   AsyncQueue,
   errorMessage,
-  float32ToPcm,
-  SAMPLE_RATE,
+  RECONNECT_OVERLAP_SAMPLES,
+  reconnectDelayMs,
+  ReplayRing,
   serviceOption,
+  SAMPLE_RATE,
   sleep,
   type AudioFrame,
   type LiveSpeechProvider,
@@ -17,8 +19,6 @@ import { SonioxNormalizer } from "./normalizer";
 
 export const SONIOX_ENDPOINTS = ["https://api.soniox.com", "wss://stt-rt.soniox.com"] as const;
 
-const OVERLAP_SAMPLES = SAMPLE_RATE; // 1 s of context resent after reconnect
-const RING_SECONDS = 120;
 
 /** Smallest authenticated request; returns only success or a sanitized error (plan.md §10). */
 export async function testSonioxKey(apiKey: string, fetchImpl: typeof fetch = fetch): Promise<{ ok: boolean; message: string }> {
@@ -56,10 +56,11 @@ class PushSource implements AudioSource {
 interface Connection {
   index: number;
   startSample: number;
-  sentUntil: number;
   source: PushSource;
   recording: Recording;
   failed: boolean;
+  /** Resending [startSample, now) from the ring or storage; live frames wait so audio stays in order. */
+  resending: boolean;
 }
 
 export interface SonioxProviderOptions {
@@ -96,8 +97,7 @@ class SonioxRun implements LiveSpeechRun {
   private normalizer: SonioxNormalizer;
   private conn: Connection | null = null;
   private connections = 0;
-  private ring: { start: number; samples: Float32Array }[] = [];
-  private end = 0;
+  private ring = new ReplayRing();
   private closed = false;
   private reconnecting = false;
   private attempts = 0;
@@ -127,7 +127,7 @@ class SonioxRun implements LiveSpeechRun {
       source,
       auto_reconnect: false,
     } as never) as Recording;
-    const conn: Connection = { index, startSample: fromSample, sentUntil: fromSample, source, recording, failed: false };
+    const conn: Connection = { index, startSample: fromSample, source, recording, failed: false, resending: true };
     this.conn = conn;
     recording.on("result", (r) => {
       if (this.conn !== conn) return;
@@ -142,20 +142,13 @@ class SonioxRun implements LiveSpeechRun {
     void this.resend(conn, fromSample);
   }
 
-  /** Sends [fromSample, end) from the ring (or storage) into a new connection. */
+  /** Sends [fromSample, end) from the ring (or storage) into a new connection; later frames follow from push(). */
   private async resend(conn: Connection, fromSample: number): Promise<void> {
-    const ringStart = this.ring[0]?.start ?? this.end;
-    if (fromSample < ringStart && this.opts.replay) {
-      const older = await this.opts.replay(this.config.recordingId, fromSample, ringStart).catch(() => null);
-      if (older && this.conn === conn) conn.source.push(float32ToPcm(older));
-    }
-    for (const part of this.ring) {
-      const partEnd = part.start + part.samples.length;
-      if (partEnd <= Math.max(fromSample, ringStart)) continue;
-      const from = Math.max(0, Math.max(fromSample, ringStart) - part.start);
-      conn.source.push(float32ToPcm(part.samples.subarray(from)));
-    }
-    conn.sentUntil = this.end;
+    const replay = this.opts.replay;
+    const chunks = await this.ring.since(fromSample, replay && ((s, e) => replay(this.config.recordingId, s, e)));
+    if (this.conn !== conn) return;
+    for (const c of chunks) conn.source.push(c);
+    conn.resending = false;
   }
 
   private onConnectionError(conn: Connection, message: string): void {
@@ -172,10 +165,10 @@ class SonioxRun implements LiveSpeechRun {
     try {
       this.conn?.recording.cancel();
       this.emitAll(this.normalizer.flush());
-      const delay = Math.min(30_000, 1000 * 2 ** this.attempts++);
+      const delay = reconnectDelayMs(this.attempts++);
       await sleep(delay);
       if (this.closed) return;
-      this.connect(Math.max(0, this.normalizer.finalizedUntil - OVERLAP_SAMPLES));
+      this.connect(Math.max(0, this.normalizer.finalizedUntil - RECONNECT_OVERLAP_SAMPLES));
     } finally {
       this.reconnecting = false;
     }
@@ -183,17 +176,9 @@ class SonioxRun implements LiveSpeechRun {
 
   push(frame: AudioFrame): void {
     if (this.closed) return;
-    const samples = new Float32Array(frame.pcm.byteLength / 2);
-    const view = new DataView(frame.pcm.buffer, frame.pcm.byteOffset, frame.pcm.byteLength);
-    for (let i = 0; i < samples.length; i++) samples[i] = view.getInt16(i * 2, true) / 32768;
-    this.ring.push({ start: frame.startSample, samples });
-    this.end = frame.startSample + samples.length;
-    while (this.ring.length && this.ring[0]!.start + this.ring[0]!.samples.length < this.end - RING_SECONDS * SAMPLE_RATE) this.ring.shift();
+    this.ring.push(frame);
     const conn = this.conn;
-    if (conn && !conn.failed) {
-      conn.source.push(frame.pcm);
-      conn.sentUntil = this.end;
-    }
+    if (conn && !conn.failed && !conn.resending) conn.source.push(frame.pcm);
   }
 
   async finish(): Promise<void> {

@@ -36,6 +36,8 @@ export interface Settings {
   firstRunBenchmarkAt: string | null;
   /** When the user agreed to send data to each cloud service (audio; for Speechmatics voice ID also voiceprints). */
   cloudConsent: Partial<Record<CloudConsentKey, string>>;
+  /** Speechmatics realtime region. */
+  speechmaticsRegion: "eu" | "us";
 }
 
 export type CloudConsentKey = "soniox" | "speechmatics" | "speechmatics-voiceprints" | "summary-endpoint";
@@ -79,6 +81,7 @@ export function defaultSettings(models: ModelSelection): Settings {
     diagnosticsIncludeContent: false,
     firstRunBenchmarkAt: null,
     cloudConsent: {},
+    speechmaticsRegion: "eu",
   };
 }
 

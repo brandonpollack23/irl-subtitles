@@ -10,3 +10,4 @@ export * from "./summary";
 export * from "./transcript";
 export * from "./util";
 export * from "./redact";
+export * from "./replay-ring";

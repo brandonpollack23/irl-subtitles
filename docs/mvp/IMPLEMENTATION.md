@@ -15,6 +15,7 @@ needs checking against them.
 | `packages/pipeline` | Recording controller, provider coordinator, reconciler, post-processor, identity service, recovery, retention, export |
 | `packages/provider-local` | Model catalog + lock, device capabilities, ML workers, live local run, clustering, scheduler, benchmarks |
 | `packages/provider-soniox` | Soniox fused provider with reconnect and de-duplication |
+| `packages/provider-speechmatics` | Speechmatics realtime (raw WebSocket + temporary key), batch final transcript, key test |
 | `packages/provider-summary` | Prompting, chunk/reduce, JSON validation; local and cloud providers |
 | `apps/even-hub` | Composition root, G2 controller, SolidJS 2 phone UI |
 | `services/summary-api` | Optional transcript-only summary endpoint (Claude) |
@@ -66,6 +67,11 @@ app on :5174 (cross-origin isolated). `pnpm pin-models` refreshes
   can be named and learned after audio is gone.
 - **Pause** stops the audio source (the mic is released) and the sample clock
   simply continues when resumed; gaps are reported, never filled with silence.
+- **Cloud services are per-role options** (irl-subt-3xb): `@irl/domain` `selection.ts` lists them next to the local
+  catalog; an option that provides another role (a live stream's endpointing and final tokens) locks that role.
+  Recordings snapshot the locks. The reconnect ring is shared (`ReplayRing`).
+- **Speechmatics speaker labels** follow the Soniox rule (`S<conn>-<label>`), except enrolled voices, whose labels are
+  opaque person tokens and stay `SM-<token>` across connections.
 - **Soniox speaker labels are scoped per connection** (`S<conn>-<label>`) and linked
   after Stop with local embeddings, because Soniox numbering restarts on reconnect.
 - **Opus** uses WebCodecs, not a WASM encoder; without it audio stays PCM.
