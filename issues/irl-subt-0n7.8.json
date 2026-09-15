@@ -1,6 +1,8 @@
 {
   "assignee": "",
-  "blocked_by": [],
+  "blocked_by": [
+    "irl-subt-0n7.2"
+  ],
   "blocks": [],
   "created": "2026-09-15T05:39:51Z",
   "description": "- Font stack in style.css with Japanese system fonts (Hiragino Sans, \"Noto Sans JP\", system-ui) scoped by :lang(ja) so Han glyphs use Japanese forms.\n- Line breaking: line-break: strict; word-break: auto-phrase where supported (falls back gracefully).\n- Check buttons, pickers, tabs, and chips for overflow at ~400px width with ja strings; transcripts mixing English and Japanese.\n- No letter-spacing or text-transform rules that break CJK.",
@@ -11,5 +13,5 @@
   "status": "open",
   "title": "Japanese typography and layout in the phone UI",
   "type": "task",
-  "updated_at": "2026-09-15T05:39:51Z"
+  "updated_at": "2026-09-15T05:39:52Z"
 }
