@@ -19,11 +19,15 @@
     {
       "text": "Android done (Galaxy Z Fold7 SM-F966Q, Android 16, Snapdragon 8 Elite), modes C, A and A′, all over adb reverse to localhost. PASS for WebGPU: navigator.gpu without flags in the Even WebView (Chrome 151) in the page and a dedicated worker, qualcomm/adreno-8xx, shader-f16, maxBuffer/maxStorageBufferBinding 2 GiB, f32+f16 known-answer ok. Chrome 152 is the same. FINDING: the Even Android WebView is NOT cross-origin isolated. COOP/COEP headers arrive (documentHeaders show them), and the coi service worker controls the page, but crossOriginIsolated is false and there's no SAB. Chrome on the same phone is isolated. So Turso-on-OPFS is out on Android Even, falling back to IndexedDB (turso-driver already refuses), and ORT WASM is single-threaded there. OPFS sync handles work in a worker. Reports in spikes/phase0-probe/results/capabilities, notes in results/SHEET.md. Remaining: mode B (.ehpk) on Android; iPhone modes A, B and C.",
       "timestamp": "2026-09-15T10:01:34Z"
+    },
+    {
+      "text": "Closing on the Android results. User decision (2026-09-15): the iPhone won't be tested. Mode B (.ehpk) wasn't run. Follow-up: let the user choose WebGPU or CPU in settings, with a your-mileage-may-vary note.",
+      "timestamp": "2026-09-15T10:08:17Z"
     }
   ],
   "priority": 0,
   "status": "in_progress",
   "title": "Spike: WebGPU and platform capability inventory in Even WebView (Android + iOS)",
   "type": "task",
-  "updated_at": "2026-09-15T10:01:34Z"
+  "updated_at": "2026-09-15T10:08:17Z"
 }
