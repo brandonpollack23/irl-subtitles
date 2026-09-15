@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-15T09:09:38Z",
+  "description": "Verify on real G2 firmware: menu with 8 profiles renders, the active marker is legible, choosing an item switches and the idle page updates.",
+  "id": "irl-subt-r4t.4",
+  "labels": [],
+  "parent": "irl-subt-r4t",
+  "priority": 2,
+  "status": "open",
+  "title": "On-device check: profile items in the G2 menu (marker glyph, 10-item menu, switching)",
+  "type": "task",
+  "updated_at": "2026-09-15T09:09:38Z"
+}
