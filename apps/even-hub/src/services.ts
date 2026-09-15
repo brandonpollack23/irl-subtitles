@@ -37,7 +37,7 @@ import {
   type DeviceCapabilities,
 } from "@irl/provider-local";
 import { SonioxSpeechProvider } from "@irl/provider-soniox";
-import { SpeechmaticsSpeechProvider } from "@irl/provider-speechmatics";
+import { SpeechmaticsBatchProvider, SpeechmaticsSpeechProvider } from "@irl/provider-speechmatics";
 import { openStorage, SettingsStore, type StorageHandles } from "@irl/storage";
 import workletUrl from "@irl/capture/worklet?worker&url";
 import { GlassesController } from "./glasses";
@@ -132,7 +132,12 @@ export async function boot(onStep: (step: string) => void = () => undefined): Pr
     replay: (id, s, e) => audio.readRange(id, { startSample: s, endSample: e }),
   });
   const liveProviders: Record<string, LiveSpeechProvider> = { soniox, speechmatics };
-  const cloudFinal = (_optionId: string): CloudFinalProvider | null => null;
+  const speechmaticsBatch = new SpeechmaticsBatchProvider({ apiKey: () => storage.secrets.get("speechmatics_api_key") });
+  const finalProviders: Record<string, CloudFinalProvider> = { speechmatics: speechmaticsBatch };
+  const cloudFinal = (optionId: string): CloudFinalProvider | null => {
+    const o = serviceOption(optionId);
+    return o?.kind === "batch-final" ? (finalProviders[o.service] ?? null) : null;
+  };
 
   let controller!: RecordingController;
   const post = new PostProcessor({

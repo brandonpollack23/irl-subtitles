@@ -43,7 +43,7 @@ export class SpeechmaticsNormalizer {
     return this.lastFinalEnd;
   }
 
-  private cluster(connection: number, label: string | undefined, events: SpeechEvent[]): ClusterId | null {
+  private cluster(connection: number | "batch", label: string | undefined, events: SpeechEvent[]): ClusterId | null {
     if (!label || label === UNKNOWN_SPEAKER) return null;
     const id = speechmaticsClusterId(connection, label, this.enrolled);
     if (!this.clusters.has(id)) {
@@ -54,7 +54,7 @@ export class SpeechmaticsNormalizer {
   }
 
   /** The cluster a label of a connection maps to, if that label produced one. */
-  clusterIdFor(connection: number, label: string): ClusterId | null {
+  clusterIdFor(connection: number | "batch", label: string): ClusterId | null {
     const id = speechmaticsClusterId(connection, label, this.enrolled);
     return this.clusters.has(id) ? id : null;
   }
@@ -71,7 +71,7 @@ export class SpeechmaticsNormalizer {
     return events;
   }
 
-  final(connection: number, connectionStartSample: number, results: readonly SpeechmaticsResult[]): SpeechEvent[] {
+  final(connection: number | "batch", connectionStartSample: number, results: readonly SpeechmaticsResult[]): SpeechEvent[] {
     const events: SpeechEvent[] = [];
     const finals: TranscriptToken[] = [];
     const turns: SpeakerTurn[] = [];
