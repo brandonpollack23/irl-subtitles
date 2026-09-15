@@ -6,14 +6,15 @@
   "blocks": [
     "irl-subt-0n7.7"
   ],
+  "closed_at": "2026-09-15T06:11:55Z",
   "created": "2026-09-15T05:39:51Z",
   "description": "Extract hardcoded English from App, HistoryView, RecordingView, LiveView, PeopleView, SpeakerSheet, SettingsView (incl. consent and privacy wording for Soniox, Speechmatics, Speechmatics voiceprints, summary endpoint), DiagnosticsView, DevPlatformMarker and lib.tsx. EvaluationView stays English.\nSummary section headings (overview, key points, decisions, actions, questions) are UI strings; the summary content itself is not translated.\nKeep keys grouped by view. No behavior changes; en output must be byte-identical (snapshot or spot tests).",
   "id": "irl-subt-0n7.3",
   "labels": [],
   "parent": "irl-subt-0n7",
   "priority": 2,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Phone UI: move all strings in apps/even-hub/src/ui to the catalog",
   "type": "task",
-  "updated_at": "2026-09-15T06:03:03Z"
+  "updated_at": "2026-09-15T06:11:55Z"
 }
