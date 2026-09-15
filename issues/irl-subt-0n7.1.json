@@ -5,6 +5,7 @@
     "irl-subt-0n7.6",
     "irl-subt-0n7.9"
   ],
+  "closed_at": "2026-09-15T05:45:40Z",
   "created": "2026-09-15T05:39:51Z",
   "description": "Answer before glasses work starts:\n- Does the G2 firmware font render hiragana, katakana, and common kanji in text containers and list/menu items (textContainerUpgrade, menu itemName)? Any tofu, width, or line-wrapping problems? If not, what fallback (romaji? English on glasses only?) is acceptable.\n- Real byte/character limits for menu labels and text bodies with 3-byte UTF-8 characters; does truncateUtf8 ever split a grapheme visibly?\n- What locale the Even Realities host WebView reports (navigator.language/languages) on Android and iOS when the phone and the Even app are set to Japanese; does the Even Hub SDK expose the host app language?\n- Semantics of app.json \"supported_languages\" for Even Hub review/listing, and whether permission descriptions or store text can be localized.\nRecord results in docs/phase0/RUNBOOK.md (or a new note) and comment findings here.",
   "id": "irl-subt-0n7.1",
@@ -17,7 +18,7 @@
     }
   ],
   "priority": 2,
-  "status": "open",
+  "status": "closed",
   "title": "Spike: Japanese text on the G2 display and host locale detection in the Even Hub WebView",
   "type": "task",
   "updated_at": "2026-09-15T05:45:40Z"
