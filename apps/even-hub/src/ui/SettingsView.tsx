@@ -26,6 +26,7 @@ import { testSonioxKey } from "@irl/provider-soniox";
 import { testSpeechmaticsKey } from "@irl/provider-speechmatics";
 import { describe, fmt, LOCALE_NAMES, resolveLocale, t } from "@irl/i18n";
 import { app, bumpData, Button, bytes, toast, useData, useSettings } from "./lib";
+import { ProfilesSection } from "./Profiles";
 
 const ROLES: readonly ModelRole[] = ["vad", "stt-live", "stt-final", "speaker-embedding", "summary"];
 const roleTitles = (roles: readonly ModelRole[]) => fmt().list(roles.map((r) => t().settings.roles[r].title));
@@ -37,6 +38,7 @@ export function SettingsView() {
     <>
       <h1>{t().settings.title}</h1>
       <DisplaySection s={s()} update={update} />
+      <ProfilesSection s={s()} update={update} />
       <RecordingSection s={s()} update={update} keys={keys.value() ?? {}} />
       <ServicesSection s={s()} update={update} keys={keys.value() ?? {}} />
       <ModelsSection s={s()} update={update} keys={keys.value() ?? {}} />

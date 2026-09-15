@@ -5,6 +5,7 @@ import { activeAttributions, dataFlow, displayName, isVoiceIdOption, SERVICE_NAM
 import { embeddingSpaceOf } from "@irl/provider-local";
 import { app, Button, go, speakerColor, SpeakerName, useData, useSettings } from "./lib";
 import { liveSnapshot, warmupStatus } from "./model";
+import { ProfilePicker } from "./Profiles";
 import { SpeakerSheet } from "./SpeakerSheet";
 
 export function LiveView() {
@@ -44,6 +45,7 @@ export function LiveView() {
               {describe().dataFlow(dataFlow(settings().models))}{" "}
               {settings().persistAudio ? t().live.audioWillSave : t().live.audioWontSave}
             </p>
+            <ProfilePicker s={settings()} />
             <Show when={modelsLoading()}>
               <p class="small muted" role="status">
                 {t().live.loadingModels(warmup().loading.join(", "))}
