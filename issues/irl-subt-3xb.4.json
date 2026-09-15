@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [
     "irl-subt-3xb.5"
@@ -10,8 +10,8 @@
   "labels": [],
   "parent": "irl-subt-3xb",
   "priority": 2,
-  "status": "open",
+  "status": "in_progress",
   "title": "Spike: Speechmatics realtime, batch and speaker ID from the Even WebView",
   "type": "task",
-  "updated_at": "2026-09-15T03:51:05Z"
+  "updated_at": "2026-09-15T04:29:26Z"
 }
