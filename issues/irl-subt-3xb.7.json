@@ -11,9 +11,15 @@
   "id": "irl-subt-3xb.7",
   "labels": [],
   "parent": "irl-subt-3xb",
+  "comments": [
+    {
+      "text": "Implemented with pipeline tests using fake Speechmatics live/batch providers (enroll on naming, live naming by label, batch naming, 50-id budget, stale re-enroll from clips, Forget voice stops sending). Real-account verification tracked in irl-subt-3xb.9.",
+      "timestamp": "2026-09-15T04:53:20Z"
+    }
+  ],
   "priority": 2,
   "status": "in_progress",
   "title": "Speechmatics voice identification: enroll identifiers and name known speakers live and in batch",
   "type": "task",
-  "updated_at": "2026-09-15T04:41:24Z"
+  "updated_at": "2026-09-15T04:53:20Z"
 }
