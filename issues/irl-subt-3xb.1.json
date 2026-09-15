@@ -1,0 +1,15 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-15T03:51:05Z",
+  "description": "Replace the provider/model split with one selection model and a pure resolver the UI and pipeline both use.\n\nToday: Settings.provider: ProviderKind (\"local\" | \"soniox\", packages/domain/src/recording.ts:56) picks the live path, and ModelSelection (packages/domain/src/models.ts) holds local catalog ids plus specials (\"off\", \"same-as-live\", \"cloud\" summary). Soniox-ness leaks as string checks: post-processor.ts:223 and :262, controller.ts:195, LiveView.tsx:13/42/62, RecordingView.tsx:205/223, services.ts:155.\n\nBuild (packages/domain):\n- A service option type next to ModelCatalogEntry: { id (\"soniox:stt-rt-v5\", \"speechmatics:enhanced\", \"speechmatics:voice-id\", \"cloud-summary\"), roles, service (\"soniox\" | \"speechmatics\" | \"summary-endpoint\"), execution: \"cloud\", languages, provides: Partial\u003cRecord\u003cModelRole, note\u003e\u003e, requires: { secret?: SecretName, roleService?: {roles, service} } }. Local catalog entries stay as they are.\n- resolveSelection(selection, { hasSecret, language, caps }) -\u003e per role: { effectiveId, locked: null | { by: optionId, label: \"Provided by Soniox\" }, options: [{id, disabled: null | reason}] }. Pure, unit-tested.\n- Capability rules (initial):\n  - live = Soniox RT or Speechmatics RT: vad locked (service endpointing), stt-final locked (final tokens are the transcript; mirrors post-processor.ts:223). Voice model stays selectable (local embeddings on service ranges, as fuseSoniox does today).\n  - live = off/local and final = cloud batch: vad stays for live local; if live is off, vad locked by the batch service.\n  - voice model = speechmatics:voice-id: requires Speechmatics in stt-live or stt-final; local match policy doesn't apply.\n  - summary options unchanged (\"cloud\" becomes the cloud-summary option; endpoint address still in settings).\n- SecretStore names become a union (soniox_api_key | speechmatics_api_key), packages/domain/src/settings.ts SecretStore and packages/storage/src/secrets.ts.\n- Settings migration: provider \"soniox\" -\u003e models.sttLive = \"soniox:\u003csonioxModel\u003e\"; drop Settings.provider (keep Recording.provider for history, derived from the resolved live option at start). sonioxModel folds into the option id.\n- Recording snapshots the resolved selection (incl. locks) so reprocessing and history labels don't re-derive from current settings.\n\nDone when: resolver tests cover the rules above incl. \"no key\", \"language unsupported\", and old-settings migration; no behavior change yet for existing local/Soniox users.",
+  "id": "irl-subt-3xb.1",
+  "labels": [],
+  "parent": "irl-subt-3xb",
+  "priority": 2,
+  "status": "open",
+  "title": "Selection registry: cloud options, capability rules, resolver",
+  "type": "task",
+  "updated_at": "2026-09-15T03:51:05Z"
+}
