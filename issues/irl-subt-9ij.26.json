@@ -2,14 +2,16 @@
   "assignee": "",
   "blocked_by": [],
   "blocks": [],
+  "closed_at": "2026-09-15T10:34:53Z",
+  "close_reason": "Licenses page landed in jj revision szpzqqql",
   "created": "2026-09-15T10:23:59Z",
   "description": "Settings ends with a Licenses button opening #/licenses. Build-time Vite plugin collects every third-party package whose modules land in the main and worker bundles (name, version, SPDX, LICENSE/NOTICE text) into licenses.json; dev server derives it from the runtime dependency tree. Adds notices npm metadata can't find: ONNX Runtime third-party notices (ORT web WASM and the vendored Moonshine WASM), Emscripten runtime, Turso WASM Rust crates, license texts for packages that ship none. Models section lists catalog models with license and source. en/ja.",
   "id": "irl-subt-9ij.26",
   "labels": [],
   "parent": "irl-subt-9ij",
   "priority": 2,
-  "status": "open",
+  "status": "closed",
   "title": "Licenses screen: button at the bottom of Settings listing every bundled third-party license and downloadable model license",
   "type": "task",
-  "updated_at": "2026-09-15T10:23:59Z"
+  "updated_at": "2026-09-15T10:34:53Z"
 }
