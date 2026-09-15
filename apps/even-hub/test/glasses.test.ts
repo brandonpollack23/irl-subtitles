@@ -18,7 +18,7 @@ function setup(state: LiveSnapshot["state"]) {
     addMarker: vi.fn(async () => undefined),
   };
   const bridge = { shutDownPageContainer: vi.fn(async () => true) };
-  const glasses = new GlassesController(controller as unknown as RecordingController, {} as SettingsStore, async () => "Speaker");
+  const glasses = new GlassesController(controller as unknown as RecordingController, {} as SettingsStore, async () => ({ name: "Speaker", personId: null }));
   Object.assign(glasses, { bridge });
   const send = (e: EvenHubEvent) => (glasses as unknown as { onEvent(e: EvenHubEvent): void }).onEvent(e);
   return { controller, bridge, send };
@@ -89,7 +89,7 @@ describe("glasses model loading notice", () => {
   function page(state: LiveSnapshot["state"]) {
     const snapshot = { state, provider: "local", persistAudio: false, capturedSamples: 0, segments: [], provisionalText: "", recordingId: null, currentClusterId: null, labelsVersion: 0 } as unknown as LiveSnapshot;
     const settings = { get: () => ({ showCaptionsOnGlasses: true, persistAudio: false }), changes: { on: () => () => undefined } };
-    const glasses = new GlassesController({ current: snapshot } as unknown as RecordingController, settings as unknown as SettingsStore, async () => "Speaker");
+    const glasses = new GlassesController({ current: snapshot } as unknown as RecordingController, settings as unknown as SettingsStore, async () => ({ name: "Speaker", personId: null }));
     const bridge = {
       rebuildPageContainer: vi.fn(async (_page: { textObject: { content: string }[] }) => true),
       textContainerUpgrade: vi.fn(async (_update: { containerID: number; content: string }) => true),
@@ -158,17 +158,41 @@ describe("glasses model loading notice", () => {
       }) as unknown as LiveSnapshot;
     const settings = { get: () => ({ showCaptionsOnGlasses: true, persistAudio: false }), changes: { on: () => () => undefined } };
     let current = snapshot();
-    const names = vi.fn(async () => (current.clusters[0]!.candidatePersonId ? "Alice?" : "Speaker 1"));
+    const names = vi.fn(async () => ({ name: current.clusters[0]!.candidatePersonId ? "Alice?" : "Speaker 1", personId: null }));
     const glasses = new GlassesController({ current } as unknown as RecordingController, settings as unknown as SettingsStore, names);
     const bridge = { rebuildPageContainer: vi.fn(async (_page: { textObject: { content: string }[] }) => true), textContainerUpgrade: vi.fn(async (_u: { containerID: number; content: string }) => true) };
     Object.assign(glasses, { bridge, created: Promise.resolve(true) });
-    const internals = glasses as unknown as { onSnapshot(s: LiveSnapshot): void; refreshNames(s: LiveSnapshot): Promise<void>; nameCache: Map<string, string> };
+    const internals = glasses as unknown as { onSnapshot(s: LiveSnapshot): void; refreshNames(s: LiveSnapshot): Promise<void>; nameCache: Map<string, { name: string }> };
     await internals.refreshNames(current);
-    expect(internals.nameCache.get("rec:L1")).toBe("Speaker 1");
+    expect(internals.nameCache.get("rec:L1")?.name).toBe("Speaker 1");
     // Same labelsVersion: the identity change was already counted before the coordinator attached the candidate.
     current = snapshot("person_alice");
     await internals.refreshNames(current);
-    expect(internals.nameCache.get("rec:L1")).toBe("Alice?");
+    expect(internals.nameCache.get("rec:L1")?.name).toBe("Alice?");
+  });
+
+  it("leaves the wearer's own speech off the captions when asked (irl-subt-kdl.19)", async () => {
+    const seg = (id: string, clusterId: string, text: string) => ({ id, clusterId, text });
+    const snapshot = {
+      state: "recording", provider: "local", persistAudio: false, capturedSamples: 0, recordingId: "rec", currentClusterId: "L1", labelsVersion: 1, clusters: [],
+      segments: [seg("s1", "L2", "Nice to meet you."), seg("s2", "L1", "Likewise."), seg("s3", "L2", "Where are you from?"), seg("s4", "L1", "Seattle.")],
+      provisionalText: "And you",
+    } as unknown as LiveSnapshot;
+    const speakers: Record<string, { name: string; personId: string | null }> = { L1: { name: "Brandon", personId: "person_me" }, L2: { name: "Alice", personId: "person_alice" } };
+    const render = async (patch: Record<string, unknown>) => {
+      const settings = { get: () => ({ showCaptionsOnGlasses: true, persistAudio: false, selfPersonId: "person_me", hideOwnSpeechOnGlasses: false, ...patch }), changes: { on: () => () => undefined } };
+      const glasses = new GlassesController({ current: snapshot } as unknown as RecordingController, settings as unknown as SettingsStore, async (_r, c) => speakers[c]!);
+      const internals = glasses as unknown as { refreshNames(s: LiveSnapshot): Promise<void>; texts(mode: string, s: LiveSnapshot): { body: string } };
+      await internals.refreshNames(snapshot);
+      return internals.texts("recording", snapshot).body;
+    };
+    expect(await render({})).toBe("Alice: Where are you from?\nBrandon: Seattle.\nAnd you\n(audio not saved)");
+    expect(await render({ hideOwnSpeechOnGlasses: true })).toBe("Alice: Nice to meet you.\nAlice: Where are you from?\n(audio not saved)");
+    // Nobody marked as me: nothing is hidden.
+    expect(await render({ hideOwnSpeechOnGlasses: true, selfPersonId: null })).toBe("Alice: Where are you from?\nBrandon: Seattle.\nAnd you\n(audio not saved)");
+    // A "Name?" candidate isn't an attribution, so it's still shown.
+    speakers.L1 = { name: "Brandon?", personId: null };
+    expect(await render({ hideOwnSpeechOnGlasses: true })).toBe("Alice: Where are you from?\nBrandon?: Seattle.\nAnd you\n(audio not saved)");
   });
 
   it("says on the idle page when a model failed to load or isn't downloaded", async () => {

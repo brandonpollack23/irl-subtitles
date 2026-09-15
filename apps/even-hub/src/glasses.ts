@@ -32,6 +32,12 @@ const TAP_SETTLE_MS = 500;
 
 type Mode = "idle" | "recording" | "paused" | "finalizing";
 
+/** A live speaker as the glasses show it: the caption-line name, and the person it's attributed to (not a mere candidate). */
+export interface GlassesSpeaker {
+  name: string;
+  personId: string | null;
+}
+
 function modeOf(s: LiveSnapshot): Mode {
   if (s.state === "recording" || s.state === "starting") return "recording";
   if (s.state === "paused") return "paused";
@@ -61,14 +67,14 @@ export class GlassesController {
   private modelsLine: "loading" | "ready" | null = null;
   private modelsTimer: ReturnType<typeof setTimeout> | null = null;
   private lastSnapshot: LiveSnapshot | null = null;
-  private nameCache = new Map<string, string>();
+  private nameCache = new Map<string, GlassesSpeaker>();
   private nameVersion = "";
   failures = 0;
 
   constructor(
     private readonly controller: RecordingController,
     private readonly settings: SettingsStore,
-    private readonly names: (recordingId: string, clusterId: string) => Promise<string>,
+    private readonly names: (recordingId: string, clusterId: string) => Promise<GlassesSpeaker>,
   ) {}
 
   async init(): Promise<boolean> {
@@ -183,19 +189,29 @@ export class GlassesController {
     if (mode === "finalizing") return { status: "Stopped", body: "Saved. Processing on your phone…" };
     // The recording indicator is always the first thing on the status line (plan.md §11: never covert).
     const indicator = mode === "paused" ? "PAUSED" : "REC";
-    const speaker = s.currentClusterId && s.recordingId ? this.nameCache.get(`${s.recordingId}:${s.currentClusterId}`) : null;
+    const speakerOf = (clusterId: string | null) => (clusterId && s.recordingId ? this.nameCache.get(`${s.recordingId}:${clusterId}`) : undefined);
+    const speaker = speakerOf(s.currentClusterId)?.name;
     const status = `${indicator} ${formatClock(s.capturedSamples)}  ${speaker ?? ""}`.trim();
+    const settings = this.settings.get();
+    // With "Hide my speech" on, lines from a speaker attributed to the wearer are left off. A "Name?" candidate isn't
+    // enough: hiding someone else's words on a weak match is worse than showing the wearer's own.
+    const isOwn = (clusterId: string | null) => settings.hideOwnSpeechOnGlasses && !!settings.selfPersonId && speakerOf(clusterId)?.personId === settings.selfPersonId;
     let body: string;
-    if (s.degraded && !this.settings.get().showCaptionsOnGlasses) body = s.degraded;
+    if (s.degraded && !settings.showCaptionsOnGlasses) body = s.degraded;
     else {
-      const last = s.segments.slice(-2).map((seg) => {
-        const name = seg.clusterId && s.recordingId ? this.nameCache.get(`${s.recordingId}:${seg.clusterId}`) : null;
-        return name ? `${name}: ${seg.text}` : seg.text;
-      });
-      const caption = [...last, s.provisionalText].filter(Boolean).join("\n");
+      const last = s.segments
+        .filter((seg) => !isOwn(seg.clusterId))
+        .slice(-2)
+        .map((seg) => {
+          const name = speakerOf(seg.clusterId)?.name;
+          return name ? `${name}: ${seg.text}` : seg.text;
+        });
+      // Provisional text has no speaker yet; it belongs to the latest turn's speaker.
+      const provisional = isOwn(s.currentClusterId) ? "" : s.provisionalText;
+      const caption = [...last, provisional].filter(Boolean).join("\n");
       const tail = caption.length > 220 ? `…${caption.slice(-220)}` : caption;
       const hint = mode === "paused" ? "Tap to resume. Double tap to end." : "";
-      const captions = this.settings.get().showCaptionsOnGlasses;
+      const captions = settings.showCaptionsOnGlasses;
       const modelsLine = !captions ? "" : line === "loading" ? LOADING_LIVE : line === "ready" ? READY : "";
       body = [captions ? tail : "", modelsLine, s.degraded ?? "", hint, `(${audio})`].filter(Boolean).join("\n");
     }
@@ -212,7 +228,8 @@ export class GlassesController {
 
   private async refreshNames(s: LiveSnapshot): Promise<void> {
     if (!s.recordingId) return;
-    const ids = new Set([s.currentClusterId, ...s.segments.slice(-2).map((x) => x.clusterId)].filter((x): x is string => !!x));
+    // Every speaker in the recent segments, not just the last two: hiding the wearer's lines reaches further back.
+    const ids = new Set([s.currentClusterId, ...s.segments.map((x) => x.clusterId)].filter((x): x is string => !!x));
     // A live candidate ("Possibly X") lands on the clusters after the identity change that bumps labelsVersion.
     const version = `${s.labelsVersion}|${s.clusters.map((c) => `${c.clusterId}=${c.candidatePersonId ?? ""}`).join(",")}`;
     if (version !== this.nameVersion) {
@@ -223,7 +240,7 @@ export class GlassesController {
     for (const id of ids) {
       const key = `${s.recordingId}:${id}`;
       if (this.nameCache.has(key)) continue;
-      this.nameCache.set(key, await this.names(s.recordingId, id).catch(() => "Speaker"));
+      this.nameCache.set(key, await this.names(s.recordingId, id).catch(() => ({ name: "Speaker", personId: null })));
       changed = true;
     }
     if (changed && this.lastSnapshot) void this.render(this.lastSnapshot, false);

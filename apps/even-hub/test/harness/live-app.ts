@@ -82,7 +82,9 @@ export async function createLiveApp(opts: LiveAppOptions = {}) {
   const names = async (recordingId: string, clusterId: string) => {
     const [clusters, attrs, people] = await Promise.all([repo.listClusters(recordingId), repo.listAttributions(recordingId), repo.listPeople()]);
     const clusterMap = new Map([...clusters, ...controller.current.clusters].map((c) => [c.clusterId, c]));
-    return glassesSpeakerName(clusterId, clusterMap, activeAttributions(attrs), new Map<string, Person>(people.map((p) => [p.id, p])));
+    const active = activeAttributions(attrs);
+    const name = glassesSpeakerName(clusterId, clusterMap, active, new Map<string, Person>(people.map((p) => [p.id, p])));
+    return { name, personId: active.get(clusterId)?.personId ?? null };
   };
 
   // GlassesController.init() minus the SDK: the same subscriptions, with a bridge that records what it's sent.

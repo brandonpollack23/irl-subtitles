@@ -1,7 +1,7 @@
 import { createSignal, For, Show } from "solid-js";
 import { activeAttributions, displayName, G2_SPEAKER_NAME_MAX_BYTES } from "@irl/domain";
 import { embeddingSpaceOf } from "@irl/provider-local";
-import { app, bumpData, Button, go, Sheet, toast, useData, when } from "./lib";
+import { app, bumpData, Button, go, Sheet, toast, useData, useSettings, when } from "./lib";
 
 export function PeopleView() {
   const people = useData(
@@ -12,6 +12,7 @@ export function PeopleView() {
     },
   );
   const space = () => embeddingSpaceOf(app().settings.get().models.speakerEmbedding);
+  const [settings] = useSettings();
   return (
     <>
       <h1>People</h1>
@@ -32,7 +33,10 @@ export function PeopleView() {
               const current = () => row.profile.profiles.find((p) => p.profile.embeddingSpace === space());
               return (
                 <a href={`#/people/${row.person.id}`}>
-                  <strong>{row.person.fullName}</strong>
+                  <strong>
+                    {row.person.fullName}
+                    {settings().selfPersonId === row.person.id ? <span class="muted"> (me)</span> : null}
+                  </strong>
                   <span class="small muted">
                     {row.person.shortName ? `Glasses show "${row.person.shortName}". ` : ""}
                     {!current()
@@ -75,6 +79,7 @@ export function PersonView(props: { id: string }) {
   const [shortName, setShortName] = createSignal<string | null>(null);
   const [merging, setMerging] = createSignal(false);
   const [forgetting, setForgetting] = createSignal(false);
+  const [settings, updateSettings] = useSettings();
 
   return (
     <Show when={data.value()} fallback={<p class="muted">{data.loading() ? "Loading…" : "This person was removed."}</p>}>
@@ -106,6 +111,29 @@ export function PersonView(props: { id: string }) {
                 toast("Names saved. Every transcript and summary uses them now.");
               }}
             />
+          </div>
+
+          <div class="panel">
+            <label class="check">
+              <input
+                type="checkbox"
+                checked={settings().selfPersonId === props.id}
+                onChange={(e) => void updateSettings({ selfPersonId: e.currentTarget.checked ? props.id : null })}
+              />
+              <span>
+                This is me
+                <span class="small muted" style={{ display: "block" }}>
+                  Only one person can be you; checking this unmarks anyone else.
+                </span>
+              </span>
+            </label>
+            <Show when={settings().selfPersonId === props.id}>
+              <p class="small">
+                {settings().hideOwnSpeechOnGlasses ? `"Hide my speech on the glasses" is on in ` : `You can leave what you say off the glasses captions: turn on "Hide my speech on the glasses" in `}
+                <a href="#/settings">Settings › Recording</a>
+                {settings().hideOwnSpeechOnGlasses ? ", so what you say is left off the glasses captions." : "."} The phone transcript keeps everything.
+              </p>
+            </Show>
           </div>
 
           <div class="panel">
@@ -161,6 +189,7 @@ export function PersonView(props: { id: string }) {
                       kind="quiet"
                       onClick={async () => {
                         const op = await app().identity.mergePeople(other.id, props.id);
+                        if (settings().selfPersonId === props.id) await updateSettings({ selfPersonId: other.id });
                         setMerging(false);
                         go(`#/people/${other.id}`);
                         bumpData();

@@ -1,3 +1,4 @@
+import type { PersonId } from "./audio";
 import type { MatchPolicy } from "./identity";
 import type { ModelSelection, PowerPolicy } from "./models";
 import type { ProviderKind } from "./recording";
@@ -24,6 +25,10 @@ export interface Settings {
   consentNoticeAcceptedAt: string | null;
   captureSource: CaptureSourceKind;
   showCaptionsOnGlasses: boolean;
+  /** The person who is the wearer ("me"); at most one. Set from their page in People. */
+  selfPersonId: PersonId | null;
+  /** Leave the wearer's own speech (speakers recognized as selfPersonId) off the glasses captions. */
+  hideOwnSpeechOnGlasses: boolean;
   matchPolicies: Record<string, MatchPolicy>;
   /** Show each speaker's match scores and why a name was withheld while recording (match tuning). */
   showMatchDetails: boolean;
@@ -67,6 +72,8 @@ export function defaultSettings(models: ModelSelection): Settings {
     consentNoticeAcceptedAt: null,
     captureSource: "glasses",
     showCaptionsOnGlasses: true,
+    selfPersonId: null,
+    hideOwnSpeechOnGlasses: false,
     matchPolicies: {},
     showMatchDetails: false,
     diagnosticsIncludeContent: false,

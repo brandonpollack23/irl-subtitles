@@ -67,6 +67,7 @@ function RecordingSection(props: SectionProps) {
         <input type="checkbox" checked={props.s.showCaptionsOnGlasses} onChange={(e) => void props.update({ showCaptionsOnGlasses: e.currentTarget.checked })} />
         <span>Show captions on the glasses</span>
       </label>
+      <HideOwnSpeech s={props.s} update={props.update} />
       <label class="field">
         Microphone
         <select value={props.s.captureSource} onChange={(e) => void props.update({ captureSource: e.currentTarget.value as Settings["captureSource"] })}>
@@ -100,6 +101,28 @@ function RecordingSection(props: SectionProps) {
         </label>
       </Show>
     </section>
+  );
+}
+
+function HideOwnSpeech(props: SectionProps) {
+  const me = useData(
+    () => props.s.selfPersonId,
+    async (id) => (id ? await app().storage.repo.getPerson(id) : null),
+  );
+  return (
+    <label class="check">
+      <input type="checkbox" checked={props.s.hideOwnSpeechOnGlasses} onChange={(e) => void props.update({ hideOwnSpeechOnGlasses: e.currentTarget.checked })} />
+      <span>
+        Hide my speech on the glasses
+        <span class="small muted" style={{ display: "block" }}>
+          {me.value()
+            ? `Leaves out what ${me.value()!.fullName} says once their voice is recognized. The phone transcript keeps everything.`
+            : me.loading()
+              ? ""
+              : "Open yourself in People and check \"This is me\" first. The phone transcript keeps everything."}
+        </span>
+      </span>
+    </label>
   );
 }
 
