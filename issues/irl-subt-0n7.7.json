@@ -1,5 +1,5 @@
 {
-  "assignee": "",
+  "assignee": "Brandon Pollack",
   "blocked_by": [
     "irl-subt-0n7.3",
     "irl-subt-0n7.4",
@@ -15,8 +15,8 @@
   "labels": [],
   "parent": "irl-subt-0n7",
   "priority": 2,
-  "status": "open",
+  "status": "in_progress",
   "title": "Japanese catalog: translate and review all strings",
   "type": "task",
-  "updated_at": "2026-09-15T05:39:52Z"
+  "updated_at": "2026-09-15T06:16:58Z"
 }
