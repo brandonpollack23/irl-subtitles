@@ -2,13 +2,14 @@
   "assignee": "Brandon Pollack",
   "blocked_by": [],
   "blocks": [],
+  "closed_at": "2026-09-16T05:14:44Z",
   "created": "2026-09-16T05:13:59Z",
   "description": "Follow-up to irl-subt-cde: picking a key-blocked cloud option in a role's dropdown opens a key field in place instead of being unselectable, and every service gets a 'How do I get a key?' sheet with the signup click-path, console URL, what it costs to start, and a caveat. Verified signup paths and free tiers live on 2026-09-16.",
   "id": "irl-subt-w5h",
   "labels": [],
   "priority": 2,
-  "status": "in_progress",
+  "status": "closed",
   "title": "Cloud summary keys: in-place entry and a how-to-get-a-key modal per service",
   "type": "task",
-  "updated_at": "2026-09-16T05:14:10Z"
+  "updated_at": "2026-09-16T05:14:44Z"
 }
