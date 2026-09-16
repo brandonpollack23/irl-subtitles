@@ -1,0 +1,14 @@
+{
+  "assignee": "",
+  "blocked_by": [],
+  "blocks": [],
+  "created": "2026-09-16T03:07:35Z",
+  "description": "The summary role's cloud option asked for an arbitrary HTTPS endpoint (Settings \u003e Privacy 'Cloud summary service address') backed by the services/summary-api relay. Replace it with five named provider options in the Summary dropdown, each a normal cloud service that requires only its own API key in Settings \u003e Services, like Soniox and Speechmatics. Drops Settings.cloudSummaryEndpoint and the summaryEndpoint selection requirement; adds per-provider secrets, consent keys and an optional model override.",
+  "id": "irl-subt-cde",
+  "labels": [],
+  "priority": 2,
+  "status": "open",
+  "title": "Cloud summaries pick an LLM provider (Gemini, OpenAI, Anthropic, DeepSeek, OpenRouter) instead of a custom endpoint",
+  "type": "task",
+  "updated_at": "2026-09-16T03:07:35Z"
+}
